@@ -478,3 +478,37 @@
 **下一步建議**：
 * 將最新的 `index.php` 透過 cPanel 檔案管理員上傳覆蓋至 `public_html/ai_line/`。
 * 訪問 `https://elitile.tw/ai_line/` 進行最終的實際上線體驗與跨裝置排版測試。
+
+---
+
+## 2026-07-29 進度更新：LINE MINI App 線上保留單小程式升級與 GitHub 雲端雙軌部署
+
+**核心目標**：升級「線上保留單系統」為全功能 LINE MINI App / LIFF 小程式體驗，完成多單位換算、草稿自動暫存、捷徑提示與 LINE 一鍵分享功能，並建置 GAS + GitHub Actions 雙軌自動化部署。
+
+### 1. 📱 LINE MINI App 小程式 4 大核心功能升級 (`reservation_form.html`)
+* **📲 手機桌面捷徑引導 (Shortcut Banner)**：
+  頂部整合質感指示條 `#shortcutBanner`，引導客戶點選右上角『`···`』選單選擇『新增至主畫面』，將保留單直接變為手機桌面 App。
+* **💾 24 小時草稿自動暫存與秒復原 (Draft Auto-Save & Recovery)**：
+  * 當使用者輸入案名、地址或品項時觸發防抖動儲存 `saveDraftDebounced`。
+  * 重新開啟表單時，`checkDraftOnLoad` 會自動秒帶回所有填寫資訊，並彈出 `💾 已自動為您復原上次未完成的草稿！` 提示。
+* **📦 多單位彈性切換與精準庫存驗證 (Unit Selector & Conversion)**：
+  * 每列品項加入「坪 / 片 / 箱 / 包」單位選擇器。
+  * 後端 [0_Core.js](file:///Users/titankou2002/Library/CloudStorage/GoogleDrive-titankou2002@gmail.com/我的雲端硬碟/BT/Antigravity/客戶版機器人/0_Core.js#L174) 的 `checkStockForForm` 自動按單品比例 `rRatio` 及 `pcsPerBox` 換算為總需求片數後進行庫存充足度計算。
+* **📲 一鍵分享保留單摘要 (Share Summary Card)**：
+  * 送出成功彈窗新增 `📲 分享保留單摘要` 按鈕。
+  * 優先呼叫 `liff.shareTargetPicker`（或備援 `navigator.share` / 剪貼簿），可將申請單號、案名與品項列表一鍵轉發至 LINE 聊天室。
+
+### 2. ⚡ 後端 GAS 原生直連與 Web App 發布
+* **無縫 HTML 渲染 (`0_Core.js` `doGet`)**：
+  修改 `doGet` 預設回傳 `HtmlService.createHtmlOutputFromFile('reservation_form')`，使 GAS 雲端 URL 直接原生渲染表單。
+* **Cloud Version @687**：
+  透過 `clasp push` 與 `clasp deploy` 發布至正式 Deployment ID `AKfycbxB2wyCEt-0xeXL43Ak7NvkB2oNGVMfXwJRJvMZcCR0GYhpNlIbTtEwqy_G4pVJ5N-x` 版本 **@687**。
+
+### 3. 🐙 GitHub CI/CD 自動化部署與新網域 (`bigt.cc`)
+* **GitHub Repository 綁定**：
+  * 客戶版機器人倉庫：[`titankou2002/linebot`](https://github.com/titankou2002/linebot) (分支 `main`)
+  * 建立 `.github/workflows/deploy.yml`，修改 HTML 存檔並 `git push` 時自動觸發 FTP 發布至 cPanel `/public_html/line/`。
+* **新網域 LIFF Endpoint 更新**：
+  * LIFF ID：`2007666611-fbGOItDt`
+  * Endpoint URL：👉 `https://bigt.cc/line/reservation_form.html`
+
