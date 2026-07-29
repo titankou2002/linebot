@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mockups",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/tmp", "-p", "7788", "--no-clipboard"],
+      "port": 7788
+    }
+  ]
+}

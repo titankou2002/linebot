@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>高雅瓷 · 線上保留申請</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    /* ── Light Mode (Default) ── */
+    --bg:             #f5f6f8;
+    --bg2:            #ffffff;
+    --card:           #ffffff;
+    --card2:          #fafafa;
+    --border:         rgba(0,0,0,0.08);
+    --text:           #1e1e1e;
+    --muted:          #7a7a7a;
+    --purple:         #e1306c;
+    --purpdk:         #c13584;
+    --teal:           #3897f0;
+    --green:          #22c55e;
+    --yellow:         #f59e0b;
+    --red:            #ef4444;
+    --r:              14px;
+    --ig-grad:        linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    --color-scheme:   light;
+    --val-color:      #3897f0;
+    --val-border:     rgba(56, 151, 240, 0.4);
+    --hdr-grad-start: rgba(225, 48, 108, 0.05);
+    --title-grad:     linear-gradient(135deg, #121212 30%, #e1306c);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* ── Dark Mode ── */
+      --bg:             #000000;
+      --bg2:            #121212;
+      --card:           #121212;
+      --card2:          #262626;
+      --border:         rgba(255,255,255,0.09);
+      --text:           #ffffff;
+      --muted:          #a8a8a8;
+      --purple:         #e1306c;
+      --purpdk:         #c13584;
+      --teal:           #405de6;
+      --green:          #22c55e;
+      --yellow:         #fd1d1d;
+      --red:            #f87171;
+      --color-scheme:   dark;
+      --val-color:      #c4b5fd;
+      --val-border:     rgba(196, 181, 253, 0.3);
+      --hdr-grad-start: #14172e;
+      --title-grad:     linear-gradient(135deg, #fff 30%, #c4b5fd);
+    }
+  }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Outfit', 'Noto Sans TC', -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding-bottom: 56px;
+  }
+
+  /* ── Loading / Error screens ── */
+  #loadingScreen {
+    position: fixed; inset: 0; z-index: 900;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+    padding: 40px;
+  }
+  .spinner {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 3px solid rgba(124,92,252,.2);
+    border-top-color: var(--purple);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loadStatus { font-size: 14px; color: var(--muted); text-align: center; }
+  #errorScreen {
+    display: none; position: fixed; inset: 0; z-index: 900;
+    background: var(--bg);
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; padding: 40px; text-align: center;
+  }
+  #errorScreen.show { display: flex; }
+  #errorIcon { font-size: 48px; }
+  #errorTitle { font-size: 20px; font-weight: 800; }
+  #errorMsg   { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  /* ── Main form (hidden until auth ok) ── */
+  #formWrap { display: none; }
+  #formWrap.show { display: block; }
+
+  /* ── Header ── */
+  .hdr {
+    background: linear-gradient(180deg, var(--hdr-grad-start) 0%, var(--bg) 100%);
+    padding: 20px 20px 14px; text-align: center;
+  }
+  .hdr h1 {
+    font-size: 22px; font-weight: 800; letter-spacing: .5px;
+    background: var(--title-grad);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hdr-sub {
+    font-size: 12px; color: var(--muted); margin-top: 4px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .badge {
+    background: rgba(124,92,252,.2); border: 1px solid rgba(124,92,252,.4);
+    color: #c4b5fd; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+  }
+
+  /* ── Identity strip ── */
+  .id-strip {
+    margin: 14px 16px;
+    background: rgba(124,92,252,.1); border: 1px solid rgba(124,92,252,.25);
+    border-radius: var(--r); padding: 12px 14px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .id-cell { display: flex; flex-direction: column; gap: 2px; }
+  .id-cell .lbl { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+  .id-cell .val { font-size: 14px; font-weight: 700; color: var(--val-color); }
+  .id-cell .val-input {
+    background: transparent; border: none;
+    border-bottom: 1.5px dashed var(--val-border);
+    font-size: 14px; font-weight: 700; color: var(--val-color);
+    padding: 2px 0 3px; width: 100%; outline: none;
+    font-family: inherit; transition: border-bottom-color .2s;
+  }
+  .id-cell .val-input:focus { border-bottom-color: #e1306c; }
+  .id-cell.full  { grid-column: 1/-1; }
+  .id-cell.teal .val { color: var(--teal); }
+
+  /* ── Steps ── */
+  .steps {
+    display: flex; align-items: center;
+    padding: 0 24px 16px;
+  }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+  .step-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .step.done   .step-dot { background: #405de6; color:#fff; box-shadow:0 0 10px rgba(64,93,230,.4); }
+  .step.active .step-dot { background: var(--ig-grad); color:#fff; box-shadow:0 0 14px rgba(225,48,108,.5); }
+  .step.idle   .step-dot { background: var(--card2); color:var(--muted); border:1.5px solid var(--border); }
+  .step-label  { font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .step.active .step-label { color: #fcc2d7; font-weight: 600; }
+  .step.done   .step-label { color: #405de6; }
+  .step-line { flex:1; height:1.5px; margin-bottom:20px; }
+  .step-line.done { background: linear-gradient(90deg, #405de6, #e1306c); }
+  .step-line.idle { background: var(--border); }
+
+  /* ── Section ── */
+  .sec {
+    margin: 0 16px 14px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--r);
+  }
+  .sec-hdr {
+    padding: 13px 16px 11px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .sec-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: rgba(124,92,252,.15);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .sec-title { font-size: 14px; font-weight: 700; }
+  .sec-opt   { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .sec-body  { padding: 14px 16px; }
+
+  /* ── Fields ── */
+  .f+.f { margin-top: 12px; }
+  .f label {
+    display: block; font-size: 11px; font-weight: 600; color: var(--muted);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: .4px;
+  }
+  .f label .req { color: var(--red); margin-left: 2px; }
+  .f input, .f select {
+    width:100%; height:44px;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: 9px; padding: 0 13px;
+    font-size: 15px; color: var(--text);
+    -webkit-appearance: none; appearance: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .f input[type="date"] { color-scheme: dark; }
+  .f input::placeholder { color: var(--muted); font-size: 14px; }
+  .f input:focus, .f select:focus {
+    outline: none; border-color: #e1306c;
+    box-shadow: 0 0 0 3px rgba(225,48,108,.25);
+  }
+  .f-row { display: flex; gap: 10px; }
+  .f-row .f { flex: 1; }
+
+  /* ── Product items ── */
+  .pi {
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 12px; margin-bottom: 10px;
+    transition: border-color .25s, background .25s;
+  }
+  .pi.ok   { border-color:rgba(34,197,94,.35);  background:rgba(34,197,94,.05); }
+  .pi.chk  { border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.05); }
+  .pi.none { border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.05); }
+
+  .pi-hdr  { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .pi-num  {
+    font-size:11px; font-weight:700; color:var(--muted);
+    background:var(--bg2); padding:2px 9px; border-radius:20px;
+    border:1px solid var(--border);
+  }
+  .sbadge {
+    font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px;
+    display:flex; align-items:center; gap:4px;
+  }
+  .sbadge.g   { background:rgba(34,197,94,.15);  color:#4ade80; }
+  .sbadge.y   { background:rgba(245,158,11,.15); color:#fbbf24; }
+  .sbadge.r   { background:rgba(248,113,113,.15);color:#f87171; }
+  .sbadge.gr  { background:rgba(255,255,255,.05);color:var(--muted); }
+
+  .pi-row { display:flex; gap:8px; align-items:flex-end; }
+  .pi-row .fc { flex:2; }
+  .pi-row .fq { flex:1; }
+  .btn-rm {
+    background:none; border:none; color:var(--muted);
+    font-size:20px; line-height:1; padding:4px 6px; cursor:pointer;
+    border-radius:6px; flex-shrink:0; transition:color .2s;
+  }
+  .btn-rm:hover { color:var(--red); }
+
+  /* 到貨日期 */
+  .arrival {
+    margin-top:10px; padding-top:10px;
+    border-top:1px dashed rgba(245,158,11,.3);
+  }
+  .arrival label {
+    display:flex; align-items:center; gap:5px;
+    font-size:11px; font-weight:600; color:#fbbf24;
+    margin-bottom:6px; letter-spacing:0; text-transform:none;
+  }
+  .arrival-hint { font-size:10px; color:var(--muted); font-weight:400; }
+  .arrival input[type="date"] {
+    width:100%; height:40px;
+    background:var(--bg2);
+    border:1.5px solid rgba(245,158,11,.35);
+    border-radius:8px; padding:0 12px;
+    font-size:14px; color:var(--text); color-scheme:dark;
+    -webkit-appearance:none;
+  }
+  .pi.none .arrival input[type="date"] { border-color:rgba(248,113,113,.3); }
+
+  /* ── Add item btn ── */
+  .btn-add {
+    width:100%; height:42px;
+    border:1.5px dashed rgba(124,92,252,.45); border-radius:9px;
+    background:rgba(124,92,252,.07); color:#c4b5fd;
+    font-size:13px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    transition:background .2s;
+  }
+  .btn-add:active { background:rgba(124,92,252,.14); }
+  .item-cnt { margin-left:auto; font-size:11px; color:var(--muted); }
+
+  /* ── Legend ── */
+  .legend { margin:0 16px 14px; display:flex; gap:12px; flex-wrap:wrap; }
+  .leg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+  .leg-dot { width:8px; height:8px; border-radius:50%; }
+
+  /* ── Submit ── */
+  .submit-wrap { padding:4px 16px 0; }
+  .btn-submit {
+    width:100%; height:52px;
+    background:var(--ig-grad);
+    border:none; border-radius:13px; color:#fff;
+    font-size:16px; font-weight:700; letter-spacing:.5px; cursor:pointer;
+    box-shadow:0 4px 20px rgba(225,48,108,.4);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .15s, opacity .2s;
+  }
+  .btn-submit:active { transform:scale(.98); }
+  .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
+  .submit-note {
+    text-align:center; font-size:11px; color:var(--muted);
+    margin-top:10px; line-height:1.6;
+  }
+
+  /* ── Success overlay ── */
+  .overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(8,9,20,.9); backdrop-filter:blur(8px);
+    z-index:999; flex-direction:column;
+    align-items:center; justify-content:center; padding:24px;
+  }
+  .overlay.show { display:flex; }
+  .sc {
+    background:var(--card); border:1px solid rgba(124,92,252,.4);
+    border-radius:20px; padding:28px 24px; text-align:center;
+    width:100%; max-width:340px;
+    box-shadow:0 0 40px rgba(124,92,252,.2);
+  }
+  .sc-icon {
+    width:68px; height:68px; background:rgba(34,197,94,.12);
+    border:2px solid rgba(34,197,94,.3); border-radius:50%;
+    margin:0 auto 16px;
+    display:flex; align-items:center; justify-content:center; font-size:32px;
+  }
+  .sc h2 { font-size:20px; font-weight:800; margin-bottom:8px; }
+  .sc p  { font-size:13px; color:var(--muted); line-height:1.7; }
+  .order-no {
+    margin-top:16px; padding:10px 14px;
+    background:var(--bg2); border-radius:9px; border:1px solid var(--border);
+    font-size:13px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .order-no span { color:var(--muted); }
+  .order-no strong { color:#c4b5fd; font-weight:700; }
+  .btn-close {
+    margin-top:18px; width:100%; height:46px;
+    background:var(--ig-grad);
+    border:none; border-radius:10px; color:#fff;
+    font-size:15px; font-weight:700; cursor:pointer;
+  }
+
+  /* Autocomplete Suggestions Dropdown */
+  .sug-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    background: var(--bg2);
+    border: 1.5px solid #e1306c;
+    border-radius: 10px;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.6), 0 8px 10px -6px rgba(0,0,0,0.6);
+    margin-top: 5px;
+  }
+  .sug-item {
+    padding: 11px 14px;
+    font-size: 13.5px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+  .sug-item:hover {
+    background: rgba(225,48,108,0.18);
+    color: #fff;
+  }
+  .sug-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* Single Tile image confirming preview styles */
+  .tile-img-container {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255,255,255,0.1);
+  }
+  .tile-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tile-preview:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* Zoom image overlay style */
+  .zoom-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+  .zoom-overlay img {
+    max-width: 90%;
+    max-height: 85%;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+    object-fit: contain;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .zoom-overlay.show {
+    display: flex;
+  }
+
+  /* ── Rotating Spin Animation & Toast Styles ── */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .loading-spin {
+    display: inline-block;
+    animation: spin 1.2s infinite linear;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  .sbadge.gr {
+    animation: pulse 1.2s infinite ease-in-out;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(18, 18, 18, 0.9);
+    border: 1.5px solid rgba(225, 48, 108, 0.5);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14.5px;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    z-index: 10005;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ① Loading screen -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <p id="loadStatus">正在驗證 LINE 身份中...</p>
+</div>
+
+<!-- ② Error screen -->
+<div id="errorScreen">
+  <div id="errorIcon">🔒</div>
+  <div id="errorTitle">驗證失敗</div>
+  <div id="errorMsg">請關閉此視窗並從 LINE 重新開啟。</div>
+</div>
+
+<!-- ③ Main form (shown after auth) -->
+<div id="formWrap">
+
+  <div class="hdr">
+    <h1>線上保留申請</h1>
+    <div class="hdr-sub">
+      <span>🏗️ 高雅瓷磁磚</span>
+      <span class="badge">客戶專用</span>
+    </div>
+  </div>
+
+  <!-- 自動帶入的身份資訊 -->
+  <div class="id-strip">
+    <div class="id-cell">
+      <span class="lbl">客戶名稱</span>
+      <input type="text" class="val-input" id="dispCompany" value="—" placeholder="請填寫客戶名稱" />
+    </div>
+    <div class="id-cell">
+      <span class="lbl">負責業務</span>
+      <input type="text" class="val-input" id="dispSales" value="—" placeholder="請填寫負責業務" />
+    </div>
+    <div class="id-cell full teal">
+      <span class="lbl">保留日期</span>
+      <span class="val" id="dispDate">—</span>
+    </div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step done">
+      <div class="step-dot">✓</div>
+      <div class="step-label">查庫存</div>
+    </div>
+    <div class="step-line done"></div>
+    <div class="step active">
+      <div class="step-dot">2</div>
+      <div class="step-label">填保留單</div>
+    </div>
+    <div class="step-line idle"></div>
+    <div class="step idle">
+      <div class="step-dot">3</div>
+      <div class="step-label">等待審核</div>
+    </div>
+  </div>
+
+  <!-- 📲 MINI App / 桌面捷徑引導 Banner -->
+  <div id="shortcutBanner" style="margin: 0 16px 14px; background: linear-gradient(135deg, rgba(56,151,240,0.12), rgba(124,92,252,0.12)); border: 1px solid rgba(56,151,240,0.3); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text);">
+      <span style="font-size: 16px;">📲</span>
+      <span><strong>小程式捷徑：</strong>點選右上角『<strong>···</strong>』選單選擇『<strong>新增至主畫面</strong>』，即可直接從桌面開啟！</span>
+    </div>
+    <button onclick="document.getElementById('shortcutBanner').style.display='none'" style="background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 6px;">✕</button>
+  </div>
+
+  <!-- 💾 草稿復原提示 -->
+  <div id="draftNotice" style="display: none; margin: 0 16px 14px; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.4); border-radius: 12px; padding: 10px 14px; align-items: center; justify-content: space-between; font-size: 12px; color: #fbbf24;">
+    <span>💾 偵測到您未完成的保留草稿</span>
+    <div style="display: flex; gap: 8px;">
+      <button onclick="restoreDraft()" style="background: #f59e0b; border: none; color: #fff; border-radius: 6px; padding: 4px 10px; font-weight: 700; font-size: 11px; cursor: pointer;">載入草稿</button>
+      <button onclick="clearDraft()" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--muted); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer;">捨棄</button>
+    </div>
+  </div>
+
+  <!-- 工程資訊 -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-icon">🏗️</div>
+      <div class="sec-title">工程資訊</div>
+    </div>
+    <div class="sec-body">
+
+
+      <div class="f">
+        <label>案名 / 工程名稱 <span class="req">*</span></label>
+        <input id="fCase" type="text" placeholder="例：台中七期 A 棟浴室工程" />
+      </div>
+      <div class="f">
+        <label>工地地址 <span class="req">*</span></label>
+        <input id="fAddr" type="text" placeholder="例：台中市西屯區市政北一路 168 號" />
+      </div>
+      <div class="f">
+        <label>預計進場日期 <span class="req">*</span></label>
+        <input id="fEntry" type="date" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 聯絡資訊 (選填) -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-icon">📞</div>
+      <div class="sec-title">聯絡資訊</div>
+      <span class="sec-opt">選填</span>
+    </div>
+    <div class="sec-body">
+      <div class="f-row">
+        <div class="f">
+          <label>聯絡人</label>
+          <input id="fContact" type="text" placeholder="工地負責人" />
+        </div>
+        <div class="f">
+          <label>聯絡電話</label>
+          <input id="fPhone" type="tel" placeholder="0912-345-678" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 品項清單 -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-icon">📦</div>
+      <div class="sec-title">品項清單</div>
+    </div>
+    <div class="sec-body" id="itemList"></div>
+    <div style="padding:0 16px 16px">
+      <button class="btn-add" id="btnAdd" onclick="addItem()">
+        <span style="font-size:17px">＋</span>
+        新增品項
+        <span class="item-cnt" id="itemCnt">— / 10</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 圖例 -->
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>庫存足夠</div>
+    <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>確認中（缺口≤50%）</div>
+    <div class="leg"><div class="leg-dot" style="background:#f87171"></div>無庫存</div>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-wrap">
+    <button class="btn-submit" id="btnSubmit" onclick="submitForm()">
+      📋 送出保留申請
+    </button>
+    <p class="submit-note">送出後業務小姐將在 LINE 群組審核，<br>通常 1 個工作天內回覆。</p>
+  </div>
+</div>
+
+<!-- ④ Success overlay -->
+<div class="overlay" id="overlay">
+  <div class="sc">
+    <div class="sc-icon">✅</div>
+    <h2>申請已送出！</h2>
+    <p>業務小姐已收到通知，<br>將於 1 個工作天內確認並回覆您。</p>
+    <div class="order-no">
+      <span>保留單編號</span>
+      <strong id="orderNo">—</strong>
+    </div>
+    <button class="btn-close" style="background: linear-gradient(135deg, #06C755 0%, #00B900 100%); margin-top: 14px; box-shadow: 0 4px 15px rgba(6,199,85,0.4);" onclick="shareReservationSummary()">📲 分享保留單摘要</button>
+    <button class="btn-close" style="margin-top: 10px; background: rgba(255,255,255,0.1); border: 1px solid var(--border);" onclick="closeLiff()">返回 LINE</button>
+  </div>
+</div>
+
+<!-- LINE LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+// =========================================================
+// ⚠️  CONFIG — 換成實際的值後部署
+// =========================================================
+const CONFIG = {
+  // 客戶版機器人 GAS 部署 URL (doGet + doPost)
+  GAS_API : "https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7NvkB2oNGVMfXwJRJvMZcCR0GYhpNlIbTtEwqy_G4pVJ5N-x/exec",
+  // LINE Developers 申請的 LIFF ID（需設 endpoint 為本頁 URL）
+  LIFF_ID : "2007666611-fbGOItDt"
+};
+// =========================================================
+
+let authInfo = null;   // { userId, company, sales, level }
+let itemCount = 0;
+const MAX_ITEMS = 10;
+
+// ── 取得符合規範的 URL 參數 ──
+function getUrlParams() {
+  const p = new URLSearchParams(location.search);
+  let code = p.get('itemCode') || p.get('sku') || '';
+  // 排除 LINE LIFF 登入回調帶有的 code & state 衝突
+  if (!code && p.get('code') && !p.has('state') && !p.has('liffClientId')) {
+    code = p.get('code');
+  }
+  const qty = p.get('qty') || '';
+  return { code, qty };
+}
+
+// ── 1. 初始化 ──
+document.addEventListener("DOMContentLoaded", () => {
+  const p = new URLSearchParams(location.search);
+  // 開發者 mock 模式：?test=true
+  if (p.get('test') === 'true') {
+    authInfo = { userId:"mock", company:"漢樺建設", sales:"陳勁多", level:"free" };
+    initForm(getUrlParams());
+    return;
+  }
+  initLiff();
+});
+
+// ── 2. LIFF 驗證 ──
+function initLiff() {
+  // 檢查是否有 openUrl 參數（用於從 FLEX 卡片打開 Google Drive）
+  const urlParams = new URLSearchParams(location.search);
+  const openUrl = urlParams.get('openUrl');
+  if (openUrl) {
+    window.open(openUrl, '_blank');
+    return;
+  }
+  
+  setStatus("正在初始化 LINE SDK...");
+  liff.init({ liffId: CONFIG.LIFF_ID })
+    .then(() => {
+      if (!liff.isLoggedIn()) {
+        if (window.self !== window.top) {
+          showExternalGuide();
+        } else {
+          setStatus("跳轉至 LINE 登入中...");
+          liff.login();
+        }
+      } else {
+        setStatus("身份確認中...");
+        liff.getProfile()
+          .then(profile => fetchUserInfo(profile.userId))
+          .catch(() => showError("身份驗證失敗", "無法取得 LINE 個人資料，請確認授權設定。"));
+      }
+    })
+    .catch(() => showError("LINE SDK 初始化失敗", "請確認網路連線，或從 LINE 官方帳號開啟此頁面。"));
+}
+
+// ── 3. 向 GAS 取得用戶資訊 ──
+async function fetchUserInfo(userId, retries = 3) {
+  setStatus("驗證身份中，請稍候...");
+  const url = `${CONFIG.GAS_API}?action=getUserInfoForForm&userId=${encodeURIComponent(userId)}`;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res  = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        authInfo = { userId, ...data };
+        initForm(getUrlParams());
+        return;
+      } else {
+        showError("無使用權限", data.error || "查無您的 LINE ID，請聯繫負責業務開通權限。");
+        return;
+      }
+    } catch (e) {
+      if (i === retries - 1) showError("連線失敗", "無法連接至後台，請稍後再試。");
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
+
+// ── 4. 表單初始化（驗證通過後執行）──
+function initForm({ code, qty }) {
+  // 填入身份資訊
+  const compVal = (authInfo.company || '').trim();
+  const userRealName = (authInfo.name || '').split('-').pop().trim();
+
+  document.getElementById('dispCompany').value = compVal || '';
+  document.getElementById('dispSales').value   = userRealName || '';
+
+  const today = new Date();
+  document.getElementById('dispDate').textContent =
+    `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}`;
+
+  // 新增第一個品項（URL 有帶入編號才鎖定，否則可自由輸入）
+  addItem(code, qty, !!code);
+
+  // 顯示表單、隱藏 loading
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('formWrap').classList.add('show');
+
+  // 異步載入所有商品編號以啟用自動補全
+  fetchProductCodes();
+}
+
+let productCodes = [];
+
+async function fetchProductCodes() {
+  try {
+    const url = `${CONFIG.GAS_API}?action=getAllProductCodes&userId=${authInfo.userId}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.success && data.codes) {
+      productCodes = data.codes;
+    }
+  } catch (e) {
+    console.error("無法載入編號清單:", e);
+  }
+}
+
+function handleCodeInput(idx) {
+  const val = (document.getElementById('code_' + idx)?.value || '').trim().toUpperCase();
+  const dropdown = document.getElementById('sug_' + idx);
+  if (!dropdown) return;
+
+  if (!val) {
+    dropdown.style.display = 'none';
+    scheduleCheck(idx);
+    return;
+  }
+
+  // 篩選包含輸入字串的品項，最多顯示 6 個，符合精緻版面
+  const matches = productCodes.filter(c => c.includes(val)).slice(0, 6);
+
+  if (matches.length === 0) {
+    dropdown.style.display = 'none';
+    scheduleCheck(idx);
+    return;
+  }
+
+  dropdown.innerHTML = '';
+  matches.forEach(m => {
+    const item = document.createElement('div');
+    item.className = 'sug-item';
+    item.textContent = m;
+    // 使用 mousedown 確保在 input blur 觸發前執行選取
+    item.onmousedown = () => {
+      selectCode(idx, m);
+    };
+    dropdown.appendChild(item);
+  });
+
+  dropdown.style.display = 'block';
+  scheduleCheck(idx);
+}
+
+function selectCode(idx, val) {
+  const input = document.getElementById('code_' + idx);
+  if (input) {
+    input.value = val;
+  }
+  const dropdown = document.getElementById('sug_' + idx);
+  if (dropdown) {
+    dropdown.style.display = 'none';
+  }
+  checkStock(idx);
+}
+
+function handleCodeBlur(idx) {
+  setTimeout(() => {
+    const dropdown = document.getElementById('sug_' + idx);
+    if (dropdown) dropdown.style.display = 'none';
+  }, 200);
+}
+
+// ── 品項管理 ──
+function addItem(code='', qty='', fromLine=false) {
+  if (itemCount >= MAX_ITEMS) { alert('最多新增 ' + MAX_ITEMS + ' 個品項'); return; }
+  itemCount++;
+  updateCnt();
+
+  const idx  = itemCount;
+  const div  = document.createElement('div');
+  div.className = 'pi';
+  div.dataset.idx = idx;
+
+  const readonlyAttr = fromLine ? 'readonly style="color:var(--muted);background:rgba(255,255,255,.03)"' : '';
+
+  div.innerHTML = `
+    <div class="pi-hdr">
+      <span class="pi-num">品項 ${idx}</span>
+      <span class="sbadge gr" id="badge_${idx}">— 尚未查詢</span>
+    </div>
+    <div class="pi-row">
+      <div class="f fc" style="position:relative;">
+        <label>編號</label>
+        <input type="text" id="code_${idx}" value="${code}" autocomplete="off"
+          placeholder="輸入編號查詢" ${readonlyAttr}
+          oninput="handleCodeInput(${idx}); saveDraftDebounced();"
+          onfocus="handleCodeInput(${idx})"
+          onblur="handleCodeBlur(${idx})" />
+        <div class="sug-dropdown" id="sug_${idx}"></div>
+      </div>
+      <div class="f fq" style="display:flex;gap:4px;">
+        <div style="flex:1;">
+          <label>數量</label>
+          <input type="number" id="qty_${idx}" value="${qty}"
+            placeholder="0" min="1"
+            oninput="scheduleCheck(${idx}); saveDraftDebounced();" />
+        </div>
+        <div style="width:68px;">
+          <label>單位</label>
+          <select id="unit_${idx}" onchange="scheduleCheck(${idx}); saveDraftDebounced();" style="height:44px;background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-weight:600;padding:0 4px;font-size:13px;">
+            <option value="片" selected>片</option>
+            <option value="坪">坪</option>
+            <option value="箱">箱</option>
+            <option value="包">包</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-rm" onclick="removeItem(this)" title="移除">×</button>
+    </div>
+    <div id="detail_${idx}"></div>`;
+
+  document.getElementById('itemList').appendChild(div);
+  if (!fromLine) div.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function removeItem(btn) {
+  btn.closest('.pi').remove();
+  itemCount = document.querySelectorAll('.pi').length;
+  updateCnt();
+  document.querySelectorAll('.pi').forEach((el, i) => {
+    el.querySelector('.pi-num').textContent = '品項 ' + (i + 1);
+  });
+  saveDraftDebounced();
+}
+
+function updateCnt() {
+  document.getElementById('itemCnt').textContent = itemCount + ' / ' + MAX_ITEMS;
+}
+
+// ── 即時庫存查詢（防抖 800ms）──
+const checkTimers = {};
+function scheduleCheck(idx) {
+  clearTimeout(checkTimers[idx]);
+  checkTimers[idx] = setTimeout(() => checkStock(idx), 800);
+}
+
+async function checkStock(idx) {
+  const codeInput = document.getElementById('code_' + idx);
+  const code = (codeInput?.value || '').trim();
+  const qty  = parseInt(document.getElementById('qty_' + idx)?.value || '0');
+  const unit = document.getElementById('unit_' + idx)?.value || '片';
+  if (!code || !qty) return;
+
+  const badge  = document.getElementById('badge_' + idx);
+  const detail = document.getElementById('detail_' + idx);
+  const item   = document.querySelector(`.pi[data-idx="${idx}"]`);
+  badge.className = 'sbadge gr'; badge.innerHTML = '<span class="loading-spin">⏳</span> 查詢中...';
+
+  try {
+    const url  = `${CONFIG.GAS_API}?action=checkStockForForm&code=${encodeURIComponent(code)}&qty=${qty}&unit=${encodeURIComponent(unit)}&userId=${authInfo.userId}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    item.className = 'pi';
+    detail.innerHTML = '';
+
+    // 自動校正/補全為標準型號 (例如 36033 -> RT36033)
+    if (data.code && data.code !== code && codeInput) {
+      codeInput.value = data.code;
+    }
+
+    let metaHtml = '';
+    if (data.series || data.color) {
+      const parts = [];
+      if (data.series) parts.push(`系列：${data.series}`);
+      if (data.color) parts.push(`顏色：${data.color}`);
+      metaHtml = `
+        <div class="product-meta" style="margin-top:8px;font-size:13px;color:#fcc2d7;display:flex;gap:10px;align-items:center;font-weight:500;">
+          <span>🏷️ ${parts.join(' | ')}</span>
+        </div>
+      `;
+    }
+
+    let imgHtml = '';
+    if (data.imgUrl && data.imgUrl.includes('http')) {
+      let srcUrl = data.imgUrl;
+      const driveIdMatch = srcUrl.match(/id=([\w-]+)/) || srcUrl.match(/\/file\/d\/([\w-]+)/);
+      if (driveIdMatch) {
+        srcUrl = `https://drive.google.com/thumbnail?id=${driveIdMatch[1]}&sz=w600`;
+      }
+      imgHtml = `
+        <div class="tile-img-container" style="margin-top:10px;">
+          <img src="${srcUrl}" class="tile-preview" onclick="zoomImage('${srcUrl}')" title="點擊放大確認單片樣品圖" />
+          <span style="font-size:11.5px;color:var(--muted)">單片樣品圖確認 (點擊可放大)</span>
+        </div>
+      `;
+    }
+
+    const contentHtml = metaHtml + imgHtml;
+
+    if (data.status === 'ok') {
+      item.classList.add('ok');
+      badge.className = 'sbadge g'; badge.textContent = '🟢 庫存足夠';
+      detail.innerHTML = contentHtml;
+    } else if (data.status === 'check') {
+      item.classList.add('chk');
+      badge.className = 'sbadge y'; badge.textContent = '🟡 稍後確認';
+      detail.innerHTML = contentHtml + buildArrivalField(idx, 'chk');
+    } else {
+      item.classList.add('none');
+      badge.className = 'sbadge r'; badge.textContent = '🔴 目前無庫存';
+      detail.innerHTML = contentHtml + buildArrivalField(idx, 'none');
+    }
+  } catch (e) {
+    badge.className = 'sbadge gr'; badge.textContent = '— 查詢失敗';
+  }
+}
+
+function buildArrivalField(idx, type) {
+  const borderColor = type === 'none'
+    ? 'rgba(248,113,113,.3)' : 'rgba(245,158,11,.35)';
+  return `<div class="arrival" style="margin-top:10px;">
+    <label>💬 備註</label>
+    <input type="text" id="arrival_${idx}" placeholder=""
+      style="width:100%;height:40px;background:var(--bg2);border:1.5px solid ${borderColor};border-radius:8px;padding:0 12px;font-size:14px;color:var(--text);" />
+  </div>`;
+}
+
+function zoomImage(url) {
+  let zoomEl = document.getElementById('zoomOverlay');
+  if (!zoomEl) {
+    zoomEl = document.createElement('div');
+    zoomEl.id = 'zoomOverlay';
+    zoomEl.className = 'zoom-overlay';
+    zoomEl.onclick = () => zoomEl.classList.remove('show');
+    zoomEl.innerHTML = `<img id="zoomImg" src="" />`;
+    document.body.appendChild(zoomEl);
+  }
+  document.getElementById('zoomImg').src = url;
+  zoomEl.classList.add('show');
+}
+
+// ── 送出 ──
+async function submitForm() {
+  const caseName = document.getElementById('fCase').value.trim();
+  const address  = document.getElementById('fAddr').value.trim();
+  const entry    = document.getElementById('fEntry').value;
+  const contact  = document.getElementById('fContact').value.trim();
+  const phone    = document.getElementById('fPhone').value.trim();
+
+  if (!caseName) { alert('請填寫案名'); document.getElementById('fCase').focus(); return; }
+  if (!address)  { alert('請填寫工地地址'); document.getElementById('fAddr').focus(); return; }
+  if (!entry)    { alert('請選擇進場日期'); document.getElementById('fEntry').focus(); return; }
+
+  // 收集品項
+  const items = [];
+  document.querySelectorAll('.pi').forEach((el, i) => {
+    const idx  = el.dataset.idx;
+    const code = document.getElementById('code_' + idx)?.value?.trim() || '';
+    const rawQty = document.getElementById('qty_'  + idx)?.value?.trim() || '';
+    const unit = document.getElementById('unit_' + idx)?.value || '片';
+    const arr  = document.getElementById('arrival_' + idx)?.value || '';
+    if (code && rawQty) items.push({ code, qty: `${rawQty}${unit}`, arrivalDate: arr });
+  });
+
+  if (items.length === 0) { alert('請至少填寫一個品項'); return; }
+
+  const finalCompany = document.getElementById('dispCompany').value.trim();
+  const finalSales   = document.getElementById('dispSales').value.trim();
+
+  if (!finalCompany || finalCompany === '—' || finalCompany === '-') {
+    alert('請填寫客戶名稱');
+    document.getElementById('dispCompany').focus();
+    return;
+  }
+  if (!finalSales || finalSales === '—' || finalSales === '-') {
+    alert('請填寫負責業務');
+    document.getElementById('dispSales').focus();
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true; btn.textContent = '⏳ 送出中...';
+
+  const payload = {
+    action:      'submitWebForm',
+    userId:      authInfo.userId,
+    company:     finalCompany,
+    sales:       finalSales,
+    caseName, address, entry, contact, phone,
+    reserveDate: document.getElementById('dispDate').textContent,
+    items
+  };
+
+  try {
+    const res  = await fetch(CONFIG.GAS_API, {
+      method:  'POST',
+      mode:    'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body:    JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('orderNo').textContent = data.requestId || '—';
+      clearDraft();
+      document.getElementById('overlay').classList.add('show');
+    } else {
+      alert('送出失敗：' + (data.error || '請稍後再試'));
+      btn.disabled = false; btn.textContent = '📋 送出保留申請';
+    }
+  } catch (e) {
+    alert('網路錯誤，請稍後再試');
+    btn.disabled = false; btn.textContent = '📋 送出保留申請';
+  }
+}
+
+// ── 💾 草稿自動暫存與復原機制 ──
+let saveDraftTimer = null;
+function saveDraftDebounced() {
+  clearTimeout(saveDraftTimer);
+  saveDraftTimer = setTimeout(saveDraft, 500);
+}
+
+function saveDraft() {
+  try {
+    const items = [];
+    document.querySelectorAll('.pi').forEach(el => {
+      const idx  = el.dataset.idx;
+      const code = document.getElementById('code_' + idx)?.value?.trim() || '';
+      const qty  = document.getElementById('qty_'  + idx)?.value?.trim() || '';
+      const unit = document.getElementById('unit_' + idx)?.value || '片';
+      if (code || qty) items.push({ code, qty, unit });
+    });
+    const draft = {
+      caseName: document.getElementById('fCase')?.value || '',
+      address:  document.getElementById('fAddr')?.value || '',
+      entry:    document.getElementById('fEntry')?.value || '',
+      contact:  document.getElementById('fContact')?.value || '',
+      phone:    document.getElementById('fPhone')?.value || '',
+      items,
+      savedAt: Date.now()
+    };
+    localStorage.setItem('gyc_reserve_draft', JSON.stringify(draft));
+  } catch (e) {}
+}
+
+function checkDraftOnLoad() {
+  try {
+    const raw = localStorage.getItem('gyc_reserve_draft');
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (!draft || Date.now() - draft.savedAt > 86400000) {
+      localStorage.removeItem('gyc_reserve_draft');
+      return;
+    }
+    const hasContent = (draft.caseName || draft.address || (draft.items && draft.items.length > 0 && (draft.items[0].code || draft.items[0].qty)));
+    if (hasContent) {
+      restoreDraft(true);
+    }
+  } catch (e) {}
+}
+
+function restoreDraft(isAuto = false) {
+  try {
+    const raw = localStorage.getItem('gyc_reserve_draft');
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (draft.caseName) document.getElementById('fCase').value = draft.caseName;
+    if (draft.address)  document.getElementById('fAddr').value = draft.address;
+    if (draft.entry)    document.getElementById('fEntry').value = draft.entry;
+    if (draft.contact)  document.getElementById('fContact').value = draft.contact;
+    if (draft.phone)    document.getElementById('fPhone').value = draft.phone;
+
+    if (draft.items && draft.items.length > 0) {
+      // 如果原本只有預設的空品項，清空後載入草稿
+      const firstCode = document.getElementById('code_1')?.value || '';
+      const firstQty = document.getElementById('qty_1')?.value || '';
+      if (!firstCode && !firstQty) {
+        document.getElementById('itemList').innerHTML = '';
+        itemCount = 0;
+      }
+      draft.items.forEach(it => {
+        if (!it.code && !it.qty) return;
+        addItem(it.code, it.qty, false);
+        const idx = itemCount;
+        if (it.unit) {
+          const uEl = document.getElementById('unit_' + idx);
+          if (uEl) uEl.value = it.unit;
+        }
+        if (it.code && it.qty) checkStock(idx);
+      });
+    }
+    document.getElementById('draftNotice').style.display = 'none';
+    if (isAuto) {
+      showToast("💾 已自動為您復原上次未完成的草稿！");
+    } else {
+      showToast("✅ 已成功復原保留草稿！");
+    }
+  } catch (e) {
+    showToast("⚠️ 復原草稿時發生錯誤");
+  }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem('gyc_reserve_draft'); } catch(e) {}
+  document.getElementById('draftNotice').style.display = 'none';
+}
+
+// ── 📲 分享保留單摘要至 LINE ──
+function shareReservationSummary() {
+  const caseName = document.getElementById('fCase')?.value || '未填案名';
+  const orderNo  = document.getElementById('orderNo')?.textContent || '—';
+  const comp     = document.getElementById('dispCompany')?.value || '';
+  
+  const itemsStr = Array.from(document.querySelectorAll('.pi')).map(el => {
+    const idx = el.dataset.idx;
+    const c = document.getElementById('code_' + idx)?.value || '';
+    const q = document.getElementById('qty_'  + idx)?.value || '';
+    const u = document.getElementById('unit_' + idx)?.value || '片';
+    return c && q ? `▫️ ${c} × ${q}${u}` : null;
+  }).filter(Boolean).join('\n');
+
+  const text = `📋 【高雅瓷線上保留單摘要】\n` +
+               `──────\n` +
+               `🆔 申請單號：${orderNo}\n` +
+               `🏢 客戶：${comp}\n` +
+               `🏗️ 案名：${caseName}\n\n` +
+               `品項列表：\n${itemsStr}\n\n` +
+               `業務正在為您確認庫存與審核中！`;
+
+  if (typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')) {
+    liff.shareTargetPicker([{ type: 'text', text }])
+      .then(res => {
+        if (res) showToast("🎉 成功分享至 LINE！");
+      })
+      .catch(() => copyToClipboard(text));
+  } else if (navigator.share) {
+    navigator.share({ title: '高雅瓷保留單摘要', text }).catch(() => copyToClipboard(text));
+  } else {
+    copyToClipboard(text);
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => showToast("📋 已複製保留單摘要至剪貼簿！"))
+    .catch(() => alert(text));
+}
+
+// 在 initForm 時綁定欄位變更儲存草稿與檢查草稿
+const origInitForm = initForm;
+initForm = function(params) {
+  origInitForm(params);
+  checkDraftOnLoad();
+  ['fCase', 'fAddr', 'fEntry', 'fContact', 'fPhone'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', saveDraftDebounced);
+  });
+};
+
+function closeLiff() {
+  if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient()) {
+    try { liff.closeWindow(); return; } catch(e) {}
+  }
+  document.getElementById('overlay').classList.remove('show');
+  showToast("🎉 申請完成！您可以隨時關閉此分頁。");
+}
+
+function showToast(msg) {
+  let el = document.getElementById('toastMsg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toastMsg';
+    el.className = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── Helpers ──
+function setStatus(txt) { document.getElementById('loadStatus').textContent = txt; }
+function showError(title, msg) {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('errorTitle').textContent = title;
+  document.getElementById('errorMsg').innerHTML = msg;
+  document.getElementById('errorScreen').classList.add('show');
+}
+function showExternalGuide() {
+  showError(
+    '🔑 請於 LINE 內開啟',
+    `為確保您的資料安全，請透過 LINE 訊息中的連結開啟此頁面。<br><br>
+    <a href="https://liff.line.me/${CONFIG.LIFF_ID}"
+      target="_top"
+      style="display:inline-block;background:#06C755;color:#fff;padding:12px 28px;border-radius:30px;text-decoration:none;font-weight:bold;margin-top:10px;box-shadow:0 4px 15px rgba(6,199,85,.4);">
+      🟢 點此從 LINE 開啟
+    </a>`
+  );
+}
+</script>
+</body>
+</html>

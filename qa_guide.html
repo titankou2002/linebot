@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系統設定與常見問題 Q&A 手冊</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-light: #f8fafc;
+      --text-dark: #0f172a;
+      --text-muted: #475569;
+      --border-color: #e2e8f0;
+      --card-bg: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.7;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title { font-size: 26px; font-weight: 700; color: var(--primary); }
+    .subtitle { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+    
+    .print-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .print-btn:hover { background-color: var(--primary-hover); }
+
+    .section { margin-bottom: 40px; }
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .qa-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      background: #fafafb;
+    }
+    .question { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 10px; display: flex; gap: 8px; }
+    .question-icon { color: var(--primary); }
+    .answer { font-size: 14px; color: var(--text-muted); padding-left: 20px; }
+    .answer ol, .answer ul { margin-top: 8px; padding-left: 20px; }
+    .answer li { margin-bottom: 6px; }
+    
+    .highlight-box {
+      background-color: #eff6ff;
+      border-left: 4px solid var(--primary);
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-top: 10px;
+      color: #1e40af;
+    }
+
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    @media print {
+      body { background-color: white; padding: 0; }
+      .container { box-shadow: none; padding: 0; max-width: 100%; }
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="title">系統設定與常見問題 Q&A 手冊</h1>
+        <div class="subtitle">磁磚 AI 智能客服系統 · 設定與管理員操作指南</div>
+      </div>
+      <button class="print-btn" onclick="window.print()">🖨️ 列印手冊 / 另存 PDF</button>
+    </div>
+
+    <!-- Section 1 -->
+    <div class="section">
+      <h2 class="section-title">一、 LINE 官方帳號相關設定</h2>
+      
+      <div class="qa-card">
+        <div class="question">
+          <span class="question-icon">Q1.</span>
+          <span>如何找到 Channel Access Token (TOKEN) 及 Channel Secret？</span>
+        </div>
+        <div class="answer">
+          <p>請依照以下步驟在 LINE 開發者後台取得設定金鑰：</p>
+          <ol>
+            <li>前往並登入 <a href="https://developers.line.biz/" target="_blank">LINE Developers Console</a>。</li>
+            <li>在 Provider 中選擇您的機器人專案，並點選進入對應的 <strong>Messaging API Channel</strong>。</li>
+            <li><strong>取得 Channel Secret：</strong>
+              <ul>
+                <li>切換至 <strong>Basic settings</strong> 分頁。</li>
+                <li>向下滾動，即可在「Channel secret」欄位看到一串英數混合金鑰並進行複製。</li>
+              </ul>
+            </li>
+            <li><strong>取得 Channel Access Token：</strong>
+              <ul>
+                <li>切換至 <strong>Messaging API</strong> 分頁。</li>
+                <li>拉到頁面最下方，找到「Channel access token (long-lived)」欄位。</li>
+                <li>點擊 <strong>Issue</strong> 按鈕即可產生並複製此 Token。</li>
+              </ul>
+            </li>
+          </ol>
+          <div class="highlight-box">
+            ⚠️ <strong>重要提醒：</strong>Channel Access Token 的時效很長，請妥善保存。若重複點擊 Issue 會生成新的 Token，舊的 Token 將會在數小時後失效，請注意。
+          </div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="question">
+          <span class="question-icon">Q2.</span>
+          <span>如何設定並貼上 Webhook URL？</span>
+        </div>
+        <div class="answer">
+          <p>設定 Webhook URL 能讓 LINE 收到訊息時通知您的 Google Apps Script 後端系統：</p>
+          <ol>
+            <li>進入 LINE Developers Console 的 <strong>Messaging API</strong> 分頁。</li>
+            <li>找到 <strong>Webhook settings</strong> 區塊。</li>
+            <li>點選 <strong>Edit</strong> 按鈕，在 Webhook URL 欄位中貼上您的 GAS 部署網址（格式應為 <code>https://script.google.com/macros/s/.../exec</code>）。</li>
+            <li>貼上後點選 <strong>Update</strong>。</li>
+            <li><strong>重要：</strong>將下面的 <strong>Use webhook</strong> 開關切換為啟用狀態（開關顯示為綠色）。</li>
+            <li>可以點擊 <strong>Verify</strong> 按鈕，若出現 <code>Success</code> 即代表連線設定完全正確。</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="question">
+          <span class="question-icon">Q3.</span>
+          <span>在 LINE 後台需要開啟哪些功能？</span>
+        </div>
+        <div class="answer">
+          <p>為了使機器人可以正常加入群組聊天並回覆，需調整以下設定：</p>
+          <ul>
+            <li><strong>開啟群組權限：</strong>在 <strong>Messaging API</strong> 分頁下方，找到 <strong>Allow bot to join group chats</strong>，將其設定為 <code>Enabled</code>（這樣機器人才能被拉進業務群組中）。</li>
+            <li><strong>停用官方預設自動回覆：</strong>
+              <ol>
+                <li>點選頁面中的 <strong>LINE Official Account Manager</strong> 連結進入 LINE 官方管理後台。</li>
+                <li>前往右上角「設定」 -> 左側「回應設定」。</li>
+                <li><strong>回應模式：</strong>選擇「聊天機器人」。</li>
+                <li><strong>詳細設定中的「自動回應訊息」：</strong>設定為「停用」（否則當使用者說話時，LINE 官方會隨機自動回覆，干擾 AI 回答）。</li>
+                <li><strong>詳細設定中的「Webhook」：</strong>設定為「啟用」。</li>
+              </ol>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="section">
+      <h2 class="section-title">二、 Google 試算表與雲端硬碟權限設定</h2>
+      
+      <div class="qa-card">
+        <div class="question">
+          <span class="question-icon">Q4.</span>
+          <span>如何提供並開啟 Google 試算表 / 雲端硬碟資料夾的權限？</span>
+        </div>
+        <div class="answer">
+          <p>為使 AI 系統能即時讀寫您的試算表（查庫存、寫保留單）與讀取產品圖庫，必須開放共用權限：</p>
+          <ol>
+            <li><strong>取得網址連結：</strong>開啟您的 Google 試算表或雲端硬碟圖庫資料夾，直接複製瀏覽器上方網址列的完整 URL。</li>
+            <li><strong>開啟共用權限：</strong>
+              <ul>
+                <li>點選右上角的「<strong>共用</strong>」按鈕。</li>
+                <li>在下方「一般存取權」區塊，將原本的「限制」改為「<strong>知道連結的任何人</strong>」。</li>
+                <li>右邊角色權限：<strong>試算表（Sheets）請改為「編輯者」</strong>，以利系統寫入保留單；<strong>圖庫資料夾請保持為「檢視者」</strong>即可。</li>
+                <li>點選「複製連結」後，將連結提供給系統管理員即可。</li>
+              </ul>
+            </li>
+          </ol>
+          <div class="highlight-box">
+            🔒 <strong>安全共用選項：</strong>若基於內部資料安全不希望開放「知道連結的任何人」，可以請技術人員提供 Google 雲端服務帳號（Service Account Email，例如：<code>xxx@developer.gserviceaccount.com</code>），您只需將該 Email 加為共用名單的「編輯者」即可，無需公開連結。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="section">
+      <h2 class="section-title">三、 客戶白名單申請與網頁操作</h2>
+      
+      <div class="qa-card">
+        <div class="question">
+          <span class="question-icon">Q5.</span>
+          <span>如何新增與審核客戶白名單？</span>
+        </div>
+        <div class="answer">
+          <p>為了防範商業機密外流，系統設有白名單限制，您可以透過以下兩種方式進行權限管理：</p>
+          
+          <p><strong>方法 A：在 LINE 業務群組內一鍵核准（最推薦，手機即可操作）</strong></p>
+          <ol>
+            <li>當外部客戶或新業務加入 LINE 官方帳號並嘗試查詢時，系統會自動往您的<strong>內部業務群組</strong>發送一張「新用戶審核申請卡片」（Flex Message）。</li>
+            <li>卡片上會顯示該用戶的 LINE 暱稱。</li>
+            <li>內部管理員或負責業務只需要在群組中，直接點選卡片上的「<strong>核准為業務</strong>」或「<strong>核准為經銷商</strong>」按鈕。</li>
+            <li>點擊後，系統會自動在後台新增該用戶，該客戶隨即會收到核准通知，即可立刻在 LINE 上開始查詢。</li>
+          </ol>
+
+          <p><strong>方法 B：在 Google 試算表後台手動新增</strong></p>
+          <ol>
+            <li>打開與機器人綁定的 Google 試算表，切換到名為「<strong>白名單</strong>」的分頁。</li>
+            <li>直接在表格最下方新增一列，填入對方的：
+              <ul>
+                <li><code>LINE User ID</code>（可從對話紀錄分頁中複製新用戶的 ID）</li>
+                <li><code>公司名稱</code></li>
+                <li><code>姓名</code></li>
+                <li><code>權限等級</code>（填入：業務 / 經銷商 / 客戶）</li>
+              </ul>
+            </li>
+            <li>填寫完畢即完成，不需重啟系統，下次該用戶在 LINE 發送訊息時即可自動套用新權限。</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

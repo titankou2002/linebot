@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高雅瓷 AI 智能客服 — 8 大功能展示</title>
+<style>
+  :root {
+    --line-green: #06C755;
+    --ig-grad: linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+    --bubble-bot: #2a2a2e;
+    --bubble-user: #3d9c52;
+    --line-bg: #1a1a1e;
+    --line-header: #111114;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+
+  body {
+    background: #0d0d0d;
+    font-family: -apple-system,'Noto Sans TC',sans-serif;
+    padding: 40px 20px 60px;
+    color:#fff;
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    text-align:center;
+    margin-bottom: 52px;
+  }
+  .page-header h1 {
+    font-size:24px; font-weight:900; color:#fff;
+    letter-spacing:.5px;
+  }
+  .ig-line {
+    height:4px;
+    background: var(--ig-grad);
+    width:180px; margin:10px auto 12px;
+    border-radius:2px;
+  }
+  .page-header p { color:#666; font-size:13px; }
+
+  /* ── Grid ── */
+  .grid {
+    display:grid;
+    grid-template-columns: repeat(4, 290px);
+    gap: 40px 32px;
+    justify-content: center;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .cell {
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+
+  /* feature number badge */
+  .feat-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#1c1c1e; border:1px solid #333;
+    border-radius:20px; padding:4px 12px;
+    font-size:11px; color:#888; font-weight:600;
+  }
+  .feat-badge .num {
+    background: var(--ig-grad);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; font-weight:900; font-size:13px;
+  }
+
+  .cell-title {
+    font-size:14px; font-weight:800; color:#fff;
+    text-align:center; line-height:1.5;
+  }
+  .cell-sub {
+    font-size:11px; color:#555; text-align:center;
+    margin-top:2px; line-height:1.5;
+  }
+
+  /* ── Phone Frame ── */
+  .phone {
+    width:290px; height:580px;
+    background:#000;
+    border-radius:38px;
+    padding:12px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.7), inset 0 0 0 1.5px #2a2a2a;
+    flex-shrink:0;
+  }
+  .phone::before {
+    content:'';
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    width:90px; height:24px;
+    background:#000; border-radius:0 0 14px 14px; z-index:10;
+  }
+  .phone { position:relative; }
+
+  .screen {
+    width:100%; height:100%;
+    border-radius:28px; overflow:hidden;
+    display:flex; flex-direction:column;
+    background: var(--line-bg);
+  }
+
+  /* ── LINE Header ── */
+  .lh {
+    background: var(--line-header);
+    padding: 28px 12px 8px;
+    display:flex; align-items:center; gap:8px;
+    border-bottom:1px solid #222; flex-shrink:0;
+  }
+  .lh-back { color:#888; font-size:16px; }
+  .lh-avatar {
+    width:30px; height:30px; border-radius:50%;
+    background:#fff; display:flex; align-items:center;
+    justify-content:center; flex-shrink:0; overflow:hidden;
+  }
+  .lh-avatar svg { width:22px; height:22px; }
+  .lh-name { color:#fff; font-size:12px; font-weight:700; flex:1; }
+  .lh-icons { color:#888; font-size:13px; display:flex; gap:10px; }
+
+  /* ── Chat Area ── */
+  .chat {
+    flex:1; overflow:hidden;
+    padding: 10px 8px 6px;
+    display:flex; flex-direction:column; gap:7px;
+  }
+
+  .ts { align-self:center; font-size:9.5px; color:#555;
+        background:rgba(255,255,255,.05); padding:2px 8px; border-radius:8px; }
+
+  /* user bubble */
+  .bu {
+    align-self:flex-end;
+    background: var(--bubble-user);
+    border-radius:14px 14px 3px 14px;
+    padding:7px 11px; font-size:12px; color:#fff;
+    max-width:80%; line-height:1.5;
+  }
+
+  /* bot bubble wrap */
+  .bw { display:flex; gap:6px; align-items:flex-start; max-width:92%; }
+  .ba {
+    width:28px; height:28px; border-radius:50%;
+    background:#fff; flex-shrink:0; margin-top:2px;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .bb {
+    background: var(--bubble-bot);
+    border-radius:3px 14px 14px 14px;
+    padding:8px 11px; font-size:11.5px; color:#ddd;
+    line-height:1.65;
+  }
+  .bb strong { color:#fff; }
+  .bb .green { color:#4ade80; }
+  .bb .red { color:#f87171; }
+  .bb .yellow { color:#fbbf24; }
+  .bb .gray { color:#888; }
+  .bb .tag {
+    display:inline-block; background:#333; color:#aaa;
+    font-size:9.5px; padding:1px 6px; border-radius:4px; margin:1px 2px;
+  }
+
+  /* Flex card */
+  .fc {
+    background:#fff; border-radius:10px; overflow:hidden;
+    margin-top:5px; width:200px;
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
+  }
+  .fc-img {
+    width:100%; height:100px; object-fit:cover;
+    background: linear-gradient(135deg,#b8a99a,#d4c5b8);
+    display:flex; align-items:center; justify-content:center;
+    color:#888; font-size:10px;
+  }
+  .fc-body { padding:8px 10px; }
+  .fc-title { font-size:12px; font-weight:800; color:#222; }
+  .fc-sub { font-size:10px; color:#888; margin-top:1px; }
+  .fc-row { display:flex; justify-content:space-between; font-size:10.5px; padding:2px 0; color:#444; border-bottom:1px solid #f0f0f0; }
+  .fc-row:last-child { border:none; }
+  .fc-row span:last-child { font-weight:700; color:#222; }
+  .fc-btn-row { display:flex; flex-direction:column; gap:1px; }
+  .fc-btn {
+    background:#f5f5f5; color:#333; font-size:11px;
+    text-align:center; padding:7px; font-weight:600;
+    border-top:1px solid #eee;
+  }
+  .fc-link { color:#06C755; font-size:11.5px; font-weight:700; padding:8px 10px; display:block; }
+
+  /* Dual flex cards */
+  .fc-dual { display:flex; gap:5px; width:100%; }
+  .fc-dual .fc { flex:1; min-width:0; }
+
+  /* Flex image card */
+  .fc-img-card {
+    background:#fff; border-radius:10px; overflow:hidden;
+    width:100%; box-shadow:0 2px 8px rgba(0,0,0,.2);
+    margin-top:4px;
+  }
+  .room-img {
+    width:100%; height:90px;
+    background: linear-gradient(135deg,#c8c8c8 0%,#e0e0e0 40%,#d0d0d0 100%);
+    position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .room-img-1 { background:linear-gradient(135deg,#bfc0c0 0%,#e8e8e8 50%,#d4d4d4 100%); }
+  .room-img-2 { background:linear-gradient(135deg,#d4c8bc 0%,#e8e0d8 50%,#c8bdb0 100%); }
+  /* Fake bathroom silhouettes */
+  .room-img::after {
+    content:'🛁'; font-size:28px; opacity:.25;
+  }
+  .room-img-2::after { content:'🪞'; }
+  .fc-img-info { padding:7px 9px; }
+  .fc-img-series { font-size:12px; font-weight:800; color:#111; }
+  .fc-img-code { font-size:10px; color:#888; margin:1px 0 4px; }
+
+  /* Quick replies */
+  .qr {
+    display:flex; gap:5px; padding:5px 8px;
+    overflow-x:auto; background:rgba(0,0,0,.2); flex-shrink:0;
+  }
+  .qr-btn {
+    background:#2a2a2e; border:1px solid #444; color:#ccc;
+    font-size:10px; padding:5px 9px; border-radius:16px;
+    white-space:nowrap; font-weight:600; flex-shrink:0;
+  }
+
+  /* Input bar */
+  .ib {
+    background:#111; height:40px;
+    display:flex; align-items:center; padding:0 8px; gap:6px;
+    border-top:1px solid #222; flex-shrink:0;
+  }
+  .ib-field {
+    flex:1; background:#222; border-radius:16px;
+    height:26px; padding:0 10px; font-size:10px; color:#555;
+    display:flex; align-items:center;
+  }
+  .ib-send {
+    width:24px; height:24px; border-radius:50%;
+    background: var(--line-green);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:11px;
+  }
+
+  /* ── Permission warning ── */
+  .perm-warn {
+    background:rgba(231,76,60,.1); border:1px solid rgba(231,76,60,.3);
+    border-radius:8px; padding:7px 10px; margin-top:3px;
+    font-size:11px; color:#f87171; line-height:1.5;
+  }
+
+  /* ── Reservation list ── */
+  .rsv-card {
+    background:#2a2a2e; border-radius:10px; padding:9px 10px;
+    margin-top:4px; font-size:11px; color:#ddd; line-height:1.7;
+    width:100%;
+  }
+  .rsv-header { font-weight:800; color:#fbbf24; font-size:11.5px; margin-bottom:3px; }
+  .rsv-sub { color:#888; font-size:10px; }
+
+  /* ── Delivery Flex card ── */
+  .delivery-fc {
+    background:#fff; border-radius:10px; overflow:hidden;
+    margin-top:4px; width:100%;
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
+  }
+  .dfc-title { font-size:13px; font-weight:800; color:#222; padding:9px 11px 4px; }
+  .dfc-body { padding:4px 11px 8px; font-size:11px; color:#555; line-height:1.7; }
+  .dfc-link { color:#06C755; font-size:12px; font-weight:700; padding:8px 11px; border-top:1px solid #eee; display:block; }
+
+  /* ── Dark Form Screen (Screen 7) ── */
+  .form-screen {
+    background:#000; display:flex; flex-direction:column; height:100%;
+  }
+  .form-topbar {
+    background:#121212; padding:28px 12px 8px;
+    border-bottom:1px solid #2a2a2a; flex-shrink:0;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .form-co { color:#fff; font-size:11px; font-weight:700; }
+  .form-sales { color:#888; font-size:10px; }
+  .form-liff-tag { background:#1c1c1e; color:#555; font-size:9px; padding:2px 6px; border-radius:4px; }
+  .form-body { flex:1; padding:10px; overflow:hidden; display:flex; flex-direction:column; gap:8px; }
+  .fs-label { font-size:9.5px; color:#e1306c; font-weight:700; text-transform:uppercase; letter-spacing:.8px; margin-bottom:3px; }
+  .fs-card { background:#121212; border:1px solid #2a2a2a; border-radius:10px; padding:9px 10px; display:flex; flex-direction:column; gap:6px; }
+  .fi-label { font-size:9px; color:#666; margin-bottom:1px; }
+  .fi-val { background:#1c1c1e; border-bottom:1px solid #333; padding:5px 7px; border-radius:4px 4px 0 0; font-size:11px; color:#fff; }
+  .fi-val.ph { color:#444; font-style:italic; }
+  .item-row-form { display:flex; gap:5px; align-items:flex-end; }
+  .irf-code { flex:2; }
+  .irf-qty { flex:1; }
+  .item-meta-form {
+    display:flex; align-items:center; gap:4px;
+    font-size:9.5px; color:#888; padding:2px 0 0;
+  }
+  .thumb { width:20px; height:20px; border-radius:4px; background:linear-gradient(135deg,#b0937a,#c9a88e); flex-shrink:0; }
+  .thumb-g { background:linear-gradient(135deg,#8a9a7a,#a8b898); }
+  .stk { font-size:9px; padding:2px 5px; border-radius:10px; font-weight:700; }
+  .stk-g { background:rgba(74,222,128,.15); color:#4ade80; border:1px solid rgba(74,222,128,.25); }
+  .stk-y { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.25); }
+  .add-item { color:#06C755; font-size:10px; font-weight:700; text-align:center; padding:5px 0; border-top:1px solid #2a2a2a; margin-top:2px; }
+  .submit-btn {
+    padding:11px; border-radius:40px; text-align:center;
+    background: var(--ig-grad);
+    color:#fff; font-size:12px; font-weight:800;
+  }
+
+  /* ── Delivery Detail Screen ── */
+  .dd-screen { background:#0a0e1a; display:flex; flex-direction:column; height:100%; }
+  .dd-header { background:#101524; padding:28px 12px 8px; border-bottom:1px solid #1e2740; flex-shrink:0; display:flex; align-items:center; gap:8px; }
+  .dd-title { color:#fff; font-size:13px; font-weight:800; }
+  .dd-date { color:#5b7db1; font-size:10px; margin-left:auto; }
+  .dd-badge { background:rgba(6,199,85,.15); border:1px solid rgba(6,199,85,.3); color:#06C755; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+  .dd-body { flex:1; padding:9px; display:flex; flex-direction:column; gap:7px; overflow:hidden; }
+  .dd-card { background:#101524; border:1px solid #1e2740; border-radius:9px; padding:9px 10px; }
+  .ddc-title { font-size:9px; color:#5b7db1; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+  .ddc-row { display:flex; align-items:center; gap:7px; }
+  .ddc-icon { font-size:13px; width:18px; text-align:center; }
+  .ddc-info { flex:1; }
+  .ddc-main { font-size:11px; color:#fff; font-weight:600; }
+  .ddc-sub { font-size:9.5px; color:#5b7db1; }
+  .call-btn-dd { background:rgba(6,199,85,.15); border:1px solid rgba(6,199,85,.3); color:#06C755; font-size:9.5px; font-weight:700; padding:3px 8px; border-radius:12px; white-space:nowrap; }
+  .map-box { background:#0d1829; border-radius:8px; height:80px; border:1px solid #1e2740; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-top:6px; }
+  .map-grid-bg { position:absolute; inset:0; background-image:linear-gradient(rgba(30,39,64,.8) 1px,transparent 1px),linear-gradient(90deg,rgba(30,39,64,.8) 1px,transparent 1px); background-size:16px 16px; }
+  .map-truck-icon { position:absolute; left:30%; top:50%; transform:translate(-50%,-50%); background:#06C755; border-radius:5px; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 0 8px rgba(6,199,85,.5); z-index:2; }
+  .map-route-line { position:absolute; top:50%; left:30%; width:100px; height:2px; background:linear-gradient(90deg,#06C755,#fbbf24); transform:translateY(-50%); }
+  .map-dest-icon { position:absolute; right:15%; top:50%; transform:translate(50%,-50%); background:#fbbf24; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:10px; box-shadow:0 0 6px rgba(251,191,36,.5); z-index:2; }
+  .map-eta { position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,.08); backdrop-filter:blur(4px); color:#fff; font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .item-chips { display:flex; gap:4px; flex-wrap:wrap; margin-top:5px; }
+  .chip { background:rgba(91,125,177,.12); border:1px solid rgba(91,125,177,.25); color:#8babdb; font-size:9px; padding:2px 6px; border-radius:5px; }
+
+  /* SVG logo helper */
+  .logo-svg { font-family:'Georgia',serif; font-size:8px; fill:#222; font-weight:700; }
+
+  /* Section divider */
+  .section-divider {
+    grid-column: 1 / -1;
+    display:flex; align-items:center; gap:16px;
+    padding: 8px 0;
+  }
+  .section-divider .sd-line { flex:1; height:1px; background:#222; }
+  .section-divider .sd-label { color:#444; font-size:11px; font-weight:700; white-space:nowrap; }
+
+  /* Print hint */
+  .hint {
+    text-align:center; color:#333; font-size:11px;
+    margin-top:52px; line-height:2; max-width:700px; margin-left:auto; margin-right:auto;
+  }
+  .hint strong { color:#555; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>高雅瓷 AI 智能客服 — 8 大功能展示</h1>
+  <div class="ig-line"></div>
+  <p>基於真實操作截圖重現 · 行銷簡報用素材</p>
+</div>
+
+<div class="grid">
+
+<!-- ─────────────────────────────────────────────────
+     行 1：庫存充足 / 庫存不足+替代方案 / 價格查詢 / 圖片查詢
+───────────────────────────────────────────────── -->
+
+<!-- SCREEN 1 ─ 庫存充足查詢 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="lh">
+        <span class="lh-back">‹</span>
+        <div class="lh-avatar">
+          <svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg>
+        </div>
+        <div class="lh-name">高雅瓷-AI機器人</div>
+        <div class="lh-icons">🔍 ☰</div>
+      </div>
+      <div class="chat">
+        <div class="ts">下午 8:04</div>
+        <div class="bu">RT36033 10坪</div>
+        <div class="bw">
+          <div class="ba">
+            <svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg>
+          </div>
+          <div class="bb">
+            <span class="green">🟢 &lt;庫存充足&gt;</span><br>
+            🪪 編號：RT36033<br>
+            📚 系列：冰岩<br>
+            📐 尺寸：30×60<br>
+            🔢 需求：10坪<br>
+            📦 狀態：庫存超安全！<br>
+            手刀下單立刻為您打包出貨啦 😆🛒✨
+          </div>
+        </div>
+      </div>
+      <div class="qr">
+        <div class="qr-btn">📝 下保留</div>
+        <div class="qr-btn">💰 查價格</div>
+        <div class="qr-btn">🖼 看圖片</div>
+      </div>
+      <div class="ib">
+        <span style="font-size:15px;color:#555">➕</span>
+        <div class="ib-field">輸入品號 + 坪數/片數</div>
+        <div class="ib-send">▶</div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">01</span> 庫存查詢（充足）</div>
+  <div class="cell-title">坪數輸入 → 秒回庫存狀態</div>
+  <div class="cell-sub">顯示系列名稱、尺寸、幽默回覆</div>
+</div>
+
+<!-- SCREEN 2 ─ 庫存不足 + 新批 + 替代方案 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="lh">
+        <span class="lh-back">‹</span>
+        <div class="lh-avatar"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+        <div class="lh-name">高雅瓷-AI機器人</div>
+        <div class="lh-icons">🔍 ☰</div>
+      </div>
+      <div class="chat">
+        <div class="ts">下午 8:09</div>
+        <div class="bu">61250 50片</div>
+        <div class="bw">
+          <div class="ba"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+          <div class="bb" style="font-size:11px">
+            <span class="red">❌ &lt;庫存不足&gt;</span><br>
+            🪪 編號：AA61250<br>
+            📚 系列：波多 · 60×120<br>
+            需求：50片<br>
+            📦 狀態：庫存有，但被搶先保留了 ⏳<br>
+            小高可不認輸！請給我一點時間去打聽看看是否能調貨 💪😊<br><br>
+            <span class="yellow">——新批資訊——</span><br>
+            ✨ 到港：07/15（再51天）<br><br>
+            ✨ <strong>相似規格現貨推薦：</strong><br>
+            <span class="tag">PR61275 丹青</span>
+            <span class="tag">ST61270 繆斯</span>
+          </div>
+        </div>
+      </div>
+      <div class="qr">
+        <div class="qr-btn">📝 下保留</div>
+        <div class="qr-btn">💰 查價格</div>
+        <div class="qr-btn">🖼 看圖片</div>
+      </div>
+      <div class="ib">
+        <span style="font-size:15px;color:#555">➕</span>
+        <div class="ib-field">輸入品號 + 坪數/片數</div>
+        <div class="ib-send">▶</div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">02</span> 庫存不足智能應對</div>
+  <div class="cell-title">不足時自動給替代方案<br>＋ 新批到港日期</div>
+  <div class="cell-sub">決不讓客戶空手而歸</div>
+</div>
+
+<!-- SCREEN 3 ─ 價格查詢 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="lh">
+        <span class="lh-back">‹</span>
+        <div class="lh-avatar"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+        <div class="lh-name">高雅瓷-AI機器人</div>
+        <div class="lh-icons">🔍 ☰</div>
+      </div>
+      <div class="chat">
+        <div class="ts">下午 8:05</div>
+        <div class="bu">36033 10坪 價格</div>
+        <div class="bw">
+          <div class="ba"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+          <div style="flex:1">
+            <div class="fc">
+              <div class="fc-body">
+                <div style="font-size:11px;font-weight:900;color:#111;margin-bottom:5px">🔥 冰岩 🔥</div>
+                <div class="fc-row"><span>編號</span><span>RT36033</span></div>
+                <div class="fc-row"><span>尺寸</span><span>30×60</span></div>
+                <div class="fc-row"><span>單價</span><span style="color:#e74c3c;font-size:12px">$270元</span></div>
+              </div>
+            </div>
+            <div class="fc" style="margin-top:5px">
+              <div class="fc-body">
+                <div style="font-size:11px;font-weight:900;color:#111;margin-bottom:5px">🔥 冰岩 🔥</div>
+                <div class="fc-row"><span>編號</span><span>RT36033</span></div>
+                <div class="fc-row"><span>尺寸</span><span>30×60</span></div>
+                <div class="fc-row"><span>單價</span><span style="color:#e74c3c;font-size:12px">$270元</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="qr">
+        <div class="qr-btn">📝 下保留</div>
+        <div class="qr-btn">💰 查價格</div>
+        <div class="qr-btn">🖼 看圖片</div>
+      </div>
+      <div class="ib">
+        <span style="font-size:15px;color:#555">➕</span>
+        <div class="ib-field">輸入品號 + 坪數 價格</div>
+        <div class="ib-send">▶</div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">03</span> 價格 + 包裝查詢</div>
+  <div class="cell-title">輸入品號 → 即時回傳<br>單價 / 重量 / 箱裝規格</div>
+  <div class="cell-sub">Flex 卡片整齊呈現，一目了然</div>
+</div>
+
+<!-- SCREEN 4 ─ 圖片查詢 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="lh">
+        <span class="lh-back">‹</span>
+        <div class="lh-avatar"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+        <div class="lh-name">高雅瓷-AI機器人</div>
+        <div class="lh-icons">🔍 ☰</div>
+      </div>
+      <div class="chat">
+        <div class="ts">下午 8:06</div>
+        <div class="bu">36033圖片</div>
+        <div class="bw">
+          <div class="ba"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+          <div style="flex:1">
+            <!-- Dual image cards -->
+            <div style="display:flex;gap:5px">
+              <div class="fc-img-card" style="flex:1">
+                <div class="room-img room-img-1">
+                  <span style="position:absolute;bottom:4px;right:5px;color:rgba(255,255,255,.4);font-size:9px">R</span>
+                </div>
+                <div class="fc-img-info">
+                  <div class="fc-img-series">冰岩</div>
+                  <div class="fc-img-code">🪪 RT36033 吹雪 (1)</div>
+                  <div class="fc-btn-row">
+                    <div class="fc-btn">下載模面</div>
+                    <div class="fc-btn">產品目錄</div>
+                  </div>
+                </div>
+              </div>
+              <div class="fc-img-card" style="flex:1">
+                <div class="room-img room-img-2"></div>
+                <div class="fc-img-info">
+                  <div class="fc-img-series">冰岩</div>
+                  <div class="fc-img-code">🪪 RT36033 吹雪 (2)</div>
+                  <div class="fc-btn-row">
+                    <div class="fc-btn">下載模面</div>
+                    <div class="fc-btn">產品目錄</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="qr">
+        <div class="qr-btn">📝 下保留</div>
+        <div class="qr-btn">💰 查價格</div>
+        <div class="qr-btn">🖼 看圖片</div>
+      </div>
+      <div class="ib">
+        <span style="font-size:15px;color:#555">➕</span>
+        <div class="ib-field">輸入品號 + 圖片</div>
+        <div class="ib-send">▶</div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">04</span> 圖片查詢</div>
+  <div class="cell-title">實景圖 / 單片圖 / 電子目錄<br>一次全回傳</div>
+  <div class="cell-sub">直接下載模面、開啟產品目錄</div>
+</div>
+
+<!-- ─────────────────────────────────────────────────
+     行 2：保留查詢(權限) / 配送入口 / 下保留表單 / 配送詳細
+───────────────────────────────────────────────── -->
+
+<!-- SCREEN 5 ─ 保留查詢（權限攔截 + 結果） -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="lh">
+        <span class="lh-back">‹</span>
+        <div class="lh-avatar"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+        <div class="lh-name">高雅瓷-AI機器人</div>
+        <div class="lh-icons">🔍 ☰</div>
+      </div>
+      <div class="chat" style="gap:5px">
+        <div class="ts">下午 8:07</div>
+        <div class="bu">36033保留</div>
+        <div class="bw">
+          <div class="ba"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+          <div class="perm-warn">
+            🚫 <strong style="color:#f87171">權限提醒：</strong><br>
+            您目前僅能查詢「漢樺」的相關保留紀錄喔！
+          </div>
+        </div>
+        <div class="ts">下午 8:08</div>
+        <div class="bu">漢樺保留</div>
+        <div class="bw">
+          <div class="ba"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+          <div style="flex:1">
+            <div class="rsv-card">
+              <div class="rsv-header">⭐ 漢樺 共46筆保留 ⭐</div>
+              <div style="border-top:1px solid #333;margin:4px 0"></div>
+              <div class="rsv-header" style="font-size:10.5px">⭐ 漢樺 | Bonnie 1筆</div>
+              <div style="font-size:10.5px;line-height:1.8">
+                漢樺 | Bonnie<br>
+                世界明珠21F<br>
+                RC612110 | 85片<br>
+                RE612114 | 70片<br>
+                05/20 | 🟡 留33天<br>
+                <span class="rsv-sub">訂金：未付 · 備註：6月</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ib">
+        <span style="font-size:15px;color:#555">➕</span>
+        <div class="ib-field">輸入公司名查保留</div>
+        <div class="ib-send">▶</div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">05</span> 保留查詢（權限分級）</div>
+  <div class="cell-title">客戶只看得到自己公司<br>業務才能全覽所有保留</div>
+  <div class="cell-sub">資料安全 · 客戶隱私完整保護</div>
+</div>
+
+<!-- SCREEN 6 ─ 配送入口 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="lh">
+        <span class="lh-back">‹</span>
+        <div class="lh-avatar"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+        <div class="lh-name">高雅瓷-AI機器人</div>
+        <div class="lh-icons">🔍 ☰</div>
+      </div>
+      <div class="chat">
+        <div class="ts">下午 8:08</div>
+        <div class="bu">我的貨到那了</div>
+        <div class="bw">
+          <div class="ba"><svg viewBox="0 0 40 40"><text x="4" y="28" class="logo-svg" font-size="9">eli</text><text x="18" y="28" class="logo-svg" font-size="9">lile</text></svg></div>
+          <div style="flex:1">
+            <div class="delivery-fc">
+              <div class="dfc-title">🚛 今日配送狀態查詢</div>
+              <div class="dfc-body">
+                您好，德思特尼-高大踢（德思特尼）！<br><br>
+                點選下方按鈕，即可秒查今日配送細節、司機資訊與即時定位！
+              </div>
+              <div class="dfc-link">📦 點此開啟今日進度頁面</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ib">
+        <span style="font-size:15px;color:#555">➕</span>
+        <div class="ib-field">輸入「查貨」或「我的貨」</div>
+        <div class="ib-send">▶</div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">06</span> 配送進度入口</div>
+  <div class="cell-title">輸入任意查貨關鍵字<br>個人化問候 + 一鍵開啟</div>
+  <div class="cell-sub">自動識別客戶身份，精準回應</div>
+</div>
+
+<!-- SCREEN 7 ─ 下保留表單 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="form-screen">
+        <div class="form-topbar">
+          <div>
+            <div class="form-co">🏢 漢樺工程有限公司</div>
+            <div class="form-sales">業務：高大踢</div>
+          </div>
+          <div class="form-liff-tag">LIFF</div>
+        </div>
+        <div class="form-body">
+          <div>
+            <div class="fs-label">工程資訊</div>
+            <div class="fs-card">
+              <div><div class="fi-label">案名 *</div><div class="fi-val">天母豪宅 A 棟浴室工程</div></div>
+              <div><div class="fi-label">工地地址 *</div><div class="fi-val">台北市士林區中山北路七段</div></div>
+              <div><div class="fi-label">預計進場日期 *</div><div class="fi-val">2026 / 06 / 15</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="fs-label">保留品項</div>
+            <div class="fs-card">
+              <div>
+                <div class="item-row-form">
+                  <div class="irf-code"><div class="fi-label">編號</div><div class="fi-val">RT36033</div></div>
+                  <div class="irf-qty"><div class="fi-label">數量</div><div class="fi-val">10坪</div></div>
+                </div>
+                <div class="item-meta-form"><div class="thumb"></div>冰岩｜吹雪<span class="stk stk-g">🟢充足</span></div>
+              </div>
+              <div style="margin-top:5px;padding-top:5px;border-top:1px solid #2a2a2a">
+                <div class="item-row-form">
+                  <div class="irf-code"><div class="fi-label">編號</div><div class="fi-val">AA61250</div></div>
+                  <div class="irf-qty"><div class="fi-label">數量</div><div class="fi-val">20片</div></div>
+                </div>
+                <div class="item-meta-form"><div class="thumb thumb-g"></div>波多｜丹青<span class="stk stk-y">🟡確認</span></div>
+              </div>
+              <div class="add-item">＋ 新增品項</div>
+            </div>
+          </div>
+          <div class="submit-btn">📤 送出保留申請</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">07</span> 線上下保留單</div>
+  <div class="cell-title">IG 深色美學表單<br>自動帶入 · 多品項 · 一鍵送出</div>
+  <div class="cell-sub">送出後即時推送群組審核</div>
+</div>
+
+<!-- SCREEN 8 ─ 配送詳細頁 -->
+<div class="cell">
+  <div class="phone">
+    <div class="screen">
+      <div class="dd-screen">
+        <div class="dd-header">
+          <span style="font-size:16px">🚚</span>
+          <div>
+            <div class="dd-title">今日配送狀態</div>
+            <div class="dd-date">鈦傳速 · 2026/05/25</div>
+          </div>
+          <div class="dd-badge">配送中</div>
+        </div>
+        <div class="dd-body">
+          <div class="dd-card">
+            <div class="ddc-title">司機資訊</div>
+            <div class="ddc-row">
+              <div class="ddc-icon">👨</div>
+              <div class="ddc-info">
+                <div class="ddc-main">張建宏 師傅</div>
+                <div class="ddc-sub">車牌：ABC-1234 | 大型貨車</div>
+              </div>
+              <div class="call-btn-dd">📞 撥打</div>
+            </div>
+          </div>
+          <div class="dd-card">
+            <div class="ddc-title">即時位置</div>
+            <div class="map-box">
+              <div class="map-grid-bg"></div>
+              <div class="map-truck-icon">🚚</div>
+              <div class="map-route-line"></div>
+              <div class="map-dest-icon">🏗</div>
+              <div class="map-eta">⏱ 預計 15 分鐘後抵達</div>
+            </div>
+          </div>
+          <div class="dd-card">
+            <div class="ddc-title">本次配送品項</div>
+            <div class="ddc-row" style="margin-bottom:3px">
+              <div class="ddc-icon">📦</div>
+              <div class="ddc-info">
+                <div class="ddc-main">RT36033 × 100片</div>
+                <div class="ddc-sub">4箱 · 約 120kg</div>
+              </div>
+            </div>
+            <div class="item-chips">
+              <div class="chip">漢樺工程</div>
+              <div class="chip">天母豪宅A棟</div>
+              <div class="chip">士林區</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="feat-badge"><span class="num">08</span> 即時配送追蹤頁</div>
+  <div class="cell-title">司機位置地圖 · 一鍵撥號<br>到貨時間即時更新</div>
+  <div class="cell-sub">不用打電話，自助掌握配送狀態</div>
+</div>
+
+</div><!-- /grid -->
+
+<div class="hint">
+  <strong>截圖說明：</strong>建議在 Chrome 按 F12 → Device Toolbar → 375px，再截取各手機畫面<br>
+  或直接右鍵「截取完整頁面截圖」取得全版面<br>
+  Screen 01–06 已依真實操作重現 · Screen 07–08 為 LIFF 網頁設計稿
+</div>
+
+</body>
+</html>

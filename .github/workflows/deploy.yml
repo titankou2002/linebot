@@ -1,0 +1,47 @@
+name: Deploy Web Assets to cPanel (bigt.cc)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  web-deploy:
+    name: 🎉 Sync Web Assets to cPanel
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Sync LINE Reservation Form to /public_html/line/
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /public_html/line/
+          exclude: |
+            .git/**
+            .github/**
+            *.js
+            *.xlsx
+            *.json
+            *.md
+
+      - name: 🚀 Sync TTS Logistics Tracking to /public_html/tts/
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /public_html/tts/
+          exclude: |
+            .git/**
+            .github/**
+            *.js
+            *.xlsx
+            *.json
+            *.md

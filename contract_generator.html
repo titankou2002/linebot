@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>簡易合約書產生器 - 磁磚 AI 智能客服系統</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --text-dark: #1e293b;
+      --text-light: #64748b;
+      --border-color: #cbd5e1;
+      --card-bg: #ffffff;
+      --gold: #d97706;
+      --green: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Split Layout ── */
+    .editor-pane {
+      width: 450px;
+      background-color: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      padding: 24px;
+      overflow-y: auto;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .preview-pane {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-y: auto;
+      background-color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ── Form Styling ── */
+    .pane-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid #eff6ff;
+      padding-bottom: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group.row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #475569;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-dark);
+      background-color: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .section-divider {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 24px 0 12px 0;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .action-btn {
+      width: 100%;
+      background-color: var(--primary);
+      color: #white;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.2s;
+      margin-top: 20px;
+    }
+
+    .action-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* ── Document Preview (A4 style) ── */
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 20mm 20mm;
+      margin: 0 auto;
+      background: #ffffff;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      position: relative;
+      color: #000;
+      font-size: 14px;
+      line-height: 1.8;
+      font-family: 'Times New Roman', 'Noto Sans TC', serif;
+    }
+
+    .contract-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .contract-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      color: #000;
+    }
+
+    .contract-subtitle {
+      font-size: 14px;
+      color: #334155;
+    }
+
+    .contract-parties {
+      margin-bottom: 24px;
+    }
+
+    .party-row {
+      margin-bottom: 6px;
+    }
+
+    .party-label {
+      font-weight: 700;
+      display: inline-block;
+      width: 60px;
+    }
+
+    .contract-body h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 4px;
+    }
+
+    .contract-body ol {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .contract-body li {
+      margin-bottom: 6px;
+    }
+
+    .price-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+
+    .price-table th, .price-table td {
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .price-table th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .signature-area {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      page-break-inside: avoid;
+    }
+
+    .sig-box {
+      border-top: 1px dashed #334155;
+      padding-top: 15px;
+    }
+
+    .sig-row {
+      margin-bottom: 8px;
+      min-height: 28px;
+    }
+
+    .sig-label {
+      font-weight: 700;
+      display: inline-block;
+      width: 90px;
+    }
+
+    .sig-line {
+      display: inline-block;
+      width: calc(100% - 100px);
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .stamp-box {
+      border: 1px dashed #94a3b8;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 15px;
+      border-radius: 4px;
+    }
+
+    /* ── Print Styles ── */
+    @media print {
+      body {
+        background-color: #ffffff;
+      }
+      .editor-pane {
+        display: none !important;
+      }
+      .preview-pane {
+        padding: 0 !important;
+        background-color: transparent !important;
+        display: block !important;
+        min-height: auto !important;
+      }
+      .a4-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 10mm 10mm !important;
+        width: 100% !important;
+        min-height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT: Config Form -->
+  <div class="editor-pane">
+    <div class="pane-title">
+      <span>📝 合約內容填寫</span>
+    </div>
+
+    <!-- Party A (Client) -->
+    <div class="section-divider">甲方資訊（委託方）</div>
+    <div class="form-group">
+      <label for="party_a_company">公司名稱 (甲方)</label>
+      <input type="text" id="party_a_company" value="宏達磁磚建材行" oninput="updateContract()">
+    </div>
+    <div class="form-group row">
+      <div>
+        <label for="party_a_taxid">統一編號</label>
+        <input type="text" id="party_a_taxid" value="88888888" oninput="updateContract()">
+      </div>
+      <div>
+        <label for="party_a_owner">代表人 / 負責人</label>
+        <input type="text" id="party_a_owner" value="王大明" oninput="updateContract()">
+      </div>
+    </div>
+    <div class="form-group row">
+      <div>
+        <label for="party_a_phone">聯絡電話</label>
+        <input type="text" id="party_a_phone" value="0912-345678" oninput="updateContract()">
+      </div>
+      <div>
+        <label for="party_a_addr">通訊地址</label>
+        <input type="text" id="party_a_addr" value="台中市西區公益路100號" oninput="updateContract()">
+      </div>
+    </div>
+
+    <!-- Party B (Vendor) -->
+    <div class="section-divider">乙方資訊（受託方）</div>
+    <div class="form-group">
+      <label for="party_b_company">公司名稱 (乙方)</label>
+      <input type="text" id="party_b_company" value="高雅瓷智能科技團隊" oninput="updateContract()">
+    </div>
+    <div class="form-group row">
+      <div>
+        <label for="party_b_taxid">統一編號</label>
+        <input type="text" id="party_b_taxid" value="99999999" oninput="updateContract()">
+      </div>
+      <div>
+        <label for="party_b_owner">負責人</label>
+        <input type="text" id="party_b_owner" value="陳小華" oninput="updateContract()">
+      </div>
+    </div>
+    <div class="form-group row">
+      <div>
+        <label for="party_b_phone">聯絡電話</label>
+        <input type="text" id="party_b_phone" value="0987-654321" oninput="updateContract()">
+      </div>
+      <div>
+        <label for="party_b_addr">通訊地址</label>
+        <input type="text" id="party_b_addr" value="台北市信義區信義路五段7號" oninput="updateContract()">
+      </div>
+    </div>
+
+    <!-- Plan Selection & Money -->
+    <div class="section-divider">方案與費用</div>
+    <div class="form-group">
+      <label for="plan_select">選擇系統方案</label>
+      <select id="plan_select" onchange="onPlanChange()">
+        <option value="1">方案 1：基本查庫存版 (年繳 $9,900)</option>
+        <option value="2">方案 2：業務基礎版 (年繳 $19,900)</option>
+        <option value="3">方案 3：外部使用版 (年繳 $44,160)</option>
+        <option value="4" selected>方案 4：圖庫完整版 (年繳 $56,160)</option>
+        <option value="5">方案 5：AI 智能版 (年繳 $68,160)</option>
+        <option value="custom">自訂方案 / 其他項目</option>
+      </select>
+    </div>
+    <div class="form-group row">
+      <div>
+        <label for="fee_setup">建置費 (一次性)</label>
+        <input type="number" id="fee_setup" value="0" oninput="updateContract()">
+      </div>
+      <div>
+        <label for="fee_annual">系統維護/授權費</label>
+        <input type="number" id="fee_annual" value="56160" oninput="updateContract()">
+      </div>
+    </div>
+    <div class="form-group row">
+      <div>
+        <label for="fee_billing_cycle">收費週期</label>
+        <select id="fee_billing_cycle" onchange="updateContract()">
+          <option value="年繳">年繳</option>
+          <option value="月繳">月繳</option>
+          <option value="一次性">一次性專案</option>
+        </select>
+      </div>
+      <div>
+        <label for="fee_custom">客製化開發費 (選填)</label>
+        <input type="number" id="fee_custom" value="0" oninput="updateContract()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="payment_terms">付款時程與說明</label>
+      <textarea id="payment_terms" oninput="updateContract()">本合約採用『分階段付款』：
+1. 乙方建置完成基本查庫存與保留查詢功能（相當於方案 2）並交付甲方測試後，甲方支付首期建置暨服務費新台幣 19,900 元整。
+2. 乙方陸續完成其餘功能並交由甲方測試 7 日無誤後，甲方結清剩餘款項新台幣 36,260 元整。</textarea>
+    </div>
+
+    <!-- Dates -->
+    <div class="section-divider">合約期間</div>
+    <div class="form-group row">
+      <div>
+        <label for="date_start">合約開始日</label>
+        <input type="date" id="date_start" onchange="updateContract()">
+      </div>
+      <div>
+        <label for="date_end">合約終止日</label>
+        <input type="date" id="date_end" onchange="updateContract()">
+      </div>
+    </div>
+
+    <button class="action-btn" onclick="window.print()">
+      <span>🖨️ 列印合約 / 匯出 PDF</span>
+    </button>
+  </div>
+
+  <!-- RIGHT: A4 Live Preview -->
+  <div class="preview-pane">
+    <div class="a4-page">
+      <div class="contract-header">
+        <h1 class="contract-title">磁磚 AI 智能客服系統軟體授權與服務建置合約書</h1>
+        <div class="contract-subtitle">Simplified Software Service Agreement</div>
+      </div>
+
+      <div class="contract-parties">
+        <div class="party-row"><span class="party-label">立合約書人</span></div>
+        <div class="party-row"><span class="party-label">甲方：</span><span id="preview_party_a_company">宏達磁磚建材行</span></div>
+        <div class="party-row"><span class="party-label">乙方：</span><span id="preview_party_b_company">高雅瓷智能科技團隊</span></div>
+        <p style="margin-top: 10px;">雙方本於誠信原則，就乙方提供「磁磚 AI 智能客服系統」軟體授權、建置與後續維護服務事宜，達成協議如下：</p>
+      </div>
+
+      <div class="contract-body">
+        <h3>第一條：合作內容與授權</h3>
+        <p>乙方授權甲方使用「磁磚 AI 智能客服系統」（LINE 官方帳號智能助理），方案等級為：<strong id="preview_plan_name">方案 4：圖庫完整版</strong>。</p>
+        <p>授權功能清單包含：</p>
+        <ol id="preview_feature_list">
+          <!-- Features render here -->
+        </ol>
+
+        <h3>第二條：合約期間</h3>
+        <p>本合約有效期間自民國 <span id="preview_date_start">____ 年 __ 月 __ 日</span> 起，至民國 <span id="preview_date_end">____ 年 __ 月 __ 日</span> 止，共計壹年。本合約期滿前一個月，雙方若無書面異議，本合約自動展延一年。</p>
+
+        <h3>第三條：合約金額與費用</h3>
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>計費方式</th>
+              <th>金額 (新台幣/元)</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>系統建置設定費</td>
+              <td>一次性支付</td>
+              <td>NT$ <span id="preview_fee_setup">0</span> 元</td>
+              <td>含 Google 雲端、LINE 官方帳號與主機綁定設定</td>
+            </tr>
+            <tr>
+              <td>系統授權與維護費</td>
+              <td>按<span id="preview_billing_cycle">年繳</span>支付</td>
+              <td>NT$ <span id="preview_fee_annual">56,160</span> 元</td>
+              <td>系統核心及資料庫同步查詢使用授權</td>
+            </tr>
+            <tr id="preview_row_custom" style="display:none;">
+              <td>客製化開發費用</td>
+              <td>一次性支付</td>
+              <td>NT$ <span id="preview_fee_custom">0</span> 元</td>
+              <td>依甲方特定客製化需求另行開發費用</td>
+            </tr>
+            <tr style="font-weight: bold;">
+              <td>合計金額</td>
+              <td>-</td>
+              <td>NT$ <span id="preview_fee_total">56,160</span> 元</td>
+              <td>(本合約所有金額均為未稅價)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>第四條：付款時程與方式</h3>
+        <p style="white-space: pre-wrap;" id="preview_payment_terms">本合約採用『分階段付款』：
+1. 乙方建置完成基本查庫存與保留查詢功能（相當於方案 2）並交付甲方測試後，甲方支付首期建置暨服務費新台幣 19,900 元整。
+2. 乙方陸續完成其餘功能並交由甲方測試 7 日無誤後，甲方結清剩餘款項新台幣 36,260 元整。</p>
+
+        <h3>第五條：售後保固與維護規範</h3>
+        <ol>
+          <li>**保固期間：** 自系統正式交付上線之日起 3 個月內，若系統有非人為操作導致之異常（Bug），乙方應無償修復。</li>
+          <li>**修改費用：** 保固期滿後（第 4 個月起），甲方如需進行版面、功能或文宣之微調修改，乙方酌收修改服務費新台幣 2,000 元 / 次（若涉及大改版另議）。</li>
+          <li>**第二年維護費：** 第二年起，系統維護合約費用為新台幣 6,000 元 / 年（包含 LINE 機器人伺服器端穩定運行監控、Google Sheets 與 Supabase 資料對接同步維護）。</li>
+          <li>**第三方費用：** LINE 官方帳號訊息發送費、Google 雲端額外付費空間及主機相關租用費（若有），均由甲方自行向各平台支付，不包含在本合約維護費內。</li>
+        </ol>
+
+        <h3>第六條：保密與智慧財產權</h3>
+        <ol>
+          <li>雙方因履行本合約所知悉之商業機密（包含但不限於庫存明細、經銷價格、客戶資料等），未經對方書面同意，不得洩漏予任何第三人。</li>
+          <li>本系統之程式碼、架構設計及相關專利財產權均屬乙方所有，甲方僅擁有本合約約定範圍內之非獨佔性使用授權，不得複製、轉售或進行反向工程。</li>
+        </ol>
+      </div>
+
+      <!-- Signature Blocks -->
+      <div class="signature-area">
+        <div class="sig-box">
+          <p style="font-weight: 700; margin-bottom: 12px;">甲方 (委託用印)：</p>
+          <div class="sig-row"><span class="sig-label">公司名稱：</span><span id="preview_sig_a_company">宏達磁磚建材行</span></div>
+          <div class="sig-row"><span class="sig-label">統一編號：</span><span id="preview_sig_a_taxid">88888888</span></div>
+          <div class="sig-row"><span class="sig-label">代表人：</span><span id="preview_sig_a_owner">王大明</span></div>
+          <div class="sig-row"><span class="sig-label">聯絡電話：</span><span id="preview_sig_a_phone">0912-345678</span></div>
+          <div class="sig-row"><span class="sig-label">地址：</span><span id="preview_sig_a_addr">台中市西區公益路100號</span></div>
+          <div class="stamp-box">甲方法人公章</div>
+        </div>
+        <div class="sig-box">
+          <p style="font-weight: 700; margin-bottom: 12px;">乙方 (受託用印)：</p>
+          <div class="sig-row"><span class="sig-row-content"><span class="sig-label">公司名稱：</span><span id="preview_sig_b_company">高雅瓷智能科技團隊</span></span></div>
+          <div class="sig-row"><span class="sig-row-content"><span class="sig-label">統一編號：</span><span id="preview_sig_b_taxid">99999999</span></span></div>
+          <div class="sig-row"><span class="sig-row-content"><span class="sig-label">負責人：</span><span id="preview_sig_b_owner">陳小華</span></span></div>
+          <div class="sig-row"><span class="sig-row-content"><span class="sig-label">聯絡電話：</span><span id="preview_sig_b_phone">0987-654321</span></span></div>
+          <div class="sig-row"><span class="sig-row-content"><span class="sig-label">地址：</span><span id="preview_sig_b_addr">台北市信義區信義路五段7號</span></span></div>
+          <div class="stamp-box">乙方法人公章</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 30px; text-align: right; font-size: 12px;">
+        合約簽署日期：中華民國 <span id="preview_sign_date_y">____</span> 年 <span id="preview_sign_date_m">__</span> 月 <span id="preview_sign_date_d">__</span> 日
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Features definition for plans
+    const PLAN_FEATURES = {
+      "1": [
+        "查庫存（包含坪數、片數自動換算）",
+        "缺貨回報功能",
+        "標準 Google Sheets 資料庫介面",
+        "單一 LINE 官方帳號對接服務"
+      ],
+      "2": [
+        "包含方案 1 全部功能",
+        "保留量計算（庫存即時扣除保留數量，呈現實際可用量）",
+        "保留明細查詢（檢視各經銷商保留名單、保留天數）",
+        "箱重與包裝明細查詢（每箱片數、單箱重量）",
+        "產品價格查詢"
+      ],
+      "3": [
+        "包含方案 2 全部功能",
+        "開放外部經銷商/客戶加入 LINE 使用",
+        "業務與客戶分級權限（客戶只可看特定欄位）",
+        "客戶查詢限縮（客戶在查詢保留單時，僅能看到與自己相關的保留單）",
+        "進口貨物到港時間提示"
+      ],
+      "4": [
+        "包含方案 3 全部功能",
+        "LINE Flex Message 產品多圖輪播卡片",
+        "實景照展示功能（業務及客戶可即時檢視完工效果）",
+        "單片磁磚特寫圖查詢",
+        "最新電子 PDF 目錄下載",
+        "Google Drive 圖庫系統串接與自動讀取",
+        "同色系/同規格替代產品推薦"
+      ],
+      "5": [
+        "包含方案 4 全部功能",
+        "Gemini AI 自然語言對話（可用口語聊天查貨、推薦風格）",
+        "多重條件搜尋（例如：『找灰色 60x120 庫存50坪以上』）",
+        "線上保留單申請（手機直接開啟 LIFF 專屬表單）",
+        "多品項合併一次送出保留申請",
+        "保留到期通知與自動提醒"
+      ],
+      "custom": [
+        "依雙方需求客製化開發之專屬功能",
+        "請於下方付款時程與說明中詳列具體客製項目"
+      ]
+    };
+
+    // Auto load current dates
+    window.onload = function() {
+      const today = new Date();
+      const nextYear = new Date();
+      nextYear.setFullYear(today.getFullYear() + 1);
+      nextYear.setDate(today.getDate() - 1); // 1 year minus 1 day
+
+      document.getElementById('date_start').value = formatDate(today);
+      document.getElementById('date_end').value = formatDate(nextYear);
+
+      // Sign Date defaults
+      document.getElementById('preview_sign_date_y').textContent = today.getFullYear() - 1911;
+      document.getElementById('preview_sign_date_m').textContent = today.getMonth() + 1;
+      document.getElementById('preview_sign_date_d').textContent = today.getDate();
+
+      onPlanChange();
+    };
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function onPlanChange() {
+      const planVal = document.getElementById('plan_select').value;
+      const setupInput = document.getElementById('fee_setup');
+      const annualInput = document.getElementById('fee_annual');
+      const paymentText = document.getElementById('payment_terms');
+      const billingCycle = document.getElementById('fee_billing_cycle');
+
+      // Auto-set prices based on selections
+      if (planVal === "1") {
+        setupInput.value = 6000;
+        annualInput.value = 9900;
+        billingCycle.value = "年繳";
+        paymentText.value = `本合約採用『先使用後付款』：\n1. 本系統建置完畢並上線測試三日，功能確認無誤後，甲方應一次結清付清合約總額新台幣 15,900 元整（含建置費 6,000 元及首年服務維護費 9,900 元）。`;
+      } else if (planVal === "2") {
+        setupInput.value = 6000;
+        annualInput.value = 19900;
+        billingCycle.value = "年繳";
+        paymentText.value = `本合約採用『先使用後付款』：\n1. 本系統建置完畢並上線測試三日，功能確認無誤後，甲方應一次結清付清合約總額新台幣 25,900 元整（含建置費 6,000 元及首年服務維護費 19,900 元）。`;
+      } else if (planVal === "3") {
+        setupInput.value = 0;
+        annualInput.value = 44160;
+        billingCycle.value = "年繳";
+        paymentText.value = `本合約採用『分階段付款』：\n1. 乙方建置完成基本查庫存與保留查詢功能（相當於方案 2）並交付甲方測試後，甲方支付首期建置暨服務費新台幣 19,900 元整。\n2. 乙方陸續完成其餘功能（外部使用與權限隔離）並交由甲方測試 7 日無誤後，甲方結清剩餘尾款新台幣 24,260 元整。`;
+      } else if (planVal === "4") {
+        setupInput.value = 0;
+        annualInput.value = 56160;
+        billingCycle.value = "年繳";
+        paymentText.value = `本合約採用『分階段付款』：\n1. 乙方建置完成基本查庫存與保留查詢功能（相當於方案 2）並交付甲方測試後，甲方支付首期建置暨服務費新台幣 19,900 元整。\n2. 乙方陸續完成其餘功能（Flex 圖卡輪播與雲端硬碟自動同步）並交由甲方測試 7 日無誤後，甲方結清剩餘尾款新台幣 36,260 元整。`;
+      } else if (planVal === "5") {
+        setupInput.value = 0;
+        annualInput.value = 68160;
+        billingCycle.value = "年繳";
+        paymentText.value = `本合約採用『分階段付款』：\n1. 乙方建置完成基本查庫存與保留查詢功能（相當於方案 2）並交付甲方測試後，甲方支付首期建置暨服務費新台幣 19,900 元整。\n2. 乙方陸續完成其餘功能（AI 自然語言對話與線上保留單）並交由甲方測試 7 日無誤後，甲方結清剩餘尾款新台幣 48,260 元整。`;
+      }
+
+      updateContract();
+    }
+
+    function updateContract() {
+      // Party A
+      const partyAComp = document.getElementById('party_a_company').value;
+      const partyATax = document.getElementById('party_a_taxid').value;
+      const partyAOwner = document.getElementById('party_a_owner').value;
+      const partyAPhone = document.getElementById('party_a_phone').value;
+      const partyAAddr = document.getElementById('party_a_addr').value;
+
+      document.getElementById('preview_party_a_company').textContent = partyAComp;
+      document.getElementById('preview_sig_a_company').textContent = partyAComp;
+      document.getElementById('preview_sig_a_taxid').textContent = partyATax;
+      document.getElementById('preview_sig_a_owner').textContent = partyAOwner;
+      document.getElementById('preview_sig_a_phone').textContent = partyAPhone;
+      document.getElementById('preview_sig_a_addr').textContent = partyAAddr;
+
+      // Party B
+      const partyBComp = document.getElementById('party_b_company').value;
+      const partyBTax = document.getElementById('party_b_taxid').value;
+      const partyBOwner = document.getElementById('party_b_owner').value;
+      const partyBPhone = document.getElementById('party_b_phone').value;
+      const partyBAddr = document.getElementById('party_b_addr').value;
+
+      document.getElementById('preview_party_b_company').textContent = partyBComp;
+      document.getElementById('preview_sig_b_company').textContent = partyBComp;
+      document.getElementById('preview_sig_b_taxid').textContent = partyBTax;
+      document.getElementById('preview_sig_b_owner').textContent = partyBOwner;
+      document.getElementById('preview_sig_b_phone').textContent = partyBPhone;
+      document.getElementById('preview_sig_b_addr').textContent = partyBAddr;
+
+      // Plan Name
+      const planSelect = document.getElementById('plan_select');
+      const selectedOptionText = planSelect.options[planSelect.selectedIndex].text;
+      document.getElementById('preview_plan_name').textContent = selectedOptionText;
+
+      // Plan Features
+      const planVal = planSelect.value;
+      const features = PLAN_FEATURES[planVal] || [];
+      const featureListEl = document.getElementById('preview_feature_list');
+      featureListEl.innerHTML = features.map(f => `<li>${f}</li>`).join('');
+
+      // Money Calculations
+      const setupFee = parseFloat(document.getElementById('fee_setup').value) || 0;
+      const annualFee = parseFloat(document.getElementById('fee_annual').value) || 0;
+      const customFee = parseFloat(document.getElementById('fee_custom').value) || 0;
+      const totalFee = setupFee + annualFee + customFee;
+
+      document.getElementById('preview_fee_setup').textContent = setupFee.toLocaleString();
+      document.getElementById('preview_fee_annual').textContent = annualFee.toLocaleString();
+      document.getElementById('preview_fee_custom').textContent = customFee.toLocaleString();
+      document.getElementById('preview_fee_total').textContent = totalFee.toLocaleString();
+
+      const bCycle = document.getElementById('fee_billing_cycle').value;
+      document.getElementById('preview_billing_cycle').textContent = bCycle;
+
+      if (customFee > 0) {
+        document.getElementById('preview_row_custom').style.display = 'table-row';
+      } else {
+        document.getElementById('preview_row_custom').style.display = 'none';
+      }
+
+      // Payment terms Text
+      document.getElementById('preview_payment_terms').textContent = document.getElementById('payment_terms').value;
+
+      // Dates Format (Traditional Chinese Calendar)
+      const dateStart = document.getElementById('date_start').value;
+      const dateEnd = document.getElementById('date_end').value;
+
+      if (dateStart) {
+        const ds = new Date(dateStart);
+        document.getElementById('preview_date_start').textContent = `${ds.getFullYear() - 1911} 年 ${ds.getMonth() + 1} 月 ${ds.getDate()} 日`;
+      }
+      if (dateEnd) {
+        const de = new Date(dateEnd);
+        document.getElementById('preview_date_end').textContent = `${de.getFullYear() - 1911} 年 ${de.getMonth() + 1} 月 ${de.getDate()} 日`;
+      }
+    }
+  </script>
+</body>
+</html>
