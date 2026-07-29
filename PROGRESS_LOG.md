@@ -512,3 +512,38 @@
   * LIFF ID：`2007666611-fbGOItDt`
   * Endpoint URL：👉 `https://bigt.cc/line/reservation_form.html`
 
+---
+
+## 2026-07-29 補充：GitHub Actions CI/CD 全面啟動 & Favicon 修復
+
+### 🐙 GitHub Actions FTP 自動部署全面啟動
+* **3 大 Repo** 均完成 GitHub Secrets 設定（`FTP_HOST` / `FTP_USER` / `FTP_PASSWORD`）：
+  * [`titankou2002/linebot`](https://github.com/titankou2002/linebot) → `/public_html/line/`
+  * [`titankou2002/tts`](https://github.com/titankou2002/tts) → `/public_html/tts/`
+  * [`titankou2002/sales_app_ait`](https://github.com/titankou2002/sales_app_ait) → `/public_html/ait/`
+* 未來每次 `git push main` 自動 FTP 同步至 cPanel，**無需手動上傳**。
+
+### 🎨 各系統專屬 Favicon 修復（Chrome 相容版）
+* **根本問題**：Chrome 新版本封鎖 `data:` URI 格式的 favicon，導致所有瀏覽器與裝置均無法顯示圖標。
+* **解決方式**：改為建立真實 `.svg` 檔案，以相對路徑引用：
+
+| 頁面 | 檔案 | 配色 |
+| :--- | :--- | :--- |
+| 派車戰情室 `OS.html` | `favicon-os.svg` | 🔵 藍底白T |
+| 司機端 `DRIVER.html` | `favicon-driver.svg` | ⬛ 黑底白T |
+| 倉庫驗貨 `QC.html` | `favicon-qc.svg` | 🟡 黃底白T |
+| 庫存系統 `inventory.html` | `favicon.svg` | ⬛ 黑底白T |
+
+---
+
+## 📋 明日計畫 (2026-07-30)：LINE MINI App 正式認證版
+
+**從「線上保留單」(`reservation_form.html`) 開始，升級為 LINE 官方身份認證版 MINI App。**
+
+| 待完成功能 | 技術說明 |
+| :--- | :--- |
+| **LINE Login 身份綁定** | `liff.init()` + `liff.getProfile()` 自動帶入姓名/頭像/UID |
+| **LIFF 環境偵測與導引** | 區分 LINE 內 / 外部瀏覽器，外部導引至 LINE 登入 |
+| **後端 Token 安全驗證** | GAS `doPost` 驗證 `liff.getIDToken()`，防偽造 |
+| **Rich Menu 快捷入口** | 一鍵進入保留單按鈕版面設計 |
+| **LINE Share Target Picker** | 送出後一鍵分享保留單摘要至 LINE 聊天室 |
