@@ -316,7 +316,7 @@ function handleOrderRequest(input, auth, sourceId, db, maps) {
       itemsToBuffer.push({ c: code, q: qtyStr, s: sizeStr });
     });
 
-    const ss = SpreadsheetApp.openById(CONFIG.DATA_SS_ID);
+    const ss = (typeof getFormSpreadsheetInstance === 'function') ? getFormSpreadsheetInstance() : SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
     let orderReqSheet = ss.getSheetByName("(保留暫存)");
     if (!orderReqSheet) {
       orderReqSheet = ss.insertSheet("(保留暫存)");
@@ -545,10 +545,11 @@ function approveOrderRow_(requestId, code, approverName, dbSS) {
   const codeCol = srcMaps['編號'] !== undefined ? srcMaps['編號'] : 0;
   const statusCol = srcMaps['狀態'] !== undefined ? srcMaps['狀態'] : (srcMaps['審核狀態'] !== undefined ? srcMaps['審核狀態'] : 11);
 
-  // 目標寫入：保留單 (SHEET_NAME.MAIN) - 優先從同一個試算表獲取，若無再找主庫
+  // 目標寫入：保留單 (SHEET_NAME.MAIN) - 優先從同一個試算表獲取，若無再找 CONFIG.FORM_SS_ID
   let mainSheet = reqResult.ss.getSheetByName(SHEET_NAME.MAIN);
-  if (!mainSheet) {
-    mainSheet = getSpreadsheetInstance().getSheetByName(SHEET_NAME.MAIN);
+  if (!mainSheet && CONFIG.FORM_SS_ID) {
+    const formSS = (typeof getFormSpreadsheetInstance === 'function') ? getFormSpreadsheetInstance() : SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
+    mainSheet = formSS.getSheetByName(SHEET_NAME.MAIN);
   }
   if (!mainSheet) return { success: false, error: '找不到「保留單」工作表，無法核准。' };
   const mainData = mainSheet.getDataRange().getValues();
@@ -633,10 +634,11 @@ function approveOrderAll_(requestId, approverName, dbSS) {
   const idCol = reqResult.idCol;
   const statusCol = srcMaps['狀態'] !== undefined ? srcMaps['狀態'] : (srcMaps['審核狀態'] !== undefined ? srcMaps['審核狀態'] : 11);
 
-  // 目標寫入：保留單 (SHEET_NAME.MAIN) - 優先從同一個試算表獲取，若無再找主庫
+  // 目標寫入：保留單 (SHEET_NAME.MAIN) - 優先從同一個試算表獲取，若無再找 CONFIG.FORM_SS_ID
   let mainSheet = reqResult.ss.getSheetByName(SHEET_NAME.MAIN);
-  if (!mainSheet) {
-    mainSheet = getSpreadsheetInstance().getSheetByName(SHEET_NAME.MAIN);
+  if (!mainSheet && CONFIG.FORM_SS_ID) {
+    const formSS = (typeof getFormSpreadsheetInstance === 'function') ? getFormSpreadsheetInstance() : SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
+    mainSheet = formSS.getSheetByName(SHEET_NAME.MAIN);
   }
   if (!mainSheet) return { success: false, error: '找不到「保留單」工作表，無法核准。' };
   const mainData = mainSheet.getDataRange().getValues();

@@ -1072,10 +1072,9 @@ function checkArrivalSubscriptions() {
   for (let i = 1; i < data.length; i++) if (data[i][6] === '等待中') waitingIdx.push(i);
   if (waitingIdx.length === 0) return;
 
-  const priceSheet = ss.getSheetByName('編輯價目表') || ss.getSheetByName('編號價目表');
-  const priceData = priceSheet ? priceSheet.getDataRange().getValues() : [];
-  const stockData = ss.getSheetByName(SHEET_NAME.STOCK).getDataRange().getValues();
-  const mainData = ss.getSheetByName(SHEET_NAME.MAIN).getDataRange().getValues();
+  const priceData = (typeof getPriceSheet === 'function') ? getPriceSheet() : [];
+  const stockData = (typeof getStockSheet === 'function') ? getStockSheet() : [];
+  const mainData = (typeof getMainSheet === 'function') ? getMainSheet() : [];
   const pMap = getHeaderMap(priceData), sMap = getHeaderMap(stockData), mMap = getHeaderMap(mainData);
 
   const stockPcs = {}, reservedPcs = {}, priceRow = {};
