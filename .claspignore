@@ -2,6 +2,8 @@
 !00_Debug.js
 !0_Core.js
 !10_Lunch.js
+!10_MultiCompany.js
+!11_R2Migration.js
 !1_Search.js
 !2_Business.js
 !3_Notify.js
@@ -15,3 +17,8 @@
 !appsscript.json
 !debug_check.js
 !GaoYaCi_Bot_Extension.js
+!reservation_form.html
+!*.html
+
+# Drive 同步衝突複本／線上沒有的檔案，不推
+* [0-9].*

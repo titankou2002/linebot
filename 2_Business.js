@@ -143,7 +143,7 @@ function findStockFirstMatch_(inputKW, stockRows, stockMap) {
     if (!rowCode) return;
 
     const isMatch = candidates.some(candidate => {
-      return rowCode === candidate || rowCode.indexOf(candidate) > -1 || candidate.indexOf(rowCode) > -1;
+      return rowCode === candidate || rowCode.indexOf(candidate) > -1;
     });
 
     if (isMatch) {
@@ -281,34 +281,16 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
     recommendations = priceResult.recommendations || [];
   }
   
+  const cleanKW = String(inputKW).toUpperCase().trim();
+
   if (!primary && recommendations.length === 0 && !matchedFromStockFirst) {
     const wlData = db.wl || getWhitelistSheet();
     const wlMap = maps.wl || getHeaderMap(wlData);
     const salesContact = resolveSalesContactForAuth(auth, wlData, wlMap);
     const salesLineId = salesContact.lineId;
     const salesName = auth.salesID || "未指派";
-    const cleanKW = String(inputKW).toUpperCase().trim();
 
-    const isFreeUser = ['free', 'class', 'guest'].includes(userLevel);
-    let notificationStatus = "已記錄Email";
-
-    if (!isFreeUser) {
-      notificationStatus = "查無未通知";
-    } else {
-      const cacheKey = "shortage_push_" + auth.userId + "_" + cleanKW.replace(/\s+/g, '_');
-      const isAlreadyPushed = CacheService.getScriptCache().get(cacheKey);
-      if (!isAlreadyPushed) {
-        const msg = `🚨 客戶查詢查無品號\n` +
-                    `[${salesName}]\n` +
-                    `──────\n` +
-                    `👤 客戶：${auth.name}\n` +
-                    `🧱 查詢內容：${inputKW}\n` +
-                    `💼 負責業務：${salesName}`;
-        pushTelegram(msg);
-        CacheService.getScriptCache().put(cacheKey, "sent", 1800);
-        notificationStatus = "Telegram通知";
-      }
-    }
+    const notificationStatus = "查無未通知";
 
     const extraData = {
       productCode: cleanKW,
@@ -321,9 +303,20 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
       notificationStatus: notificationStatus,
       salesRepName: salesName
     };
+    // 主價目表查無時，先看是不是今友利短編號，避免被下面的「您是不是要找」蓋掉
+    if (typeof getJinYouLiSingleItem_ === 'function') {
+      const jinSingle = getJinYouLiSingleItem_(cleanKW);
+      if (jinSingle) return jinSingle.flexObj || jinSingle.replyText;
+    }
+
     writeEnhancedLog(getSpreadsheetInstance(), isGroup ? "GROUP" : "PRIVATE", auth.userId, auth.name, auth.level, inputKW, "庫存查詢-查無", auth.email, extraData);
 
-    return ""; 
+    // 私訊才給「您是不是要找」；群組維持安靜。找不到夠接近的就回 ""，交給原本的 AI 對話流程
+    if (!isGroup && typeof buildNotFoundSuggestionFlex_ === 'function') {
+      const suggestion = buildNotFoundSuggestionFlex_(inputKW, db.price, maps.price, reqQty, reqUnit);
+      if (suggestion) return suggestion;
+    }
+    return "";
   }
  
   if (!reqQty && !isHighLevel && !isPremium && primary) {
@@ -334,6 +327,15 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
   let reply = "";
  
   if (!primary) {
+    // 🚩 [今友利短編號] 若主價目表查無此編號，嘗試從今友利資料庫查詢 (例如 D124, D101, J16 等短編號)
+    if (typeof getJinYouLiSingleItem_ === 'function') {
+      const jinSingle = getJinYouLiSingleItem_(cleanKW);
+      if (jinSingle) {
+        if (jinSingle.flexObj) return jinSingle.flexObj;
+        return jinSingle.replyText;
+      }
+    }
+
     const sizeMatch = inputKW.match(/(\d{2,4})\s*[xX*＊×]\s*(\d{2,4})/);
     reply += `${showDetail ? '' : '📏 '}規格：${sizeMatch ? sizeMatch[1]+'x'+sizeMatch[2] : '全域搜尋'}\n`;
     if (reqQty) reply += `${showDetail ? '' : '🔢 '}需求：${reqQty}${reqUnit}\n`;
@@ -417,52 +419,139 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
   const series = primary[maps.price['中文系列']];
   const size = String(primary[maps.price['尺寸(cm)']]);
  
-  const stockRows = db.stock.filter(r => String(r[maps.stock['編號']]).toUpperCase() === code && !String(r[maps.stock['品名']]).includes("小計"));
-  const totalStockPcs = stockRows.reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[maps.stock['片數']]) : 0), 0);
-  const matchedReservations = db.main.filter(r => String(r[maps.main['編號']]).toUpperCase() === code && !String(r[maps.main['編號']]).includes('-期'));
-  const totalReservedPcs = matchedReservations.reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[maps.main['數量']]) : 0), 0);
+  const stockRows = db.stock.filter(r => {
+    const sCode = String(r[maps.stock['編號']] || "").toUpperCase().trim();
+    if (!sCode || String(r[maps.stock['品名']]).includes("小計")) return false;
+    return sCode === code;
+  });
+  let totalStockPcs = stockRows.reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[maps.stock['片數']]) : 0), 0);
+
+  const matchedReservations = db.main.filter(r => {
+    const rCode = String(r[maps.main['編號']] || "").toUpperCase().trim();
+    if (!rCode || rCode.includes('-期')) return false;
+    return rCode === code;
+  });
+  let totalReservedPcs = matchedReservations.reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[maps.main['數量']]) : 0), 0);
   const reserveCount = matchedReservations.length;
+
+  // 🚩 今友利庫存合併：同編號若在今友利資料源也有庫存/保留，直接加總（回覆不分來源，只顯示合併後總數）
+  // jinYouLiInv 提升到函式作用域，最後組完 reply 後若有產品圖會用來轉成圖卡
+  let jinYouLiInv = null;
+  if (typeof getJinYouLiInventoryForCode_ === 'function') {
+    jinYouLiInv = getJinYouLiInventoryForCode_(code);
+    if (jinYouLiInv) {
+      totalStockPcs += jinYouLiInv.stock;
+      totalReservedPcs += jinYouLiInv.reserved;
+    }
+  }
+
   const availPcs = totalStockPcs - totalReservedPcs;
   const availPing = (ratio > 0) ? Math.floor(availPcs / ratio) : 0;
   const reqPcsThreshold = reqQty ? ((reqUnit === '坪' || reqUnit === 'p') ? reqQty * ratio * 0.95 : reqQty * 0.95) : 0;
-  // 🚀 【新批到港資訊提取與權限過濾】
+  // 🚀 【新批到港資訊：只認保留單手動輸入的入倉日期，不再抓「倉庫日誌」(國貿) 的 ETA 資料】
   let arrivalInfo = "";
-  const rMain = db.main.find(row => String(row[maps.main['編號']]).toUpperCase() === code && !String(row[maps.main['編號']]).includes('-期'));
-  if (rMain) {
-    const idxDate1 = maps.main['入倉日期1'];
-    const idxQty1 = maps.main['數量1'];
-    const date1Raw = idxDate1 !== undefined && idxDate1 !== -1 ? rMain[idxDate1] : null;
-    const qty1Raw = idxQty1 !== undefined && idxQty1 !== -1 ? rMain[idxQty1] : null;
- 
-    if (date1Raw && String(date1Raw).trim() !== "") {
-      const date1Str = formatArrivalDate(date1Raw);
-      const qty1 = qty1Raw ? Math.round(safeN(qty1Raw)) : 0;
-      const countdown1 = getCountdownText(date1Raw);
-      
-      arrivalInfo += `\n-----新批資訊-----\n`;
-      if (showDetail) {
-        arrivalInfo += `✨ 到港：${date1Str} (${qty1}片)\n${countdown1}`;
-      } else {
-        arrivalInfo += `✨ 到港：${date1Str}\n${countdown1}`;
-      }
- 
-      const idxDate2 = maps.main['入倉日期2'];
-      const idxQty2 = maps.main['數量2'];
-      const date2Raw = idxDate2 !== undefined && idxDate2 !== -1 ? rMain[idxDate2] : null;
-      const qty2Raw = idxQty2 !== undefined && idxQty2 !== -1 ? rMain[idxQty2] : null;
-      if (date2Raw && String(date2Raw).trim() !== "") {
-        const date2Str = formatArrivalDate(date2Raw);
-        const qty2 = qty2Raw ? Math.round(safeN(qty2Raw)) : 0;
-        const countdown2 = getCountdownText(date2Raw);
-        if (showDetail) {
-          arrivalInfo += `\n✨ 二批：${date2Str} (${qty2}片)\n${countdown2}`;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let hasMainArrival = false;
+  const mainIncoming = [];
+
+  // 1. 優先：讀取保留單手動輸入之 入倉日期1/2
+  // 🚩 入倉日期/數量1 這種到貨資訊，實務上常常就是登記在帶「-期」後綴的列（例如 ST61293-期，代表分批到貨的其中一批），
+  // 之前排除「-期」是為了不讓這種列被算進「已保留數量」的加總，但同一個排除條件套用在這裡找入倉日期，
+  // 反而會直接找不到列，導致到貨資訊永遠是空的。這裡改用 includes 比對、且不再排除「-期」。
+  //
+  // 🚩 同一個編號常常有十幾筆保留列（每個客戶各佔一列），入倅日期1/數量1 是「整批到貨」的資訊，
+  // 理論上每一列都該填一樣的值，但實務上偶爾會有個別列填錯/填成別批的殘留資料。原本用 .find() 只抓
+  // 「第一筆」，一旦剛好第一筆是那個填錯的離群列，到貨資訊就整個報錯（曾發生：15 筆列都是 10/19，
+  // 只有 1 筆離群列是 11/9，卻因為它排在陣列前面被優先抓到）。改成抓「所有」符合的列，
+  // 入倅日期1/2 分別取「多數列一致同意」的那個值，離群的單一筆資料不會蓋過大家都同意的正確值。
+  const matchedRows = db.main.filter(row => String(row[maps.main['編號']]).toUpperCase().includes(code));
+  const pickMajorityPair_ = (dateIdx, qtyIdx) => {
+    if (dateIdx === undefined || dateIdx === -1) return null;
+    const counts = new Map(); // key: 正規化後的日期字串｜qty → { dateRaw, qtyRaw, count }
+    matchedRows.forEach(row => {
+      const dateRaw = row[dateIdx];
+      if (!dateRaw || String(dateRaw).trim() === '') return;
+      const qtyRaw = (qtyIdx !== undefined && qtyIdx !== -1) ? row[qtyIdx] : null;
+      const dateKey = dateRaw instanceof Date ? dateRaw.getTime() : String(dateRaw).trim();
+      const key = dateKey + '|' + String(qtyRaw);
+      if (!counts.has(key)) counts.set(key, { dateRaw, qtyRaw, count: 0 });
+      counts.get(key).count++;
+    });
+    let best = null;
+    counts.forEach(entry => {
+      if (!best || entry.count > best.count) best = entry;
+    });
+    return best;
+  };
+
+  if (matchedRows.length > 0) {
+    const checkReserveArrival = (dateRaw, qtyRaw) => {
+      if (dateRaw && String(dateRaw).trim() !== "") {
+        let d = null;
+        if (dateRaw instanceof Date) d = dateRaw;
+        else {
+          const dParsed = new Date(String(dateRaw));
+          if (!isNaN(dParsed.getTime())) d = dParsed;
+        }
+        const qty = qtyRaw ? Math.round(safeN(qtyRaw)) : 0;
+        const ping = ratio > 0 ? Math.floor(qty / ratio) : 0;
+        if (d) {
+          d.setHours(0, 0, 0, 0);
+          if (d >= today) {
+            mainIncoming.push({ date: d, rawText: null, qtyPieces: qty, qtyPing: ping });
+            hasMainArrival = true;
+          }
         } else {
-          arrivalInfo += `\n✨ 二批：${date2Str}\n${countdown2}`;
+          // 🚩 入倉日期填的是文字（例如「安排中」），不是可解析的日期：直接顯示原文字，
+          // 不要因為轉換不成日期就整筆丟掉，不然這種還在安排、日期未定的到貨資訊會憑空消失。
+          mainIncoming.push({ date: null, rawText: String(dateRaw).trim(), qtyPieces: qty, qtyPing: ping });
+          hasMainArrival = true;
         }
       }
-    }
+    };
+
+    const idxDate1 = maps.main['入倉日期1'];
+    const idxQty1 = maps.main['數量1'];
+    const majority1 = pickMajorityPair_(idxDate1, idxQty1);
+    if (majority1) checkReserveArrival(majority1.dateRaw, majority1.qtyRaw);
+
+    const idxDate2 = maps.main['入倉日期2'];
+    const idxQty2 = maps.main['數量2'];
+    const majority2 = pickMajorityPair_(idxDate2, idxQty2);
+    if (majority2) checkReserveArrival(majority2.dateRaw, majority2.qtyRaw);
   }
- 
+
+  // 2. 只認保留單手動輸入的入倉日期，不再退回讀「倉庫日誌」(國貿資料來源)
+  const finalIncoming = [];
+  if (hasMainArrival) {
+    // 🚩 有確定日期的排前面（照日期先後排），日期未定（文字，例如「安排中」）的排後面，順序不重要
+    mainIncoming.sort((a, b) => {
+      if (a.date && b.date) return a.date - b.date;
+      if (a.date && !b.date) return -1;
+      if (!a.date && b.date) return 1;
+      return 0;
+    });
+    finalIncoming.push(...mainIncoming);
+  }
+
+  // 3. 排序並生成字串（最多取 2 筆最接近到貨的）
+  if (finalIncoming.length > 0) {
+    arrivalInfo += `\n-----新批資訊-----\n`;
+    finalIncoming.slice(0, 2).forEach((s, idx) => {
+      const label = idx === 0 ? '新批' : '二批';
+      const shortDate = s.date ? formatArrivalDateShort_(s.date) : s.rawText;
+      const countdown = s.date ? getCountdownText(s.date) : '';
+      if (idx > 0) arrivalInfo += `\n`;
+      if (showDetail) {
+        arrivalInfo += `✨ ${label} ${shortDate} 到 ${s.qtyPieces}片/${s.qtyPing}坪\n${countdown}`;
+      } else {
+        arrivalInfo += `✨ ${label} ${shortDate} 到貨\n${countdown}`;
+      }
+    });
+  }
+
   const isShortage = (availPcs <= 0 || (reqQty && availPcs < reqPcsThreshold));
   let statusLight = isShortage ? `❌ <庫存不足>\n` : `🟢 <庫存充足>\n`;
   if ((isPremium || isHighLevel) && !isShortage) {
@@ -482,23 +571,8 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
     if (!isFreeUser) {
       notificationStatus = "不足未通知";
     } else {
-      const cacheKey = "shortage_push_" + auth.userId + "_" + code;
-      const isAlreadyPushed = CacheService.getScriptCache().get(cacheKey);
-      if (!isAlreadyPushed) {
-        const msg = `🚨 客戶查無現貨/貨量不足\n` +
-                    `[${salesName}]\n` +
-                    `──────\n` +
-                    `👤 客戶：${auth.name}\n` +
-                    `🧱 產品：${code} (${size})\n` +
-                    `🔢 需求：${reqQty ? reqQty + reqUnit : "未指定"}\n` +
-                    `📦 可用：${Math.max(0, availPcs)}片 (庫存:${totalStockPcs}片, 保留:${totalReservedPcs}片)\n` +
-                    `💼 負責業務：${salesName}`;
-        pushTelegram(msg);
-        CacheService.getScriptCache().put(cacheKey, "sent", 1800); // 30 minutes
-        notificationStatus = "Telegram通知";
-      } else {
-        notificationStatus = "已記錄Email";
-      }
+      // 🚩 [v24.3] 統一由 handleSalesPush（3_Notify.js）推送 Telegram，此處不再重複推播
+      notificationStatus = "由handleSalesPush通知";
     }
   }
   
@@ -509,7 +583,7 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
     stockStatus: isShortage ? "不足" : "充足",
     size: size,
     color: primary ? String(primary[maps.price['顏色']] || "").trim() : "",
-    spec: primary ? String(primary[maps.price['風格面感']] || "").trim() : "",
+    spec: primary ? String(primary[maps.price['尺寸(cm)']] || "").trim() : "",
     notificationStatus: notificationStatus,
     salesRepName: salesName
   };
@@ -544,17 +618,31 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
              `庫存：${totalStockPcs}片 ｜ ${totalStockPing}坪\n`;
              
     if (showReservations && displayReservedPcs > 0) {
-      reply += `保留：${displayReservedPcs}片｜${displayReservedPing}坪｜${displayReserveCount} 筆\n`;
+      reply += `保留：${displayReservedPcs}片｜${displayReserveCount} 筆\n`;
     }
-    reply += `可用：${availPcs}片｜${availPingFloor}坪\n` + 
-             `──────\n批號明細：\n`;
-             
-    stockRows.forEach(sr => {
-      const lot = sr[maps.stock['批號']] || "未註記";
-      const pcs = safeN(sr[maps.stock['片數']]);
-      const p = ratio > 0 ? Math.floor(pcs / ratio) : 0;
-      if (pcs > 0) reply += `${lot}：${pcs}片｜${p}坪\n`;
-    });
+    reply += `可用：${availPcs}片｜${availPingFloor}坪\n`;
+
+    // 🚩 今友利合併時，批號/庫存/尺寸只會列出高雅瓷自己的批號，跟頂部合併後的總數對不上、容易誤會，直接省略
+    if (!jinYouLiInv) {
+      const batchDetails = stockRows.map(sr => {
+        const lot = sr[maps.stock['批號']] || "未註記";
+        const pcs = safeN(sr[maps.stock['片數']]);
+        const p = ratio > 0 ? Math.floor(pcs / ratio) : 0;
+        let actual = String(sr[maps.stock['實際尺寸']] || "").trim();
+        if (actual) actual = actual.replace(/(^|[^0-9])(\.[0-9]+)/g, "$10$2");
+        return { lot, pcs, p, actual };
+      }).filter(b => b.pcs > 0 && b.p >= 0.5)
+        .sort((a, b) => b.pcs - a.pcs);
+
+      if (batchDetails.length > 0) {
+        reply += `──────\n批號/庫存/尺寸：\n\n`;
+        batchDetails.forEach(b => {
+          reply += `${b.lot}：${b.pcs}片｜${b.p}坪\n`;
+          if (b.actual) reply += `${b.actual}\n`;
+          reply += `\n`;
+        });
+      }
+    }
 
     if (arrivalInfo) {
       reply += arrivalInfo + "\n";
@@ -618,16 +706,35 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
         });
       }
     } else {
-      // 5-6種庫存充足的隨機對話
-      const happyMsgs = [
-        "有貨喔!!快點下單 😆🛒",
-        "庫存超安全！手刀下單立刻為您打包出貨啦 😆🛒✨",
-        "貨源滿滿！現貨完全沒問題，請安心下單！期待把美磚送到您手上 🚚🌸",
-        "哇！目前數量非常夠喔！建議盡快下單鎖定，小高隨時為您登記 ✍️🥳",
-        "安全庫存蓋章！這單穩了，離下班喝杯咖啡的時間又更近一步囉 ☕️✨",
-        "貨源充足！您要的數量完全沒問題，請放心衝！給優秀的自己比個讚吧 👍🧱"
-      ];
-      const statusMsg = happyMsgs[Math.floor(Math.random() * happyMsgs.length)];
+      // ⚠️ 混合批號檢查：多批號組合時，直接以批號提醒作為狀態訊息
+      let mixStatus = "";
+      if (reqQty) {
+        const u = String(reqUnit || "坪").toLowerCase();
+        let mixNeedPcs = 0;
+        if (u === '坪' || u === 'p') {
+          mixNeedPcs = reqQty * ratio;
+        } else if (u === '箱' || u === '包') {
+          const pcsPerBox = safeN(primary[maps.price['片/箱']]) || safeN(primary[maps.price['P/C']]) || 1;
+          mixNeedPcs = reqQty * pcsPerBox;
+        } else {
+          mixNeedPcs = reqQty;
+        }
+        mixStatus = buildMixedBatchNotice_(stockRows, matchedReservations, mixNeedPcs, maps);
+      }
+
+      // 多批號組合 → 用批號提醒；否則用庫存充足的隨機對話
+      let statusMsg = mixStatus;
+      if (!statusMsg) {
+        const happyMsgs = [
+          "有貨喔!!快點下單 😆🛒",
+          "庫存超安全！手刀下單立刻為您打包出貨啦 😆🛒✨",
+          "貨源滿滿！現貨完全沒問題，請安心下單！期待把美磚送到您手上 🚚🌸",
+          "哇！目前數量非常夠喔！建議盡快下單鎖定，小高隨時為您登記 ✍️🥳",
+          "安全庫存蓋章！這單穩了，離下班喝杯咖啡的時間又更近一步囉 ☕️✨",
+          "貨源充足！您要的數量完全沒問題，請放心衝！給優秀的自己比個讚吧 👍🧱"
+        ];
+        statusMsg = happyMsgs[Math.floor(Math.random() * happyMsgs.length)];
+      }
 
       reply += `🟢 <庫存充足>\n` +
                `🆔 編號：${code}\n` +
@@ -641,7 +748,100 @@ function handleInventorySearch(inputKW, reqQtyRaw, reqUnitRaw, db, maps, auth, i
       }
     }
   }
+
+  // 🚩 今友利編號：單一編號查詢自動帶入今友利專屬對齊圖卡與實景圖按鈕
+  if (jinYouLiInv && jinYouLiInv.found && typeof buildJinYouLiInventoryBubble_ === 'function') {
+    if (jinYouLiInv.imageUrl) {
+      return buildJinYouLiInventoryBubble_(jinYouLiInv);
+    }
+  }
+
   return reply;
+}
+
+/**
+ * ⚠️ 混合批號提醒產生器
+ * 當庫存充足，但滿足需求需由 2 個以上批號組合時，回傳俏皮提醒文字（作為狀態訊息）。
+ * 回傳空字串代表單一批號即可滿足，不需提醒。
+ */
+function buildMixedBatchNotice_(stockRows, matchedReservations, needPcs, maps) {
+  try {
+    if (!stockRows || stockRows.length < 2 || !needPcs || !maps.stock) return "";
+    if (typeof maps.main['批號'] === 'undefined') return "";
+
+    // 清洗批號：取最前方最多 5 碼，空格後捨棄（與 syncReservationStock 相同規則）
+    const cleanBatch = (b) => {
+      if (!b) return "";
+      return String(b).trim().split(/\s+/)[0].substring(0, 5).toUpperCase();
+    };
+
+    // 1. 每批庫存
+    const stockByBatch = {};
+    stockRows.forEach(sr => {
+      const lot = cleanBatch(sr[maps.stock['批號']]) || "未註記";
+      stockByBatch[lot] = (stockByBatch[lot] || 0) + (typeof safeN === 'function' ? safeN(sr[maps.stock['片數']]) : 0);
+    });
+
+    // 2. 每批被保留量（保留單若有指定批號才可歸屬）
+    const batchIdx = maps.main['批號'];
+    const qtyIdx = maps.main['數量'];
+    const reservedByBatch = {};
+    let totalReserved = 0;
+    matchedReservations.forEach(mr => {
+      const lot = mr[batchIdx] ? cleanBatch(mr[batchIdx]) : "";
+      const qty = (typeof safeN === 'function') ? safeN(mr[qtyIdx]) : 0;
+      totalReserved += qty;
+      if (lot && stockByBatch[lot] !== undefined) {
+        reservedByBatch[lot] = (reservedByBatch[lot] || 0) + qty;
+      }
+    });
+
+    // 3. 每批可用 = 庫存 - 該批保留
+    const availByBatch = {};
+    Object.keys(stockByBatch).forEach(lot => {
+      const avail = Math.max(0, stockByBatch[lot] - (reservedByBatch[lot] || 0));
+      if (avail > 0) availByBatch[lot] = avail;
+    });
+
+    // 3b. 未歸屬批號的保留量：由最大的批號優先扣減（保守估計，避免高估單批可用而漏提醒）
+    const attributed = Object.values(reservedByBatch).reduce((a, b) => a + b, 0);
+    let unAttributed = totalReserved - attributed;
+    if (unAttributed > 0) {
+      const availLots = Object.keys(availByBatch).sort((a, b) => availByBatch[b] - availByBatch[a]);
+      for (const lot of availLots) {
+        if (unAttributed <= 0) break;
+        const take = Math.min(availByBatch[lot], unAttributed);
+        availByBatch[lot] -= take;
+        unAttributed -= take;
+        if (availByBatch[lot] <= 0) delete availByBatch[lot];
+      }
+    }
+
+    // 4. 由大到小挑批號，湊足需求片數
+    const lots = Object.keys(availByBatch).sort((a, b) => availByBatch[b] - availByBatch[a]);
+    let remain = needPcs;
+    const used = [];
+    for (const lot of lots) {
+      if (remain <= 0) break;
+      const take = Math.min(availByBatch[lot], remain);
+      used.push({ lot, pcs: take });
+      remain -= take;
+    }
+    if (remain > 0) return "";   // 湊不滿（理論上不會，因呼叫端已判充足）
+    if (used.length < 2) return ""; // 單一批號即可滿足，不需提醒
+
+    // 5. 回傳俏皮提醒文字（維持小高語氣，隨機抽一則）
+    const mixMsgs = [
+      "數量是沒問題的！不過這批貨是由多個批號組合成的，為了確保花色一致，還請跟我們通個電話確認一下喔！小高等您 📞😊",
+      "貨是夠的！但這批是由好幾個批號湊在一起的，花色想幫您把關好，方便的話請撥通電話給小高，我們聊聊！☎️✨",
+      "現貨足夠！只是這些貨是從多個批號組合起來的，為了讓您安心下單，麻煩跟我們通個電話確認細節，小高馬上接聽！📞💪",
+      "數量沒問題，但這批貨是多批號組合的，想幫您把花色確認得妥妥的，還請撥個電話給我們確認一下喔～辛苦您了！📞🌸"
+    ];
+    return mixMsgs[Math.floor(Math.random() * mixMsgs.length)];
+  } catch (e) {
+    console.error("buildMixedBatchNotice_ 失敗：" + e);
+    return "";
+  }
 }
 
 /** 5. 保留單查詢 (🚩 高階分組與紅黃綠燈預警版) */
@@ -657,6 +857,7 @@ function handleReserveSearch(fullInput, cleanKW, db, maps, auth) {
   const SEP = "➖➖➖➖➖";
 
   let searchStr = String(cleanKW || "").toLowerCase().trim();
+  const baseSearchStr = searchStr.replace(/-[a-z0-9]+$/i, '');
   
   if (!isAgent) {
     if (searchStr && companyPrefix && !searchStr.includes(companyPrefix.toLowerCase())) {
@@ -669,13 +870,38 @@ function handleReserveSearch(fullInput, cleanKW, db, maps, auth) {
 
   const c = key => maps.main[key] !== undefined ? maps.main[key] : -1;
   const cD = c('保留日期');
+  const codeColIdx = c('編號') >= 0 ? c('編號') : c('品號');
+
+  // 判斷關鍵字是否為產品編號（含數字的編號）
+  const isCodeQuery = /^[a-zA-Z]*\d{3,}(?:-[a-zA-Z0-9]+)?$/i.test(searchStr);
 
   // 1. 搜尋並整理
   const rawList = db.main.slice(1).map(r => {
     if (!r || r.every(v => !v)) return null;
-    const rowStr = r.join('|').toLowerCase();
-    if (rowStr.indexOf(searchStr) === -1) return null;
-    if (!isAgent && companyPrefix && rowStr.indexOf(companyPrefix.toLowerCase()) === -1) return null;
+
+    const rCodeRaw = codeColIdx >= 0 ? String(r[codeColIdx] || "").trim() : "";
+    if (!rCodeRaw) return null; // 🛡️ 防禦過濾：若品號為空直接判定為無效列，避免出現「未知 / ? | 0片」
+
+    if (isCodeQuery && codeColIdx >= 0) {
+      // 🎯 若輸入為品號，對「編號」欄位做精準比對 (例如 61274 只對應 RA61274，不包含 RA61274-F)
+      const rCode = String(r[codeColIdx] || "").toUpperCase().trim();
+      const searchCodeUpper = searchStr.toUpperCase();
+      
+      const hasSuffix = /-[A-Z0-9]+$/i.test(searchCodeUpper);
+      const searchDigits = searchCodeUpper.replace(/\D/g, '');
+      const rCodeDigits = rCode.replace(/\D/g, '');
+      const isExactCodeMatch = hasSuffix
+        ? (rCode === searchCodeUpper)
+        : (rCode === searchCodeUpper || rCode.replace(/-[A-Z0-9]+$/i, '') === searchCodeUpper ||
+           (searchDigits.length >= 3 && rCodeDigits === searchDigits));
+      if (!isExactCodeMatch) return null;
+    } else {
+      // 🔍 非品號（如公司名、業務名、案名），走整列文字包含比對
+      const rowStr = r.join('|').toLowerCase();
+      if (rowStr.indexOf(searchStr) === -1) return null;
+    }
+
+    if (!isAgent && companyPrefix && r.join('|').toLowerCase().indexOf(companyPrefix.toLowerCase()) === -1) return null;
 
     const bizIdx = c('客戶業務') >= 0 ? c('客戶業務') : (c('業務') >= 0 ? c('業務') : -1);
     const biz = bizIdx >= 0 ? String(r[bizIdx] || "未指定").trim() : "未指定";
@@ -696,86 +922,94 @@ function handleReserveSearch(fullInput, cleanKW, db, maps, auth) {
 
   if (rawList.length === 0) return `💡 查無符合的保留記錄。`;
 
-  // 2. 按「案名+業務」分群
-  const groups = {}, groupOrder = [];
-  rawList.forEach(item => {
-    const key = `${item.biz}||${item.caseName}`;
-    if (!groups[key]) {
-      groups[key] = { caseName: item.caseName, biz: item.biz, items: [], maxDays: 0, mainData: item };
-      groupOrder.push(key);
-    }
-    groups[key].items.push(item);
-    if (item.days > groups[key].maxDays) groups[key].maxDays = item.days;
-  });
+  // 2. 排序：品號查詢依「留天數(遞減)」，非品號依「業務 → 留天數」
+  if (isCodeQuery) {
+    rawList.sort((a, b) => b.days - a.days);
+  } else {
+    rawList.sort((a, b) => {
+      if (a.biz === "未指定" && b.biz !== "未指定") return 1;
+      if (a.biz !== "未指定" && b.biz === "未指定") return -1;
+      if (a.biz !== b.biz) return a.biz.localeCompare(b.biz);
+      return b.days - a.days;
+    });
+  }
 
-  // 排序：業務(遞增) → 天數(遞減)
-  groupOrder.sort((a, b) => {
-    if (groups[a].biz !== groups[b].biz) return groups[a].biz.localeCompare(groups[b].biz);
-    return groups[b].maxDays - groups[a].maxDays;
-  });
-
-  // 3. 計算每位業務的案件數
+  // 3. 計算每位業務的案件數 (包含未指定業務)
   const bizCaseCount = {};
-  groupOrder.forEach(k => {
-    const biz = groups[k].biz;
+  rawList.forEach(item => {
+    const biz = item.biz || "未指定";
     bizCaseCount[biz] = (bizCaseCount[biz] || 0) + 1;
   });
 
   // 4. 渲染
-  const totalCases = groupOrder.length;
+  const totalCases = rawList.length;
   const searchLabel = searchStr.toUpperCase();
   let res = `⭐ ${searchLabel} 共${totalCases}筆保留 ⭐\n${SEP}\n`;
 
-  let lastBiz = "";
-  groupOrder.slice(0, 25).forEach(gKey => {
-    const g = groups[gKey];
-    const sample = g.mainData;
-    const v = (row, key) => { 
+  let lastBiz = null;
+  rawList.slice(0, 30).forEach(item => {
+    const r = item.data;
+    const v = key => { 
       const idx = maps.main[key]; 
-      return (idx !== undefined && idx !== -1) ? row[idx] : ""; 
+      return (idx !== undefined && idx !== -1) ? r[idx] : ""; 
     };
 
-    // 業務大標題
-    if (g.biz !== lastBiz) {
-      if (lastBiz) res += `\n`;
-      if (g.biz !== "未指定") {
-        res += `⭐ ${searchLabel} | ${g.biz} ${bizCaseCount[g.biz]}筆 ⭐\n${SEP}\n`;
-      }
-      lastBiz = g.biz;
+    const bizName = item.biz || "未指定";
+
+    // 🚩 只有在「非品號查詢」(如查客戶、查業務) 時才顯示業務大標題切換；品號查詢時不拆業務大標題，畫面更乾淨
+    if (!isCodeQuery && bizName !== lastBiz) {
+      if (lastBiz !== null) res += `\n`;
+      const titleBiz = (bizName === "未指定") ? "未指定業務" : bizName;
+      res += `⭐ ${searchLabel} | ${titleBiz} ${bizCaseCount[bizName]}筆 ⭐\n${SEP}\n`;
+      lastBiz = bizName;
     }
 
-    // 案名標題
-    const cust = String(v(sample.data, '客戶') || v(sample.data, '公司') || "未知").trim();
-    const displayTitle = (g.biz === "未指定") ? cust : `${cust} | ${g.biz}`;
-    res += `${displayTitle}\n${g.caseName}\n`;
+    // 客戶與案名標題
+    const cust = String(v('客戶') || v('公司') || "未知").trim();
+    const displayTitle = (bizName === "未指定") ? cust : `${cust} | ${bizName}`;
+    const caseText = item.caseName ? item.caseName : "";
+    if (caseText && caseText !== cust) {
+      res += `${displayTitle}\n${caseText}\n`;
+    } else {
+      res += `${displayTitle}\n`;
+    }
 
-    // 產品清單
-    g.items.forEach(it => {
-      const code = String(v(it.data, '編號') || "?").toUpperCase();
-      const pcs = (typeof safeN === 'function') ? safeN(v(it.data, '數量')) : 0;
-      res += `${code} | ${pcs}片\n`;
-    });
+    // 品號與數量
+    const code = String(v('編號') || "?").toUpperCase();
+    const pcs = (typeof safeN === 'function') ? safeN(v('數量')) : 0;
+    res += `${code} | ${pcs}片\n`;
 
-    // 狀態與訂金
+    // 狀態與留天數
     let dateStr = "??/??", lamp = "✳️";
-    if (g.maxDays > 60) lamp = "🔴";
-    else if (g.maxDays >= 30) lamp = "🟡";
-    const dVal = cD >= 0 ? sample.data[cD] : null;
-    if (dVal instanceof Date) dateStr = Utilities.formatDate(dVal, "GMT+8", "MM/dd");
+    if (item.days > 60) lamp = "🔴";
+    else if (item.days >= 30) lamp = "🟡";
 
-    const depVal = String(v(sample.data, '訂金確認') || v(sample.data, '訂金') || "").trim();
-    const deposit = (depVal && depVal !== "?" && depVal !== "-") ? "💰 已付" : "未付";
+    const dVal = cD >= 0 ? r[cD] : null;
+    if (dVal instanceof Date) {
+      dateStr = Utilities.formatDate(dVal, "Asia/Taipei", "MM/dd");
+    } else if (dVal) {
+      const dParsed = new Date(String(dVal));
+      if (!isNaN(dParsed.getTime())) dateStr = Utilities.formatDate(dParsed, "Asia/Taipei", "MM/dd");
+      else dateStr = String(dVal).substring(5, 10).replace('-', '/');
+    }
+
+    const depVal = String(v('訂金確認') || v('訂金') || "").trim();
+    const isDepositPaid = (depVal && depVal !== "?" && depVal !== "-" && depVal !== "未付" && depVal !== "未收");
     
-    let rawNote = v(sample.data, '備註');
-    let note = (rawNote instanceof Date) ? Utilities.formatDate(rawNote, "GMT+8", "yyyy/MM/dd") : String(rawNote || "");
+    let rawNote = v('備註');
+    let note = (rawNote instanceof Date) ? Utilities.formatDate(rawNote, "Asia/Taipei", "yyyy/MM/dd") : String(rawNote || "").trim();
 
-    res += `${dateStr} | ${lamp} 留 ${g.maxDays}天\n` +
-           `訂金：${deposit}\n` +
+    let rawUpdate = v('telegram更新') || v('更新');
+    let tgUpdate = String(rawUpdate || "").trim();
+
+    res += `${dateStr} | ${lamp} 留 ${item.days}天\n` +
+           (isDepositPaid ? `💰 訂金已收\n` : "") +
            (note && note !== "-" && note !== "?" ? `備註：${note}\n` : "") +
+           (tgUpdate && tgUpdate !== "-" ? `更新：${tgUpdate}\n` : "") +
            `${SEP}\n`;
   });
 
-  if (groupOrder.length > 25) res += `\n⚠️ 僅顯示前 25 個案件。`;
+  if (rawList.length > 30) res += `\n⚠️ 僅顯示前 30 筆保留。`;
   return res;
 }
 
@@ -801,6 +1035,11 @@ function handleExpiredReservations(fullInput, db, maps, auth) {
   // 1. 篩選與初步整理
   const rawList = db.main.slice(1).map(r => {
     if (!r || r.every(v => !v)) return null;
+
+    const codeColIdx = c('編號') >= 0 ? c('編號') : c('品號');
+    const rCodeRaw = codeColIdx >= 0 ? String(r[codeColIdx] || "").trim() : "";
+    if (!rCodeRaw) return null; // 🛡️ 防禦過濾：若品號為空直接判定為無效列，避免出現「未知 / ? | 0片」
+
     const bizIdx = c('客戶業務') >= 0 ? c('客戶業務') : (c('業務') >= 0 ? c('業務') : -1);
     const biz = bizIdx >= 0 ? String(r[bizIdx] || "未指定").trim() : "未指定";
     if (!isKing && myBiz && !biz.toLowerCase().includes(myBiz.toLowerCase())) return null;
@@ -891,6 +1130,21 @@ function handleExpiredReservations(fullInput, db, maps, auth) {
 }
 
 // ⚡ 輔助函數：格式化到港日期 (MM/dd 格式)
+// 🚩 [v683] 新批到港簡短日期格式：不補零，9/7 而非 09/07
+function formatArrivalDateShort_(dVal) {
+  if (!dVal) return "";
+  let d = null;
+  if (dVal instanceof Date) {
+    d = dVal;
+  } else {
+    d = new Date(String(dVal));
+  }
+  if (isNaN(d.getTime())) {
+    return String(dVal).trim();
+  }
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 function formatArrivalDate(dVal) {
   if (!dVal) return "";
   let d = null;
@@ -934,4 +1188,224 @@ function getCountdownText(dateVal) {
   } else {
     return `✨ 已經到港囉！📦`;
   }
+}
+
+// ==========================================
+// 🧱 今友利庫存（獨立品牌資料源，非主要「編號價目表」系統）
+// ==========================================
+
+const JINYOULI_SS_ID = '1u_7xHHhMRh15cwSgf1MjjL6jFKasSkNFoEHrPUuj7Cc';
+const JINYOULI_GID = '1040346857';
+
+/** 讀取今友利庫存試算表（依 gid 精準鎖定分頁，避免分頁改名失效；附 1 小時快取） */
+function getJinYouLiSheetData_() {
+  const cacheKey = "jinyouli_sheet_data_v1";
+  const cached = (typeof CacheManager !== 'undefined') ? CacheManager.getLarge(cacheKey) : null;
+  if (cached) return cached;
+
+  let data = [];
+  try {
+    const ss = SpreadsheetApp.openById(JINYOULI_SS_ID);
+    const sheets = ss.getSheets();
+    const target = sheets.find(s => String(s.getSheetId()) === JINYOULI_GID) || sheets[0];
+    data = target ? target.getDataRange().getValues() : [];
+  } catch (e) {
+    console.error("讀取今友利庫存試算表失敗: " + e);
+    return [];
+  }
+
+  if (data && data.length > 0 && typeof CacheManager !== 'undefined') {
+    CacheManager.putLarge(cacheKey, data, 3600); // 快取 1 小時
+  }
+  return data;
+}
+
+/**
+ * 今友利庫存查詢：輸入含「今友利」即列出全部庫存，依品牌分組。
+ * 「保留」「可用數量」直接讀試算表現成欄位，不跟本機器人保留單系統連動運算。
+ */
+function handleJinYouLiInventory_() {
+  const data = getJinYouLiSheetData_();
+  if (!data || data.length < 2) return "⚠️ 今友利庫存資料讀取失敗，請稍後再試。";
+
+  const map = getHeaderMap(data);
+  const idxBrand = map['品牌'];
+  const idxSeries = map['中文系列'] !== undefined ? map['中文系列'] : map['中文品名系列'];
+  const idxCode = map['編號'];
+  const idxSize = map['尺寸'];
+  const idxStock = map['庫存'];
+  const idxAvail = map['可用數量'];
+
+  if (idxCode === undefined) return "⚠️ 今友利庫存欄位格式異常，請聯繫管理員檢查表頭。";
+
+  const groups = {};
+  const groupOrder = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const code = String(row[idxCode] || "").trim();
+    if (!code) continue;
+
+    const brand = idxBrand !== undefined ? (String(row[idxBrand] || "").trim() || "未分類") : "未分類";
+    if (!groups[brand]) { groups[brand] = []; groupOrder.push(brand); }
+
+    groups[brand].push({
+      code: code.toUpperCase(),
+      series: idxSeries !== undefined ? String(row[idxSeries] || "").trim() : "",
+      size: idxSize !== undefined ? String(row[idxSize] || "").trim() : "",
+      avail: idxAvail !== undefined ? safeN(row[idxAvail]) : (idxStock !== undefined ? safeN(row[idxStock]) : 0)
+    });
+  }
+
+  if (groupOrder.length === 0) return "⚠️ 今友利庫存目前沒有可顯示的資料。";
+
+  let reply = "📦 【今友利】庫存總覽\n──────\n";
+  groupOrder.forEach(brand => {
+    reply += `▪️ ${brand}\n`;
+    groups[brand].forEach(it => {
+      const light = it.avail > 0 ? '🟢' : '🔴';
+      const seriesInfo = it.series ? (it.series + " ") : "";
+      reply += `${light} ${it.code} | ${seriesInfo}${it.size} | 可用${it.avail}片\n`;
+    });
+    reply += `──────\n`;
+  });
+
+  return reply;
+}
+
+/**
+ * 依編號查今友利庫存/保留（找不到回傳 null）。
+ * 供單編號庫存查詢（handleInventorySearch）合併加總使用，不透過「今友利」關鍵字觸發。
+ */
+function getJinYouLiInventoryForCode_(code) {
+  const data = getJinYouLiSheetData_();
+  if (!data || data.length < 2) return null;
+
+  const map = getHeaderMap(data);
+  const idxCode = map['編號'];
+  const idxStock = map['庫存'];
+  const idxReserve = map['保留'];
+  const idxImage = map['單片網址連結'];
+  if (idxCode === undefined) return null;
+
+  const target = String(code || '').toUpperCase().trim();
+  let stock = 0, reserved = 0, found = false, imageUrl = "";
+
+  for (let i = 1; i < data.length; i++) {
+    const rowCode = String(data[i][idxCode] || '').toUpperCase().trim();
+    if (rowCode === target) {
+      found = true;
+      stock += idxStock !== undefined ? safeN(data[i][idxStock]) : 0;
+      reserved += idxReserve !== undefined ? safeN(data[i][idxReserve]) : 0;
+      if (!imageUrl && idxImage !== undefined) {
+        const url = String(data[i][idxImage] || '').trim();
+        if (url && url.includes('http')) imageUrl = url;
+      }
+    }
+  }
+
+  return found ? { stock: stock, reserved: reserved, imageUrl: imageUrl } : null;
+}
+
+/** 把 Google Drive 分享連結轉成 LINE 可直接顯示的縮圖連結（沿用全專案一致的轉換規則） */
+function normalizeJinYouLiImageUrl_(url) {
+  if (!url) return "";
+  if (url.includes('drive.google.com')) {
+    const id = url.match(/[\w-]{25,}/);
+    if (id) return "https://drive.google.com/thumbnail?id=" + id[0] + "&sz=w600";
+  }
+  return url;
+}
+
+/** 今友利編號查詢結果轉圖卡：把已經組好的文字結果包成 Flex bubble，hero 放產品圖 */
+function buildJinYouLiInventoryBubble_(imageUrl, replyText) {
+  const displayUrl = normalizeJinYouLiImageUrl_(imageUrl);
+  const lines = String(replyText || "").split('\n').filter(l => l.trim() !== '');
+
+  const bodyContents = lines.map(line => ({
+    type: 'text',
+    text: line,
+    size: 'sm',
+    wrap: true,
+    color: '#333333'
+  }));
+
+  return {
+    type: 'bubble',
+    size: 'mega',
+    hero: {
+      type: 'image',
+      url: displayUrl,
+      size: 'full',
+      aspectRatio: '16:9',
+      aspectMode: 'cover',
+      action: { type: 'uri', label: '放大查看', uri: displayUrl }
+    },
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      spacing: 'xs',
+      paddingAll: '16px',
+      contents: bodyContents
+    }
+  };
+}
+
+/**
+ * 依短編號 (如 D124, D101, J16, U23 等) 單獨查詢今友利庫存並生成優美回覆與 Flex 圖卡
+ */
+function getJinYouLiSingleItem_(code) {
+  const data = getJinYouLiSheetData_();
+  if (!data || data.length < 2) return null;
+
+  const map = getHeaderMap(data);
+  const idxCode = map['編號'];
+  const idxBrand = map['品牌'];
+  const idxSeries = map['中文系列'] !== undefined ? map['中文系列'] : map['中文品名系列'];
+  const idxSize = map['尺寸'];
+  const idxStock = map['庫存'];
+  const idxReserve = map['保留'];
+  const idxAvail = map['可用數量'];
+  const idxImage = map['單片網址連結'];
+
+  if (idxCode === undefined) return null;
+
+  const target = String(code || '').toUpperCase().trim();
+  let item = null;
+
+  for (let i = 1; i < data.length; i++) {
+    const rowCode = String(data[i][idxCode] || '').toUpperCase().trim();
+    if (rowCode === target) {
+      item = data[i];
+      break;
+    }
+  }
+
+  if (!item) return null;
+
+  const brand = idxBrand !== undefined ? String(item[idxBrand] || "").trim() : "今友利";
+  const series = idxSeries !== undefined ? String(item[idxSeries] || "").trim() : "";
+  const size = idxSize !== undefined ? String(item[idxSize] || "").trim() : "";
+  const stock = idxStock !== undefined ? safeN(item[idxStock]) : 0;
+  const reserve = idxReserve !== undefined ? safeN(item[idxReserve]) : 0;
+  const avail = idxAvail !== undefined ? safeN(item[idxAvail]) : (stock - reserve);
+  const imageUrl = idxImage !== undefined ? String(item[idxImage] || "").trim() : "";
+
+  const light = avail > 0 ? "🟢" : "🔴";
+  let reply = `${light} <今友利 查詢結果>\n` +
+              `編號：${target}\n` +
+              (brand ? `品牌：${brand}\n` : "") +
+              (series ? `系列：${series}\n` : "") +
+              (size ? `尺寸：${size}\n` : "") +
+              `庫存：${stock}片\n` +
+              (reserve > 0 ? `保留：${reserve}片\n` : "") +
+              `可用：${avail}片\n` +
+              `(資料來源：今友利庫存)`;
+
+  let flexObj = null;
+  if (imageUrl && imageUrl.includes('http') && typeof buildJinYouLiInventoryBubble_ === 'function') {
+    flexObj = buildJinYouLiInventoryBubble_(imageUrl, reply);
+  }
+
+  return { replyText: reply, flexObj: flexObj };
 }

@@ -34,18 +34,19 @@ function onOpen() {
 }
 
 function manualSetupAnalysisTriggers() {
-  PropertiesService.getScriptProperties().setProperty(
-    'ADMIN_BOT_TOKEN', 
-    '5aaalt0K05c/k3dH1DSnVX6cyc6FGcEUpawASN4PaklWyNgdKcaTSgYrm+6wBCH6pDcivyFnCCfasikUoFlEWV3+FoCduSoFOgWi10o/IN0FyuOOB5u1/wphbHNsK/7WI/CckF0N9BG2gTcGsCCX7QdB04t89/1O/w1cDnyilFU='
-  );
+  // Token 只放在「指令碼屬性」(Script Properties)，不寫進原始碼
+  const hasAdminToken = !!PropertiesService.getScriptProperties().getProperty('ADMIN_BOT_TOKEN');
   registerAnalysisTriggers();
+  const tokenNote = hasAdminToken
+    ? '後台管理機器人 Token：已設定 ✅'
+    : '⚠️ 尚未設定 ADMIN_BOT_TOKEN，管理通知會改用主機器人 Token 發送。\n請到「專案設定 → 指令碼屬性」新增 ADMIN_BOT_TOKEN。';
   try {
     const ui = SpreadsheetApp.getUi();
     if (ui) {
-      ui.alert('✅ 已成功啟用所有統計與分析排程觸發器，並配置後台管理機器人 Token！\n- 缺貨彙整：每 30 分鐘\n- 查詢日報：每天 18:30\n- 分析週報：每週一 08:30\n- 分析月報：每月 1 號 09:00');
+      ui.alert('✅ 已成功啟用所有統計與分析排程觸發器！\n- 缺貨彙整：每 30 分鐘\n- 查詢日報：每天 18:30\n- 分析週報：每週一 08:30\n- 分析月報：每月 1 號 09:00\n\n' + tokenNote);
     }
   } catch (e) {
-    console.log('已成功註冊定時排程與 Token 配置（但當前環境無法顯示對話框彈窗）。');
+    console.log('已成功註冊定時排程（但當前環境無法顯示對話框彈窗）。' + tokenNote);
   }
 }
 
@@ -73,28 +74,74 @@ function doGet(e) {
     const wlData = getWhitelistSheet();
     const wlMap  = getHeaderMap(wlData);
 
-    // ── 取得用戶資訊供表單顯示 ──
+    // ── 取得用戶資訊供表單顯示 (自動拆解「百磚-大t」格式) ──
     if (action === 'getUserInfoForForm') {
       const userId = (params.userId || '').trim();
       if (!userId) return json({ success: false, error: '缺少 userId' });
       const auth = checkAuth(userId, wlData, wlMap);
       if (!auth.allowed) return json({ success: false, error: '查無此用戶，請聯繫業務開通權限。' });
 
-      // 查出負責業務的姓名
-      const salesId   = String(auth.salesID || '').trim();
-      const salesRow  = salesId ? wlData.find(r => String(r[wlMap['userid']]) === salesId) : null;
-      const salesName = salesRow ? String(salesRow[wlMap['名字']] || '').split('-').pop() : '';
+      // 自動拆解「百磚-大t」格式
+      const rawName = String(auth.name || '').trim();
+      const parts = rawName.split(/[-_]/);
+      let companyName = auth.company || (parts.length > 1 ? parts[0] : rawName);
+      let salesName = parts.length > 1 ? parts[1] : '';
+
+      if (!salesName && auth.salesID) {
+        const salesId = String(auth.salesID || '').trim();
+        const salesRow = wlData.find(r => String(r[wlMap['userid']]) === salesId);
+        if (salesRow) salesName = String(salesRow[wlMap['名字']] || '').split(/[-_]/).pop();
+      }
+      if (!salesName) salesName = '客服';
 
       return json({
         success: true,
-        company: auth.company || auth.name.split('-')[0] || '',
+        company: companyName,
         sales:   salesName,
         level:   auth.level,
         name:    auth.name
       });
     }
 
-    // ── 取得所有標準編號清單（供表單 autocomplete）──
+    // ── 查詢客戶歷史保留單據 API ──
+    if (action === 'getUserReservations') {
+      const userId = (params.userId || '').trim();
+      const auth = checkAuth(userId, wlData, wlMap);
+      const mainData = getMainSheet();
+      const mainMap = getHeaderMap(mainData);
+
+      const userCompany = (params.company || auth.company || auth.name.split(/[-_]/)[0] || '').trim();
+
+      const reservationsMap = {};
+      mainData.slice(1).forEach(r => {
+        const reqId = String(r[mainMap['申請單號']] || r[mainMap['單號']] || '').trim();
+        const comp  = String(r[mainMap['客戶名稱']] || r[mainMap['公司']] || '').trim();
+        const uId   = String(r[mainMap['UserID']] || '').trim();
+
+        if (reqId && (uId === userId || (userCompany && comp.includes(userCompany)))) {
+          if (!reservationsMap[reqId]) {
+            reservationsMap[reqId] = {
+              requestId: reqId,
+              caseName: String(r[mainMap['案名']] || r[mainMap['工地案名']] || '').trim(),
+              address: String(r[mainMap['地址']] || r[mainMap['工地地址']] || '').trim(),
+              entryDate: String(r[mainMap['進場日期']] || '').trim(),
+              status: String(r[mainMap['審核狀態']] || '待審核').trim(),
+              createdAt: String(r[mainMap['建立時間']] || '').trim(),
+              items: []
+            };
+          }
+          reservationsMap[reqId].items.push({
+            code: String(r[mainMap['編號']] || '').trim(),
+            qty: String(r[mainMap['數量']] || '').trim()
+          });
+        }
+      });
+
+      const list = Object.values(reservationsMap).sort((a, b) => (b.requestId > a.requestId ? 1 : -1));
+      return json({ success: true, list: list });
+    }
+
+    // ── 取得所有標準編號清單（包含今友利短編號，供表單 autocomplete）──
     if (action === 'getAllProductCodes') {
       const userId = (params.userId || '').trim();
       const auth = checkAuth(userId, wlData, wlMap);
@@ -105,77 +152,157 @@ function doGet(e) {
       if (typeof filterPriceDataForUser === 'function') {
         priceData = filterPriceDataForUser(priceData, priceMap, auth);
       }
-      const codes     = priceData.slice(1).map(r => String(r[priceMap['編號']] || '').toUpperCase().trim()).filter(Boolean);
+      const codes = priceData.slice(1).map(r => String(r[priceMap['編號']] || '').toUpperCase().trim()).filter(Boolean);
+      
+      // 聯查今友利編號
+      if (typeof getJinYouLiSheetData_ === 'function') {
+        const jylData = getJinYouLiSheetData_();
+        if (jylData && jylData.length > 1) {
+          const jMap = getHeaderMap(jylData);
+          const iCode = jMap['編號'];
+          if (iCode !== undefined) {
+            jylData.slice(1).forEach(r => {
+              const c = String(r[iCode] || '').toUpperCase().trim();
+              if (c) codes.push(c);
+            });
+          }
+        }
+      }
+
       const uniqueCodes = [...new Set(codes)];
       return json({ success: true, codes: uniqueCodes });
     }
 
-    // ── 即時庫存狀態查詢（50% 缺口門檻）──
+    // ── 全行為日誌寫入 API (logUserAction) ──
+    if (action === 'logUserAction') {
+      const userId = (params.userId || '').trim();
+      const userAction = (params.userAction || 'UI_INTERACTION').trim();
+      const auth = checkAuth(userId, wlData, wlMap);
+      const salesName = (auth.salesID ? String(auth.salesID) : '');
+      const extraData = {
+        productCode: (params.code || '').toUpperCase().trim(),
+        reqQty: params.qty ? `${params.qty}${params.unit || ''}` : '',
+        availPcs: params.availPcs || 0,
+        stockStatus: params.status || '',
+        actionType: userAction,
+        salesRepName: salesName
+      };
+      writeEnhancedLog(getSpreadsheetInstance(), "WEB_MINI_APP", userId, auth.name, auth.level, userAction, userAction, auth.email, extraData);
+      return json({ success: true });
+    }
+
+    // ── 即時庫存狀態與產品明細查詢（含今友利與放寬比對）──
     if (action === 'checkStockForForm') {
       const userId = (params.userId || '').trim();
       const code   = (params.code   || '').trim().toUpperCase();
-      const qty    = parseInt(params.qty) || 0;
-      if (!code || !qty) return json({ status: 'error', error: '缺少參數' });
+      const qty    = parseFloat(params.qty) || 0;
+      if (!code) return json({ status: 'error', error: '缺少編號參數' });
 
       const auth = checkAuth(userId, wlData, wlMap);
-      if (!auth.allowed) return json({ status: 'error', error: '無權限' });
-
+      
       const stockData = getStockSheet();
       const mainData  = getMainSheet();
-      let priceData = getPriceSheet();
+      const rawPriceData = getPriceSheet();
       const stockMap  = getHeaderMap(stockData);
       const mainMap   = getHeaderMap(mainData);
-      const priceMap  = getHeaderMap(priceData);
-      if (typeof filterPriceDataForUser === 'function') {
-        priceData = filterPriceDataForUser(priceData, priceMap, auth);
+      const priceMap  = getHeaderMap(rawPriceData);
+
+      let priceData = rawPriceData;
+      if (auth.allowed && typeof filterPriceDataForUser === 'function') {
+        priceData = filterPriceDataForUser(rawPriceData, priceMap, auth);
       }
 
-      // 🕵️ 尋找標準/最匹配的編號 (Canonical Code Resolution)
-      let canonicalCode = code;
-      let matchedRow = null;
-      if (priceData && priceData.length > 0) {
-        const matched = priceData.slice(1).filter(r => {
+      // 🕵️ 1. 超級放寬品號比對（完全忽略大小寫、空格、連字符，支援純數字如 6150）
+      const cleanInputCode = code.replace(/[\s-]/g, '').toUpperCase();
+      const inputDigits = code.replace(/\D/g, '');
+      const inputSuffixMatch = code.match(/-[A-Z0-9]+$/i);
+      const inputSuffix = inputSuffixMatch ? inputSuffixMatch[0].toUpperCase() : "";
+
+      const findInList = (list) => {
+        if (!list || list.length < 2) return null;
+        return list.slice(1).find(r => {
           const dbCode = String(r[priceMap['編號']] || '').toUpperCase().trim();
-          if (dbCode === code) return true;
+          if (!dbCode) return false;
+          const cleanDbCode = dbCode.replace(/[\s-]/g, '');
+          if (dbCode === code || cleanDbCode === cleanInputCode) return true;
+          
+          // 數字對齊 + 後綴一致 (支援純數字如 6150 匹配 AA6150)
           const dbDigits = dbCode.replace(/\D/g, '');
-          const inputDigits = code.replace(/\D/g, '');
-          if (inputDigits.length >= 4 && dbDigits.indexOf(inputDigits) > -1) return true;
-          if (dbCode.indexOf(code) > -1) return true;
+          const dbSuffixMatch = dbCode.match(/-[A-Z0-9]+$/i);
+          const dbSuffix = dbSuffixMatch ? dbSuffixMatch[0].toUpperCase() : "";
+
+          if (inputDigits && inputDigits.length >= 3 && (dbDigits === inputDigits || dbDigits.indexOf(inputDigits) !== -1)) {
+            return inputSuffix ? (inputSuffix === dbSuffix) : true;
+          }
           return false;
         });
-        if (matched.length > 0) {
-          matched.sort((a, b) => {
-            const dbCodeA = String(a[priceMap['編號']] || '').toUpperCase().trim();
-            const dbCodeB = String(b[priceMap['編號']] || '').toUpperCase().trim();
-            if (dbCodeA === code) return -1;
-            if (dbCodeB === code) return 1;
-            return dbCodeA.length - dbCodeB.length;
-          });
-          canonicalCode = String(matched[0][priceMap['編號']] || '').toUpperCase().trim();
-          matchedRow = matched[0];
-        }
+      };
+
+      let matchedRow = findInList(priceData) || findInList(rawPriceData);
+      let canonicalCode = matchedRow ? String(matchedRow[priceMap['編號']]).toUpperCase().trim() : code;
+
+      // 2. 聯查今友利獨立資料庫
+      let jinItem = null;
+      if (!matchedRow && typeof getJinYouLiSingleItem_ === 'function') {
+        const jyl = getJinYouLiSingleItem_(code);
+        if (jyl && jyl.replyText) jinItem = jyl;
       }
 
+      const isAgentUser = ['sales', 'king', 'queen', 'admin'].includes(String(auth ? auth.level : 'free').toLowerCase());
+
+      if (jinItem) {
+        const jInfo = jinItem.replyText;
+        const brandMatch = jInfo.match(/品牌：([^\n]+)/);
+        const seriesMatch = jInfo.match(/系列：([^\n]+)/);
+        const sizeMatch = jInfo.match(/尺寸：([^\n]+)/);
+        const stockMatch = jInfo.match(/庫存：(\d+)片/);
+        const availMatch = jInfo.match(/可用：(\d+)片/);
+        const availPcs = availMatch ? parseInt(availMatch[1]) : (stockMatch ? parseInt(stockMatch[1]) : 0);
+
+        let imgUrl = "";
+        if (typeof getJinYouLiInventoryForCode_ === 'function') {
+          const jData = getJinYouLiInventoryForCode_(code);
+          if (jData && jData.imageUrl) imgUrl = jData.imageUrl;
+        }
+
+        const isOk = availPcs >= qty;
+        return json({
+          status: isOk ? 'ok' : (availPcs > 0 ? 'check' : 'none'),
+          code: code,
+          series: seriesMatch ? seriesMatch[1].trim() : '今友利系列',
+          size: sizeMatch ? sizeMatch[1].trim() : '標準規格',
+          pcsPerBox: 1,
+          weight: '約 30 kg/箱',
+          imgUrl: imgUrl,
+          availPcs: availPcs,
+          isAgent: isAgentUser
+        });
+      }
+
+      // 高雅瓷主資料處理
       let imgUrl = '';
       let seriesName = '';
       let colorName = '';
+      let sizeName = '';
+      let weightName = '';
+      let pcsPerBox = 1;
+
       if (matchedRow) {
-        if (priceMap['單片連結網址'] !== undefined) {
-          imgUrl = String(matchedRow[priceMap['單片連結網址']] || '').trim();
-        }
-        if (priceMap['中文系列'] !== undefined) {
-          seriesName = String(matchedRow[priceMap['中文系列']] || '').trim();
-        }
-        if (priceMap['顏色'] !== undefined) {
-          colorName = String(matchedRow[priceMap['顏色']] || '').trim();
-        }
+        if (priceMap['單片連結網址'] !== undefined) imgUrl = String(matchedRow[priceMap['單片連結網址']] || '').trim();
+        if (priceMap['中文系列'] !== undefined) seriesName = String(matchedRow[priceMap['中文系列']] || '').trim();
+        if (priceMap['顏色'] !== undefined) colorName = String(matchedRow[priceMap['顏色']] || '').trim();
+        if (priceMap['尺寸(cm)'] !== undefined) sizeName = String(matchedRow[priceMap['尺寸(cm)']] || '').trim();
+        if (priceMap['重量'] !== undefined) weightName = String(matchedRow[priceMap['重量']] || '').trim();
+        if (!weightName && priceMap['kg/箱'] !== undefined) weightName = String(matchedRow[priceMap['kg/箱']] || '').trim();
+        if (!weightName && priceMap['KG'] !== undefined) weightName = String(matchedRow[priceMap['KG']] || '').trim();
+        pcsPerBox = (typeof safeN === 'function') ? (safeN(matchedRow[priceMap['片/箱']]) || safeN(matchedRow[priceMap['P/C']]) || 1) : 1;
       }
+      if (!weightName) weightName = '約 32 kg/箱';
 
       const unit = String(params.unit || '片').trim();
       let reqPcs = qty;
-      if (matchedRow) {
+      if (matchedRow && qty > 0) {
         const ratio = (typeof getPcsPerPingFallback_ === 'function') ? getPcsPerPingFallback_(matchedRow, priceMap) : 1;
-        const pcsPerBox = (typeof safeN === 'function') ? (safeN(matchedRow[priceMap['片/箱']]) || safeN(matchedRow[priceMap['P/C']]) || 1) : 1;
         if (unit === '坪' || unit === 'p') {
           reqPcs = qty * ratio;
         } else if (unit === '箱' || unit === '包') {
@@ -183,26 +310,93 @@ function doGet(e) {
         }
       }
 
-      const total    = stockData.filter(r => String(r[stockMap['編號']]).toUpperCase().trim() === canonicalCode && !String(r[stockMap['品名']]).includes('小計')).reduce((s, r) => s + safeN(r[stockMap['片數']]), 0);
-      const reserved = mainData.filter(r => String(r[mainMap['編號']]).toUpperCase().includes(canonicalCode)).reduce((s, r) => s + safeN(r[mainMap['數量']]), 0);
+      // 放寬庫存表 (stockData) 與 保留單 (mainData) 的數字對齊比對
+      const targetDigits = canonicalCode.replace(/\D/g, '');
+      const batchCounts = {};
+      const total = stockData.filter(r => {
+        const sCode = String(r[stockMap['編號']] || '').toUpperCase().trim();
+        if (!sCode || String(r[stockMap['品名']]).includes('小計')) return false;
+        const sDigits = sCode.replace(/\D/g, '');
+        const sSuffixMatch = sCode.match(/-[A-Z0-9]+$/i);
+        const sSuffix = sSuffixMatch ? sSuffixMatch[0].toUpperCase() : "";
+        const isMatch = (sDigits === targetDigits) && (inputSuffix ? sSuffix === inputSuffix : true);
+        if (isMatch) {
+          const bName = String(r[stockMap['批號']] || 'DEFAULT').trim();
+          batchCounts[bName] = (batchCounts[bName] || 0) + safeN(r[stockMap['片數']]);
+        }
+        return isMatch;
+      }).reduce((s, r) => s + safeN(r[stockMap['片數']]), 0);
+
+      const reserved = mainData.filter(r => {
+        const rCode = String(r[mainMap['編號']] || '').toUpperCase().trim();
+        if (!rCode || rCode.includes('-期')) return false;
+        const rDigits = rCode.replace(/\D/g, '');
+        const rSuffixMatch = rCode.match(/-[A-Z0-9]+$/i);
+        const rSuffix = rSuffixMatch ? rSuffixMatch[0].toUpperCase() : "";
+        return (rDigits === targetDigits) && (inputSuffix ? rSuffix === inputSuffix : true);
+      }).reduce((s, r) => s + safeN(r[mainMap['數量']]), 0);
+
       const avail    = total - reserved;
       const gap      = reqPcs - avail;
       const gapRatio = reqPcs > 0 ? gap / reqPcs : 0;
 
-      const isAgent = ['sales', 'king', 'queen', 'admin'].includes(auth.level);
-      const base    = { avail: Math.max(0, avail), reserved, total };
+      const maxBatchPcs = Object.keys(batchCounts).length > 0 ? Math.max(...Object.values(batchCounts)) : avail;
+
+      // 🧮 算湊滿需求所需的最少批號數 neededBatchCount
+      const sortedBatches = Object.entries(batchCounts).map(([name, pcs]) => ({ name, pcs })).sort((a, b) => b.pcs - a.pcs);
+      let accumulatedPcs = 0;
+      let neededBatchCount = 0;
+      for (const b of sortedBatches) {
+        if (b.pcs > 0) {
+          accumulatedPcs += b.pcs;
+          neededBatchCount++;
+          if (accumulatedPcs >= reqPcs) break;
+        }
+      }
+
+      const isTotalEnough = avail >= reqPcs;
+      let finalStatus = 'none';
+      if (maxBatchPcs >= reqPcs && reqPcs > 0) {
+        finalStatus = 'ok';    // 單批即可滿足 ➜ 綠章 [ 庫存OK ]
+      } else if (isTotalEnough && reqPcs > 0) {
+        finalStatus = 'mix';   // 總量足夠但需混批 ➜ 黃章 [ 庫存需混 X 批 ]
+      } else if (gapRatio <= 0.5 && avail > 0) {
+        finalStatus = 'check'; // 缺口 ≤ 50% ➜ 黃章 [ 庫存待確認 ]
+      } else {
+        finalStatus = 'none';  // 總量不足 ➜ 紅章 [ 庫存不足 ]
+      }
 
       const resPayload = {
         code: canonicalCode,
-        imgUrl,
-        series: seriesName,
+        series: seriesName || '通用系列',
         color: colorName,
-        ...(isAgent ? base : {})
+        size: sizeName || '標準規格',
+        pcsPerBox: pcsPerBox,
+        weight: weightName,
+        imgUrl: imgUrl,
+        availPcs: Math.max(0, avail),
+        maxBatchPcs: Math.max(0, maxBatchPcs),
+        neededBatchCount: neededBatchCount,
+        isSingleBatchEnough: maxBatchPcs >= reqPcs,
+        status: finalStatus,
+        isAgent: isAgentUser
       };
 
-      if (avail >= reqPcs)         return json({ status: 'ok',   ...resPayload });
-      if (avail <= 0)              return json({ status: 'none', ...resPayload });
-      if (gapRatio <= 0.5)         return json({ status: 'check',...resPayload });
+      // 行為 Log 寫入
+      if (typeof writeEnhancedLog === 'function') {
+        const salesName = (auth.salesID ? String(auth.salesID) : '');
+        writeEnhancedLog(getSpreadsheetInstance(), "WEB_FORM", userId, auth.name, auth.level, "CHECK_STOCK", canonicalCode, auth.email, {
+          productCode: canonicalCode,
+          reqQty: `${qty}${unit}`,
+          availPcs: Math.max(0, avail),
+          stockStatus: avail >= reqPcs ? 'OK' : 'SHORTAGE',
+          salesRepName: salesName
+        });
+      }
+
+      if (avail >= reqPcs) return json({ status: 'ok', ...resPayload });
+      if (avail <= 0) return json({ status: 'none', ...resPayload });
+      if (gapRatio <= 0.5) return json({ status: 'check', ...resPayload });
       return json({ status: 'none', ...resPayload });
     }
 
@@ -228,6 +422,130 @@ function doGet(e) {
       const app = HtmlService.createHtmlOutput();
       const uid = decodeURIComponent(params.uid || '');
       app.append(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>已拒絕</title><style>body{font-family:-apple-system,'PingFang TC',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f8fafc}.card{background:#fff;padding:40px;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);text-align:center;max-width:400px;margin:20px}.x{width:64px;height:64px;background:#dc2626;color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px}h2{color:#1e293b;margin:0 0 8px}p{color:#64748b;margin:0;font-size:14px}</style></head><body><div class="card"><div class="x">&#10007;</div><h2>已拒絕申請</h2>${uid ? `<p>${escapeHtml(uid)}</p>` : ''}<p style="margin-top:20px;font-size:12px;color:#94a3b8;">若要撤銷拒絕，請至 LINE 或金鑰庫操作。</p></div></body></html>`);
+      return app;
+    }
+
+    // ── [一次性] R2 圖片遷移進度畫面（每 15 秒自動整理） ──
+    if (params.ac === 'r2Stats') {
+      const app = HtmlService.createHtmlOutput();
+      if (params.key !== 'gyc_r2_migrate_2026') {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">🔒 無權限</p>');
+        return app;
+      }
+      try {
+        const stats = (typeof getR2MigrationDashboardData === 'function') ? getR2MigrationDashboardData() : null;
+        app.append(buildR2DashboardHtml_(stats, params.key));
+      } catch (err) {
+        app.append('<p style="font-family:sans-serif;color:red;">' + escapeHtml(String(err)) + '</p>');
+      }
+      return app;
+    }
+
+    // ── [一次性] 立即排一批 R2 遷移（背景執行，馬上回應不用等 5 分鐘） ──
+    if (params.ac === 'runR2MigrationAsync') {
+      const app = HtmlService.createHtmlOutput();
+      if (params.key !== 'gyc_r2_migrate_2026') {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">🔒 無權限</p>');
+        return app;
+      }
+      try {
+        if (typeof scheduleImmediateR2Batch === 'function') scheduleImmediateR2Batch();
+      } catch (err) {}
+      const dashUrl = ScriptApp.getService().getUrl() + '?ac=r2Stats&key=' + encodeURIComponent(params.key);
+      app.append('<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="2;url=' + escapeHtml(dashUrl) + '"></head><body style="font-family:-apple-system,\'PingFang TC\',sans-serif;text-align:center;margin-top:40px;">✅ 已排定立即執行一批，2 秒後自動跳回進度畫面…</body></html>');
+      return app;
+    }
+
+    // ── [一次性] 重置 R2 遷移進度（從第一列重新掃描）──
+    if (params.ac === 'resetR2Migration') {
+      const app = HtmlService.createHtmlOutput();
+      if (params.key !== 'gyc_r2_migrate_2026') {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">🔒 無權限</p>');
+        return app;
+      }
+      try {
+        if (typeof resetR2MigrationProgress === 'function') resetR2MigrationProgress();
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">✅ 進度已重置。</p>');
+      } catch (err) {
+        app.append('<p style="font-family:sans-serif;color:red;">' + escapeHtml(String(err)) + '</p>');
+      }
+      return app;
+    }
+
+    // ── [一次性] 比對「單片連結網址」跟「主圖URL」兩欄的實際資料，看是不是真的重複 ──
+    if (params.ac === 'compareImgCols') {
+      const app = HtmlService.createHtmlOutput();
+      if (params.key !== 'gyc_r2_migrate_2026') {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">🔒 無權限</p>');
+        return app;
+      }
+      try {
+        const ss = getSpreadsheetInstance();
+        const sheet = ss.getSheetByName('編輯價目表') || ss.getSheetByName('編號價目表');
+        const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).trim());
+        const idxA = header.indexOf('單片連結網址');
+        const idxB = header.indexOf('主圖URL');
+        const idxCode = header.indexOf('編號');
+        const data = sheet.getDataRange().getValues();
+        let onlyA = 0, onlyB = 0, bothSame = 0, bothDiff = 0, neither = 0;
+        const diffExamples = [];
+        for (let i = 1; i < data.length; i++) {
+          const a = String(data[i][idxA] || '').trim();
+          const b = String(data[i][idxB] || '').trim();
+          if (!a && !b) { neither++; continue; }
+          if (a && !b) { onlyA++; continue; }
+          if (!a && b) { onlyB++; continue; }
+          if (a === b) { bothSame++; }
+          else {
+            bothDiff++;
+            if (diffExamples.length < 5) diffExamples.push(data[i][idxCode] + '｜A=' + a + '｜B=' + b);
+          }
+        }
+        app.append(`<pre style="font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;">共 ${data.length - 1} 列
+只有「單片連結網址」有值：${onlyA}
+只有「主圖URL」有值：${onlyB}
+兩者都有值、內容一樣：${bothSame}
+兩者都有值、內容不一樣：${bothDiff}
+兩者都是空的：${neither}
+
+內容不一樣的範例（最多5個）：
+${diffExamples.join('\n')}</pre>`);
+      } catch (err) {
+        app.append('<p style="font-family:sans-serif;color:red;">' + escapeHtml(String(err)) + '</p>');
+      }
+      return app;
+    }
+
+    // ── [一次性] 診斷某編號在保留單裡到底有幾筆、.find() 實際抓到哪一筆 ──
+    if (params.ac === 'debugArrival') {
+      const app = HtmlService.createHtmlOutput();
+      if (params.key !== 'gyc_r2_migrate_2026') {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">🔒 無權限</p>');
+        return app;
+      }
+      try {
+        const out = debugCheckArrivalInfo(params.code || 'ST61293');
+        app.append('<pre style="font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;">' + escapeHtml(out) + '</pre>');
+      } catch (err) {
+        app.append('<p style="font-family:sans-serif;color:red;">' + escapeHtml(String(err)) + '</p>');
+      }
+      return app;
+    }
+
+    // ── [一次性] 啟動 R2 圖片批次遷移（背景每 10 分鐘自動接續直到完成）──
+    if (params.ac === 'runR2Migration') {
+      const app = HtmlService.createHtmlOutput();
+      if (params.key !== 'gyc_r2_migrate_2026') {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">🔒 無權限</p>');
+        return app;
+      }
+      try {
+        if (typeof setupR2MigrationTrigger === 'function') setupR2MigrationTrigger();
+        if (typeof runFullImageMigrationToR2 === 'function') runFullImageMigrationToR2(); // 立即跑第一批，不用等 10 分鐘
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;">✅ R2 圖片遷移第一批已執行，後續將於背景每 10 分鐘自動接續直到完成。</p>');
+      } catch (err) {
+        app.append('<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:red;">啟動失敗：' + escapeHtml(String(err)) + '</p>');
+      }
       return app;
     }
 
@@ -268,8 +586,47 @@ function doGet(e) {
       return app;
     }
 
+    // ── Telegram 保留單續期/取消連結 ──
+    if (params.ac === 'renewReserve' || params.ac === 'renewReserveWeb' || params.ac === 'renewReserveSubmit' || params.ac === 'cancelReserve') {
+      return handleReserveTelegramAction(params);
+    }
+
+    // ── [客戶自助] 我的保留單 LIFF 頁面：取得自己公司名下的保留單列表 ──
+    if (params.ac === 'myReservations') {
+      const userId = String(params.userId || '').trim();
+      if (!userId) return json({ success: false, error: '缺少 userId' });
+      const auth = checkAuth(userId, wlData, wlMap);
+      if (!auth.allowed) return json({ success: false, error: '查無此用戶，請聯繫業務開通權限。' });
+      return json(getMyReservationsData_(auth));
+    }
+
+    // ── [客戶自助] 我的保留單 LIFF 頁面：客戶自己修改一筆保留數量 ──
+    if (params.ac === 'updateMyReservation') {
+      const userId = String(params.userId || '').trim();
+      if (!userId) return json({ success: false, error: '缺少 userId' });
+      const auth = checkAuth(userId, wlData, wlMap);
+      if (!auth.allowed) return json({ success: false, error: '查無此用戶，請聯繫業務開通權限。' });
+      const rowNum = parseInt(params.row, 10);
+      if (!rowNum) return json({ success: false, error: '缺少列號' });
+      return json(updateMyReservationRow_(auth, rowNum, params.cust, params.code, params.newQty));
+    }
+
+    // ── 客戶申請「增加保留數量」的 Telegram 核准/拒絕按鈕（來自 updateMyReservationRow_ 發出的通知）──
+    if (params.ac === 'approveReserveIncrease' || params.ac === 'denyReserveIncrease') {
+      return handleReserveIncreaseApproval_(params);
+    }
+
   } catch (err) {
     return json({ success: false, error: String(err) });
+  }
+
+  // 🚩 同一個 LIFF app（LIFF_ID_RESERVE）依 mode 參數分流：帶 mode=myReservations 就顯示
+  // 「我的保留單」自助頁面，不用另外去 LINE Developers Console 建立新的 LIFF app。
+  if (params.mode === 'myReservations') {
+    return HtmlService.createHtmlOutputFromFile('cpanel_tracking')
+      .setTitle('我的保留單')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
   }
 
   return HtmlService.createHtmlOutputFromFile('reservation_form')
@@ -385,6 +742,11 @@ function doPost(e) {
     const userId = (event.source.userId || '').trim();
     const sourceId = event.source.groupId || event.source.roomId || userId;
     const isGroup = event.source.type !== 'user';
+    // 🚩 log 的「來源類型」欄要的是 PRIVATE/GROUP 語意標籤，不是 sourceId（私聊時 sourceId 等於 userId 本身，
+    // 誤填會讓 log 的來源類型欄跟使用者ID欄長得一樣，跟 2_Business.js 的寫法對齊）
+    const logSid = isGroup ? "GROUP" : "PRIVATE";
+    // 🔔 讓這次回覆可以順便附上該客戶「待告知」的到貨通知（見 3_Notify.js）
+    _ARRIVAL_REPLY_CTX = { userId: userId, isGroup: isGroup };
 
     const db = {
       wl: getWhitelistSheet(),
@@ -419,7 +781,7 @@ function doPost(e) {
           sendEmailNotification('🆕 新用戶加好友通知',
             `有新用戶剛加入高雅瓷 AI 機器人好友！\n\n🆔 LINE User ID：${userId}\n⏰ 時間：${timeStr}\n\n請至白名單新增此 ID 並設定等級與名字。`);
         }
-        writeLog(dbSS, sourceId, userId, "陌生人", "GUEST", "加好友", "follow-通知已發", "");
+        writeLog(dbSS, logSid, userId, "陌生人", "GUEST", "加好友", "follow-通知已發", "");
       }
       return output;
     }
@@ -458,7 +820,7 @@ function doPost(e) {
           if (typeof buildOCRConfirmFlex === 'function') {
             const confirmFlex = buildOCRConfirmFlex(ocrResult, cacheKey);
             sendFlexReply(replyToken, confirmFlex, auth, isGroup);
-            writeLog(dbSS, sourceId, userId, auth.name, auth.level, "上傳手寫單", "OCR高信心-等確認", auth.email);
+            writeLog(dbSS, logSid, userId, auth.name, auth.level, "上傳手寫單", "OCR高信心-等確認", auth.email);
           }
         } else {
           // ⚠️ 低信心或有疑慮：回文字，列出辨識結果，請用戶確認或手動填
@@ -473,7 +835,7 @@ function doPost(e) {
           if (!ocrResult.project_name) msg += '\n❓ 案名看不清楚，請補上\n';
           msg += '\n若有誤請直接打字修正，或點連結重新填寫：\n' + liffUrl;
           sendReply(replyToken, msg, '', auth, isGroup);
-          writeLog(dbSS, sourceId, userId, auth.name, auth.level, "上傳手寫單", "OCR低信心-引導確認", auth.email);
+          writeLog(dbSS, logSid, userId, auth.name, auth.level, "上傳手寫單", "OCR低信心-引導確認", auth.email);
         }
         return output;
       }
@@ -485,7 +847,7 @@ function doPost(e) {
         '●案名：[案名]\n編號：[品號]\n數量：[數量][單位]\n\n' +
         '或點連結開啟線上保留單：\n' + liffUrl;
       sendReply(replyToken, failMsg, '', auth, isGroup);
-      writeLog(dbSS, sourceId, userId, auth.name, auth.level, "上傳手寫單", "OCR完全失敗-引導手動", auth.email);
+      writeLog(dbSS, logSid, userId, auth.name, auth.level, "上傳手寫單", "OCR完全失敗-引導手動", auth.email);
       return output;
     }
 
@@ -501,7 +863,7 @@ function doPost(e) {
         if (input.startsWith('報到') || isInfoInput) {
           const applyRes = (typeof handleNewUserApply === 'function') ? handleNewUserApply(input, userId, sourceId) : "報到維護中";
           if (applyRes) {
-            writeLog(dbSS, sourceId, userId, "申請人", "GUEST", input, "提交權限申請", "");
+            writeLog(dbSS, logSid, userId, "申請人", "GUEST", input, "提交權限申請", "");
             return sendReply(replyToken, applyRes, "", auth, isGroup);
           }
         }
@@ -547,7 +909,7 @@ function doPost(e) {
         let orderRes = (typeof handleOrderRequest === 'function') ? handleOrderRequest(input, auth, sourceId, dbFull, mapsFull) : "保留功能維護中";
         if (Array.isArray(orderRes)) sendMultiReply(replyToken, orderRes, auth, isGroup);
         else sendReply(replyToken, orderRes, "", auth, isGroup);
-        writeLog(dbSS, sourceId, userId, auth.name, auth.level, "提交保留單", "FormProcessed", auth.email);
+        writeLog(dbSS, logSid, userId, auth.name, auth.level, "提交保留單", "FormProcessed", auth.email);
         return output;
       }
 
@@ -563,6 +925,16 @@ function doPost(e) {
       let isInventoryQueryFound = false;
 
       for (let q of queries) {
+        // (0) 我的保留單（客戶自助查詢＋修改）→ 送出 LIFF 按鈕卡片
+        if (['我的保留', '保留總覽', '保留單查詢'].some(k => q.includes(k))) {
+          const myResFlex = (typeof buildMyReservationsLiffFlex_ === 'function') ? buildMyReservationsLiffFlex_(auth) : null;
+          if (myResFlex && typeof myResFlex === 'object') {
+            sendFlexReply(replyToken, myResFlex, auth, isGroup);
+            writeLog(dbSS, logSid, userId, auth.name, auth.level, q, 'LIFF我的保留單按鈕', auth.email);
+            return output;
+          }
+        }
+
         // (1) 索取範本指令 → 改為送出 LIFF 按鈕卡片
         if (['下保留', '填保留單'].some(k => q.includes(k))) {
           const isFilling = q.includes('●案名') || q.includes('案名：');
@@ -573,7 +945,7 @@ function doPost(e) {
               : null;
             if (reserveFlex && typeof reserveFlex === 'object') {
               sendFlexReply(replyToken, reserveFlex, auth, isGroup);
-              writeLog(dbSS, sourceId, userId, auth.name, auth.level, q, 'LIFF保留單按鈕', auth.email);
+              writeLog(dbSS, logSid, userId, auth.name, auth.level, q, 'LIFF保留單按鈕', auth.email);
               return output;
             }
           }
@@ -594,8 +966,8 @@ function doPost(e) {
           if (typeof handleFlexTest === 'function') {
             flexObject = handleFlexTest(q, db, maps);
             if (flexObject) {
-              // 🚩 [bubble fix] 記下這次查詢的編號，讓圖片下方的泡泡能帶著編號
-              const visCodeMatch = q.match(/[a-zA-Z]{2,4}\d{5,}/) || q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/);
+              // 🚩 [bubble fix] 記下這次查詢的編號，讓圖片下方的泡泡能帶著編號 (支援今友利短編號 D124/J16 等)
+              const visCodeMatch = q.match(/[a-zA-Z]{1,4}\d{2,}(?:-[a-zA-Z0-9]+)?/i) || q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/i);
               if (visCodeMatch) lastDetectedCode = visCodeMatch[0].toUpperCase();
               break;
             } else {
@@ -612,13 +984,13 @@ function doPost(e) {
           flexObject = result; break;
         } else if (result) {
           fullReply += result + "\n";
-          const codeMatch = q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/) || q.match(/[a-zA-Z]{2,4}\d{5,}/);
+          const codeMatch = q.match(/[a-zA-Z]{1,4}\d{2,}(?:-[a-zA-Z0-9]+)?/i) || q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/i);
           const qtyMatch = q.match(/(\d+(?:\.\d+)?)\s*(坪|p|片|箱|包)/i);
           if (codeMatch) lastDetectedCode = codeMatch[0].toUpperCase();
           if (qtyMatch) lastDetectedQty = qtyMatch[0];
 
           const washedQ = (typeof washText === 'function') ? washText(q) : q;
-          const numMatch = q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/) || q.match(/[a-zA-Z]{2,4}\d{5,}/);
+          const numMatch = q.match(/[a-zA-Z]{1,4}\d{2,}(?:-[a-zA-Z0-9]+)?/i) || q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/i);
           const isInvQ = q.includes('庫存') || qtyMatch || numMatch || (washedQ.length >= 4);
           if (isInvQ && !q.includes('價格') && !q.includes('價錢') && !q.includes('實際尺寸') && !q.includes('尺寸') && !q.includes('保留') && !q.includes('過期') && !q.includes('業績') && !q.includes('戰報') && !q.includes('睡美人')) {
             isInventoryQueryFound = true;
@@ -628,12 +1000,12 @@ function doPost(e) {
 
       if (flexObject) {
         sendFlexReply(replyToken, flexObject, auth, isGroup, lastDetectedCode);
-        writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "FLEX", auth.email);
+        writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "FLEX", auth.email);
       } else if (fullReply.trim()) {
         const finalCode = lastDetectedQty ? (lastDetectedCode + " " + lastDetectedQty) : lastDetectedCode;
         sendReply(replyToken, fullReply.trim(), finalCode, auth, isGroup);
         if (!isInventoryQueryFound) {
-          writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "回覆", auth.email);
+          writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "回覆", auth.email);
         }
 
         // 🚩 [v24.2] 業務通知攔截
@@ -654,7 +1026,7 @@ function doPost(e) {
                 const flexObj = handleFlexTest(code + " 圖片", db, maps);
                 if (flexObj) {
                   sendFlexReply(replyToken, flexObj, auth, isGroup, code.toUpperCase());
-                  writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "AI-找圖", auth.email);
+                  writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "AI-找圖", auth.email);
                   return output;
                 }
               }
@@ -665,7 +1037,7 @@ function doPost(e) {
               const priceRes = (typeof handlePriceSearch === 'function') ? handlePriceSearch(code, db.price, maps.price, auth.level, isGroup) : "";
               if (priceRes) {
                 sendReply(replyToken, priceRes, code, auth, isGroup);
-                writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "AI-問價", auth.email);
+                writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "AI-問價", auth.email);
                 return output;
               }
             }
@@ -676,7 +1048,7 @@ function doPost(e) {
               const specRes = (typeof handleProductSpecSearch === 'function') ? handleProductSpecSearch(code, db.price, maps.price, specQueryText) : "";
               if (specRes) {
                 sendReply(replyToken, specRes, code, auth, isGroup);
-                writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "AI-規格", auth.email);
+                writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "AI-規格", auth.email);
                 return output;
               }
             }
@@ -710,7 +1082,7 @@ function doPost(e) {
                 let orderRes = handleOrderRequest(virtualForm, auth, sourceId, dbFull, mapsFull);
                 if (Array.isArray(orderRes)) sendMultiReply(replyToken, orderRes, auth, isGroup);
                 else sendReply(replyToken, orderRes, code, auth, isGroup);
-                writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "AI-口語保留單", auth.email);
+                writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "AI-口語保留單", auth.email);
                 return output;
               }
             }
@@ -722,7 +1094,7 @@ function doPost(e) {
             const isFallback = !aiChatReply || aiChatReply.includes("恍神");
             if (!isFallback) {
               sendReply(replyToken, aiChatReply, "", auth, isGroup);
-              writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "AI對話", auth.email);
+              writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "AI對話", auth.email);
               return output;
             }
           }
@@ -731,7 +1103,7 @@ function doPost(e) {
           if (typeof buildUnknownGuideBubble === 'function') {
             const guideFlex = buildUnknownGuideBubble(auth);
             sendFlexReply(replyToken, guideFlex, auth, isGroup);
-            writeLog(dbSS, sourceId, userId, auth.name, auth.level, input, "引導泡泡", auth.email);
+            writeLog(dbSS, logSid, userId, auth.name, auth.level, input, "引導泡泡", auth.email);
             return output;
           }
         }
@@ -776,7 +1148,7 @@ function routeDispatcher(q, db, maps, auth, isGroup, dbSS) {
   }
 
   const washedQ = (typeof washText === 'function') ? washText(q) : q;
-  const numMatch = q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/) || q.match(/[a-zA-Z]{2,4}\d{5,}/);
+  const numMatch = q.match(/[a-zA-Z]{1,4}\d{2,}(?:-[a-zA-Z0-9]+)?/i) || q.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/i);
 
   // 🚩 [v24.2 群組沈默門檻]：嚴格攔截無意義討論
   if (isGroup) {
@@ -843,6 +1215,15 @@ function routeDispatcher(q, db, maps, auth, isGroup, dbSS) {
   const qtyMatch = q.match(/(\d+(?:\.\d+)?)\s*(坪|p|片|箱|包)/i);
   const isInventoryQuery = q.includes('庫存') || qtyMatch || numMatch || (washedQ.length >= 4);
   if (isInventoryQuery) {
+    // 🚩 多公司強制優先攔截：完整字母編號且高雅瓷無此精確編號 → 直接查安/喜，絕不讓高雅瓷模糊誤配
+    if (typeof handleMultiCompanyQuery_ === 'function' && typeof extractMultiCompanyCode_ === 'function') {
+      const mcCode = extractMultiCompanyCode_(q);
+      if (mcCode && !isExactCodeInGYC_(mcCode)) {
+        const mc = handleMultiCompanyQuery_(q, auth, isGroup);
+        if (mc) return mc;
+      }
+    }
+
     const dbFull = { ...db, stock: getStockSheet(), main: getMainSheet() };
     const mapsFull = { ...maps, stock: getHeaderMap(dbFull.stock), main: getHeaderMap(dbFull.main) };
     const invResult = (typeof handleInventorySearch === 'function')

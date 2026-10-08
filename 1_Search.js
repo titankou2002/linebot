@@ -192,3 +192,90 @@ function getGroupedRows(kw, priceData, map) {
 
   return { primary: primary, recommendations: recommendations };
 }
+
+/** 5. 編輯距離（Levenshtein）：兩字串相差幾個字元的插入/刪除/替換 */
+function editDistance_(a, b) {
+  a = String(a || ''); b = String(b || '');
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = [];
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+/**
+ * 6. 查無結果時的「您是不是要找」卡片：
+ * 編號打錯 1~2 碼、數字少打/多打 1 碼、系列名稱錯 1 個字，都列出最接近的最多 4 筆，點按鈕直接重查。
+ * 找不到夠接近的就回 null，讓呼叫端維持原本的查無流程。
+ */
+function buildNotFoundSuggestionFlex_(inputKW, priceData, map, reqQty, reqUnit) {
+  if (!priceData || !map || map['編號'] === undefined) return null;
+  const raw = String(inputKW || '')
+    .replace(/\d+(?:\.\d+)?\s*(坪|p|片|箱|包)/gi, '')
+    .replace(/\d{2,4}\s*[xX*＊×]\s*\d{2,4}/g, '');
+  const token = washText(raw).toUpperCase().replace(/[\s\-]/g, '');
+  if (token.length < 2) return null;
+
+  const tokenDigits = token.replace(/\D/g, '');
+  const hasCJK = /[一-鿿]/.test(token);
+  const best = {}; // code → { code, series, dist, bySeries }
+
+  for (let i = 1; i < priceData.length; i++) {
+    const row = priceData[i];
+    const code = String(row[map['編號']] || '').trim().toUpperCase();
+    if (!code) continue;
+    const series = String(row[map['中文系列']] || '').trim();
+    let dist = Infinity, bySeries = false;
+
+    if (!hasCJK && token.length >= 4) {
+      const codeKey = code.replace(/[\s\-]/g, '');
+      const d = editDistance_(token, codeKey);
+      if (d <= 2) dist = d;
+      if (tokenDigits.length >= 4) {
+        const dd = editDistance_(tokenDigits, codeKey.replace(/\D/g, ''));
+        if (dd <= 1) dist = Math.min(dist, dd + 0.5);
+      }
+    }
+    if (hasCJK && series.length >= 2) {
+      const ds = editDistance_(token, series);
+      if (ds <= 1 && ds < series.length) { dist = Math.min(dist, ds); bySeries = true; }
+    }
+    if (dist === Infinity) continue;
+    const key = bySeries ? 'S:' + series : code;
+    if (!best[key] || dist < best[key].dist) best[key] = { code: code, series: series, dist: dist, bySeries: bySeries };
+  }
+
+  const picks = Object.keys(best).map(k => best[k])
+    .sort((a, b) => a.dist - b.dist || a.code.length - b.code.length)
+    .slice(0, 4);
+  if (picks.length === 0) return null;
+
+  const qtySuffix = reqQty ? ` ${reqQty}${reqUnit || '片'}` : '';
+  const buttons = picks.map(p => {
+    const queryText = p.bySeries ? p.series + qtySuffix : p.code + qtySuffix;
+    const label = (p.bySeries ? p.series : (p.code + (p.series ? ' ' + p.series : ''))).substring(0, 20);
+    return { type: "button", style: "secondary", color: "#FFF8DC", height: "sm", action: { type: "message", label: label, text: queryText } };
+  });
+
+  return {
+    type: "bubble",
+    size: "kilo",
+    body: {
+      type: "box", layout: "vertical", spacing: "sm", paddingAll: "16px",
+      contents: [
+        { type: "text", text: `🤔 找不到「${String(inputKW).trim().substring(0, 30)}」`, weight: "bold", size: "md", wrap: true },
+        { type: "text", text: "您是不是要找：", size: "sm", color: "#666666", margin: "sm" }
+      ]
+    },
+    footer: { type: "box", layout: "vertical", spacing: "xs", paddingAll: "12px", contents: buttons }
+  };
+}

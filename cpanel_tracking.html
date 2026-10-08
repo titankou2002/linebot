@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的保留單</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  :root {
+    --accent: #1e40af;
+    --accent-dark: #1e3a8a;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --danger: #dc2626;
+    --success: #059669;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px;
+    padding-bottom: 48px;
+  }
+  h1 {
+    font-size: 1.25rem;
+    margin: 8px 4px 4px;
+  }
+  .subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0 4px 16px;
+    line-height: 1.5;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .code {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .case {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    word-break: break-all;
+  }
+  .qty-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .qty-label {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--bg);
+  }
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(30,64,175,.12);
+  }
+  .unit { font-size: 0.82rem; color: var(--text-muted); flex-shrink: 0; }
+  .btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .08s ease;
+  }
+  .btn:active { transform: scale(0.98); background: var(--accent-dark); }
+  .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+  .hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .msg {
+    font-size: 0.82rem;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    display: none;
+  }
+  .msg.show { display: block; }
+  .msg.success { background: #ecfdf5; color: var(--success); }
+  .msg.pending { background: #fffbeb; color: #b45309; }
+  .msg.error { background: #fef2f2; color: var(--danger); }
+
+  .state-box {
+    text-align: center;
+    padding: 48px 16px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .skeleton {
+    height: 96px;
+    border-radius: var(--radius);
+    background: linear-gradient(90deg, #eef1f5 25%, #e4e8ee 37%, #eef1f5 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    margin-bottom: 12px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+  }
+</style>
+</head>
+<body>
+
+<h1>📋 我的保留單</h1>
+<p class="subtitle" id="subtitle">查詢您公司名下所有保留單，可直接修改數量：減少或取消立即生效，增加需業務確認後才生效。</p>
+
+<div id="list"></div>
+
+<script>
+var LIFF_ID = '2007666611-fbGOItDt';
+var GAS_API = 'https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7NvkB2oNGVMfXwJRJvMZcCR0GYhpNlIbTtEwqy_G4pVJ5N-x/exec';
+
+var listEl = document.getElementById('list');
+var myUserId = '';
+
+function renderSkeleton() {
+  listEl.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+}
+
+function renderState(text) {
+  listEl.innerHTML = '<div class="state-box">' + escapeHtml(text) + '</div>';
+}
+
+function escapeHtml(s) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(s == null ? '' : s)));
+  return d.innerHTML;
+}
+
+function renderList(items, company) {
+  if (!items || items.length === 0) {
+    renderState('目前沒有保留紀錄');
+    return;
+  }
+  document.getElementById('subtitle').textContent = (company ? company + '，共 ' + items.length + ' 筆保留' : '共 ' + items.length + ' 筆保留') + '。減少或取消立即生效，增加需業務確認後才生效。';
+
+  var html = '';
+  items.forEach(function(item, idx) {
+    html += ''
+      + '<div class="card" data-idx="' + idx + '">'
+      + '  <div class="card-top">'
+      + '    <span class="code">' + escapeHtml(item.code) + '</span>'
+      + '    <span class="date">' + escapeHtml(item.date || '') + '</span>'
+      + '  </div>'
+      + (item.caseName ? '<div class="case">' + escapeHtml(item.caseName) + '</div>' : '')
+      + '  <div class="qty-row">'
+      + '    <span class="qty-label">數量</span>'
+      + '    <input type="number" min="0" step="1" value="' + Number(item.qty) + '" inputmode="numeric">'
+      + '    <span class="unit">片</span>'
+      + '  </div>'
+      + '  <button class="btn">更新數量</button>'
+      + '  <div class="msg"></div>'
+      + '  <div class="hint">目前保留：' + Number(item.qty) + ' 片</div>'
+      + '</div>';
+  });
+  listEl.innerHTML = html;
+
+  var cards = listEl.querySelectorAll('.card');
+  cards.forEach(function(card) {
+    var idx = parseInt(card.getAttribute('data-idx'), 10);
+    var item = items[idx];
+    var input = card.querySelector('input');
+    var btn = card.querySelector('.btn');
+    var msg = card.querySelector('.msg');
+
+    btn.addEventListener('click', function() {
+      var newQty = input.value;
+      if (newQty === '' || isNaN(Number(newQty)) || Number(newQty) < 0) {
+        showMsg(msg, 'error', '請輸入正確的數量');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = '處理中…';
+      msg.className = 'msg';
+
+      var url = GAS_API + '?ac=updateMyReservation'
+        + '&userId=' + encodeURIComponent(myUserId)
+        + '&row=' + encodeURIComponent(item.row)
+        + '&cust=' + encodeURIComponent(item.cust)
+        + '&code=' + encodeURIComponent(item.code)
+        + '&newQty=' + encodeURIComponent(newQty);
+
+      fetch(url).then(function(r) { return r.json(); }).then(function(res) {
+        btn.disabled = false;
+        btn.textContent = '更新數量';
+        if (!res.success) {
+          showMsg(msg, 'error', res.error || '更新失敗，請稍後再試');
+          return;
+        }
+        if (res.applied) {
+          showMsg(msg, 'success', '✅ 已更新為 ' + res.newQty + ' 片');
+          card.querySelector('.hint').textContent = '目前保留：' + res.newQty + ' 片';
+          item.qty = res.newQty;
+        } else if (res.pending) {
+          showMsg(msg, 'pending', '⏳ 已送出審核，業務確認後才會生效（目前仍是 ' + res.oldQty + ' 片）');
+          input.value = res.oldQty;
+        }
+      }).catch(function() {
+        btn.disabled = false;
+        btn.textContent = '更新數量';
+        showMsg(msg, 'error', '網路連線失敗，請稍後再試');
+      });
+    });
+  });
+}
+
+function showMsg(el, type, text) {
+  el.className = 'msg show ' + type;
+  el.textContent = text;
+}
+
+function loadReservations() {
+  renderSkeleton();
+  fetch(GAS_API + '?ac=myReservations&userId=' + encodeURIComponent(myUserId))
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res.success) {
+        renderState(res.error || '查詢失敗，請稍後再試');
+        return;
+      }
+      renderList(res.items, res.company);
+    })
+    .catch(function() {
+      renderState('網路連線失敗，請稍後再試');
+    });
+}
+
+function init() {
+  liff.init({ liffId: LIFF_ID }).then(function() {
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    return liff.getProfile();
+  }).then(function(profile) {
+    if (!profile) return; // 正在導向登入，之後會重新載入
+    myUserId = profile.userId;
+    loadReservations();
+  }).catch(function(err) {
+    renderState('無法驗證您的身分，請從 LINE 對話裡重新點擊「我的保留單」開啟');
+  });
+}
+
+renderSkeleton();
+init();
+</script>
+</body>
+</html>

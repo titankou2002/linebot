@@ -32,6 +32,14 @@ function getSpreadsheetInstance() {
   return _ssInstance;
 }
 
+let _formSSInstance = null;
+function getFormSpreadsheetInstance() {
+  if (!_formSSInstance) {
+    _formSSInstance = SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
+  }
+  return _formSSInstance;
+}
+
 function _getSheetRowsByName(name, cacheKey) {
   if (_CACHE[cacheKey]) return _CACHE[cacheKey];
   try {
@@ -44,45 +52,50 @@ function _getSheetRowsByName(name, cacheKey) {
     if (!sh) return [];
     const range = sh.getDataRange();
     const vals = range.getValues();
-    // 🚩 [v24.3] 全能影像相容：支援「美化圖示」與「IMAGE 函數」自動研析
+    // 🚩 [v24.3 🚀 極速批次優化] 全能影像相容：由原本 26~39 次單欄 RPC 縮減為 2 次批次呼叫
     if (actualName === "編輯價目表" || actualName === "編號價目表") {
       const header = vals[0].map(h => String(h).trim());
-      const linkColNames = ["單片連結網址", "FLEX圖卡", "原廠目錄", "實景1", "實景2", "實景3", "實景4", "實景5", "實景6", "實景7", "實蹟圖片", "主圖URL"];
+      const linkColNames = ["單片連結網址", "FLEX圖卡", "原廠目錄", "實景1", "實景2", "實景3", "實景4", "實景5", "實景6", "實景7", "實蹟圖片", "主圖URL", "雲端圖片"];
       const targetColIdxs = linkColNames.map(name => header.indexOf(name)).filter(idx => idx > -1);
-      
-      targetColIdxs.forEach(colIdx => {
+
+      if (targetColIdxs.length > 0 && vals.length > 1) {
         try {
-          const colRange = sh.getRange(1, colIdx + 1, vals.length, 1);
-          const richCol = colRange.getRichTextValues();
-          const formulaCol = colRange.getFormulas();
-          
+          const richVals = range.getRichTextValues();
+          const formulaVals = range.getFormulas();
+          const cloudFolderColIdx = header.indexOf("雲端圖片");
+
           for (let i = 0; i < vals.length; i++) {
-            const cellStr = String(vals[i][colIdx]).trim();
-            const formula = formulaCol[i][0];
-            
-            // A. 處理美化圖示 (RichText Link)
-            if (/^[\uD83D\uDDBC\uFE0F\uD83D\uDD17\uD83D\uDCD5]+$/.test(cellStr) || ["🖼️", "🖼", "🔗", "📕"].includes(cellStr)) {
-              const link = richCol[i][0].getLinkUrl();
-              if (link) vals[i][colIdx] = link;
-            } 
-            // B. 處理 IMAGE 函數 (提取公式內的網址)
-            else if (formula && formula.toUpperCase().includes("IMAGE(")) {
-              const match = formula.match(/"(https?:\/\/[^"]+)"/i) || formula.match(/'(https?:\/\/[^']+)'/i);
-              if (match) {
-                let url = match[1];
-                // 🚩 研析公式內的網址並強轉 Drive 縮圖
-                if (url.includes("drive.google.com")) {
-                  const id = url.match(/[\w-]{25,}/);
-                  if (id) url = "https://drive.google.com/thumbnail?id=" + id[0] + "&sz=w600";
+            for (let c = 0; c < targetColIdxs.length; c++) {
+              const colIdx = targetColIdxs[c];
+              const cellStr = String(vals[i][colIdx]).trim();
+              const formula = formulaVals[i] ? formulaVals[i][colIdx] : '';
+
+              // A. 處理美化圖示 (RichText Link)
+              if (colIdx === cloudFolderColIdx || /^[\uD83D\uDDBC\uFE0F\uD83D\uDD17\uD83D\uDCD5]+$/.test(cellStr) || ["🖼️", "🖼", "🔗", "📕"].includes(cellStr)) {
+                if (richVals[i] && richVals[i][colIdx]) {
+                  const link = richVals[i][colIdx].getLinkUrl();
+                  if (link) vals[i][colIdx] = link;
                 }
-                vals[i][colIdx] = url;
+              }
+              // B. 處理 IMAGE 函數 (提取公式內的網址)
+              else if (formula && formula.toUpperCase().includes("IMAGE(")) {
+                const match = formula.match(/"(https?:\/\/[^"]+)"/i) || formula.match(/'(https?:\/\/[^']+)'/i);
+                if (match) {
+                  let url = match[1];
+                  // 🚩 研析公式內的網址並強轉 Drive 縮圖
+                  if (url.includes("drive.google.com")) {
+                    const id = url.match(/[\w-]{25,}/);
+                    if (id) url = "https://drive.google.com/thumbnail?id=" + id[0] + "&sz=w600";
+                  }
+                  vals[i][colIdx] = url;
+                }
               }
             }
           }
         } catch (colErr) {
-          console.error("處理欄位快取出錯 colIndex " + colIdx + ": " + colErr);
+          console.error("批次處理價目表欄位富文本/公式出錯: " + colErr);
         }
-      });
+      }
     }
 
     _CACHE[cacheKey] = vals;
@@ -94,8 +107,22 @@ function _getSheetRowsByName(name, cacheKey) {
 }
 
 function getMonthSheet() { return _getSheetRowsByName('經銷銷售報表', 'monthRows'); }
-function getReserveSheet() { return _getSheetRowsByName('保留單', 'reserveRows'); }
-function getStockSheet() { return _getSheetRowsByName('庫存表', 'stockRows'); }
+function getReserveSheet() { return getMainSheet(); }
+function getStockSheet() {
+  if (_CACHE.stockRows) return _CACHE.stockRows;
+  try {
+    const ss = getFormSpreadsheetInstance();
+    const sh = ss.getSheetByName('庫存表') || ss.getSheetByName(SHEET_NAME.STOCK);
+    if (sh) {
+      const vals = sh.getDataRange().getValues();
+      _CACHE.stockRows = vals;
+      return vals;
+    }
+  } catch (e) {
+    console.error("讀取 FORM_SS_ID 庫存表失敗: " + e);
+  }
+  return [];
+}
 
 function parseSizeDimensions_(sizeValue) {
   const raw = String(sizeValue || '').toLowerCase().replace(/\s+/g, '');
@@ -171,7 +198,7 @@ function getPcsPerPingFallback_(row, map) {
 function getPendingBufferRows(ssId, mainHeaderMap) {
   const pendingRows = [];
   try {
-    const ss = SpreadsheetApp.openById(ssId);
+    const ss = (ssId === CONFIG.FORM_SS_ID) ? getFormSpreadsheetInstance() : ((ssId === CONFIG.DATA_SS_ID) ? getSpreadsheetInstance() : SpreadsheetApp.openById(ssId));
     const sh = ss.getSheetByName('(保留暫存)');
     if (!sh) return pendingRows;
     const vals = sh.getDataRange().getValues();
@@ -301,16 +328,43 @@ function parseRowQtyToPcs(code, qtyValOrStr, priceData, priceMap) {
 function getMainSheet() {
   if (_CACHE.mainRowsCombined) return _CACHE.mainRowsCombined;
   
-  const mainRows = _getSheetRowsByName('保留單', 'reserveRows');
-  let combined = [];
-  if (mainRows && mainRows.length > 0) {
-    combined = mainRows.map(r => [...r]);
-  } else {
-    combined = [["編號", "數量", "客戶", "工地", "客戶業務", "保留日期", "到期日", "案名", "備註"]];
-  }
+  let combined = [["編號", "數量", "客戶", "工地", "客戶業務", "保留日期", "到期日", "案名", "備註", "入倉日期1", "數量1", "入倉日期2", "數量2"]];
   const mainHeaderMap = getHeaderMap(combined);
   
-  // ── A. 合併「雲端保留」工作表的已核准資料 ──
+  let hasLoadedMain = false;
+
+  // 1. 優先：讀取 FORM_SS_ID (即時寫入的表單庫) 底下的保留單
+  if (CONFIG.FORM_SS_ID) {
+    try {
+      const formSS = getFormSpreadsheetInstance();
+      const sh = formSS.getSheetByName('保留單');
+      if (sh) {
+        const rows = sh.getDataRange().getValues();
+        if (rows.length > 1) {
+          const hMap = getHeaderMap(rows);
+          for (let i = 1; i < rows.length; i++) {
+            const rowData = new Array(combined[0].length).fill("");
+            Object.keys(mainHeaderMap).forEach(key => {
+              const dstIdx = mainHeaderMap[key];
+              const srcIdx = hMap[key];
+              if (dstIdx !== undefined && srcIdx !== undefined) {
+                rowData[dstIdx] = rows[i][srcIdx];
+              }
+            });
+            combined.push(rowData);
+          }
+          hasLoadedMain = true;
+        }
+      }
+    } catch (e) {
+      console.error("讀取 FORM_SS_ID 保留單失敗: " + e);
+    }
+  }
+
+
+
+  
+  // ── A. 合併「雲端保留」工作表的已核准資料 (保留相容) ──
   try {
     const cloudRows = _getSheetRowsByName('雲端保留', 'cloudReserveRows');
     if (cloudRows && cloudRows.length > 1) {
@@ -407,7 +461,23 @@ function getPriceSheetFull() {
   return _getSheetRowsByName('編號價目表', 'priceRowsFull');
 }
 
-function getWhitelistSheet() { return _getSheetRowsByName('白名單', 'wlRows'); }
+function getWhitelistSheet() {
+  const cacheKey = "whitelist_data_v1";
+  const cached = (typeof CacheManager !== 'undefined') ? CacheManager.getLarge(cacheKey) : null;
+  if (cached) return cached;
+
+  const data = _getSheetRowsByName('白名單', 'wlRows');
+  if (data && data.length > 0 && typeof CacheManager !== 'undefined') {
+    CacheManager.putLarge(cacheKey, data, 1800); // 快取 30 分鐘
+  }
+  return data;
+}
+
+function clearWhitelistCache() {
+  if (typeof CacheManager !== 'undefined') {
+    CacheManager.removeLarge("whitelist_data_v1");
+  }
+}
 
 // ==========================================
 // 📅 日期與文字處理 (Date & Text)
@@ -694,11 +764,10 @@ function writeEnhancedLog(ss, sid, uid, name, level, input, note, email, extraDa
     const logSheet = ss.getSheetByName(SHEET_NAME.LOG);
     if (!logSheet) return;
     const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy/MM/dd HH:mm:ss");
-    const lastRow = logSheet.getLastRow();
-    
+
     // Default columns A-H
     const row = [nowStr, sid, uid, name, level, input, note, email];
-    
+
     // Add extra columns I-Q
     if (extraData) {
       row.push(
@@ -716,8 +785,10 @@ function writeEnhancedLog(ss, sid, uid, name, level, input, note, email, extraDa
       // Pad empty values for columns I-Q
       for (let i = 0; i < 9; i++) row.push("");
     }
-    
-    logSheet.getRange(lastRow + 1, 1, 1, row.length).setValues([row]);
+
+    // 🚩 [v684] 新增紀錄改插在標題列(第1列)正下方，讓 LOG 由新到舊排序（不再一路 append 到最底）
+    logSheet.insertRowBefore(2);
+    logSheet.getRange(2, 1, 1, row.length).setValues([row]);
   } catch(e) { console.error("Enhanced Log 寫入失敗: " + e); }
 }
 
@@ -729,11 +800,6 @@ function internalGetQuickReplies(code, auth, isGroup) {
   const level = String(auth ? auth.level : "free").toLowerCase();
   const items = [];
   const cleanCode = code ? String(code).toUpperCase().trim() : "";
-  const isAgent = ['sales', 'king', 'queen', 'admin'].includes(level);
-
-  if (isAgent && !isGroup) {
-    items.push({ "type": "action", "action": { "type": "message", "label": "📈 今日業績", "text": "今日業績" } });
-  }
 
   if (['sales', 'king', 'queen', 'admin'].includes(level)) {
     items.push({ "type": "action", "action": { "type": "message", "label": "📌 查保留", "text": cleanCode ? cleanCode + " 保留" : "查保留" } });
@@ -742,8 +808,8 @@ function internalGetQuickReplies(code, auth, isGroup) {
     items.push({ "type": "action", "action": { "type": "message", "label": "📝 下保留", "text": returnText } });
   }
 
-  // 🚩 核心優化：為「查價格」與「看圖片」提取純淨的商品編號（移除可能夾帶的數量，例如 10坪），避免干擾視覺分流
-  const pureCode = cleanCode ? (cleanCode.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/) || cleanCode.match(/[a-zA-Z]{2,4}\d{5,}/) || [cleanCode])[0].toUpperCase() : "";
+  // 🚩 核心優化：為「查價格」與「看圖片」提取純淨的商品編號 (支援今友利短編號 D124/J16 等)
+  const pureCode = cleanCode ? (cleanCode.match(/[a-zA-Z]{1,4}\d{2,}(?:-[a-zA-Z0-9]+)?/i) || cleanCode.match(/\d{5,}(?:-[a-zA-Z0-9]+)?/i) || [cleanCode])[0].toUpperCase() : "";
 
   if (pureCode && !isGroup) {
     items.push({ "type": "action", "action": { "type": "message", "label": "💰 查價格", "text": pureCode + " 價格" } });
@@ -757,12 +823,18 @@ function internalGetQuickReplies(code, auth, isGroup) {
 }
 
 function sendReply(tk, txt, code, auth, isGroup) {
+  const quickReply = internalGetQuickReplies(code, auth, isGroup);
+  // 🔔 庫存不足時多一顆「到貨通知我」（私訊才有）
+  if (!isGroup && code && String(txt).includes('庫存不足') && typeof buildArrivalSubscribeQuickReply_ === 'function') {
+    const subItem = buildArrivalSubscribeQuickReply_(code);
+    if (subItem) quickReply.items.unshift(subItem);
+  }
   const payload = {
     replyToken: tk,
-    messages: [{ 
-      type: 'text', 
-      text: txt.substring(0, 5000), 
-      quickReply: internalGetQuickReplies(code, auth, isGroup)
+    messages: [{
+      type: 'text',
+      text: txt.substring(0, 5000),
+      quickReply: quickReply
     }]
   };
   return lineApiFetch('reply', payload);
@@ -851,10 +923,20 @@ function sendAdminFlexPush(to, flexContents) {
  *   每個內層陣列是同一橫排的按鈕，例如 [[{text:'核准', url:'...'}], [{text:'核准A', url:'...'}, {text:'拒絕', url:'...'}]]
  */
 function pushTelegram(text, buttons) {
-  const token = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN');
   const chatId = PropertiesService.getScriptProperties().getProperty('TELEGRAM_CHAT_ID');
+  return pushTelegramTo(chatId, text, buttons);
+}
+
+/**
+ * 推送 Telegram 到指定 chat（業務個人 / 群組皆可用）
+ * @param {string} chatId - 目標 chat id
+ * @param {string} text - 訊息內容
+ * @param {Array<Array<{text:string, url:string}>>} [buttons] - 選填，inline keyboard 按鈕列
+ */
+function pushTelegramTo(chatId, text, buttons) {
+  const token = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN');
   if (!token || !chatId) {
-    console.error('Telegram 未設定 TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID，通知未送出');
+    console.error('Telegram 未設定 TELEGRAM_BOT_TOKEN 或缺少目標 chatId，通知未送出');
     return null;
   }
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
@@ -886,19 +968,115 @@ function pushTelegram(text, buttons) {
   }
 }
 
+/**
+ * 依業務名稱查詢其私人 Telegram chat id
+ * 來源：系統設定 工作表的「TELEGRAM」欄位（依「姓名/稱謂」比對）。
+ * 欄位可填：數字 user id，或「@username」（會自動反查數字 id，查不到回傳 ''）。
+ */
+function resolveBusinessTelegramChatId(bizName) {
+  try {
+    const val = String(bizName || '').trim();
+    if (!val) return '';
+    const settingsRows = getSystemSettingsSheet();
+    if (!settingsRows || settingsRows.length < 2) return '';
+    const sMap = getHeaderMap(settingsRows);
+    const nameCol = sMap['姓名/稱謂'] !== undefined ? sMap['姓名/稱謂'] : 5;
+    const tgKey = Object.keys(sMap).find(k => k.toLowerCase().replace(/\s+/g, '') === 'telegram');
+    const tgCol = tgKey !== undefined ? sMap[tgKey] : -1;
+    if (tgCol < 0) return '';
+    const matched = settingsRows.slice(1).find(r => {
+      const rowName = String(r[nameCol] || '').trim();
+      const a = rowName.toLowerCase(), b = val.toLowerCase();
+      return a === b || a.includes(b) || b.includes(a);
+    });
+    if (!matched) return '';
+    return _normalizeTelegramChatId_(String(matched[tgCol] || '').trim());
+  } catch (e) {
+    console.error('查詢業務 Telegram chat id 失敗：' + e);
+    return '';
+  }
+}
+
+/** 把 TELEGRAM 欄位的值正規化成可用 chat id：
+ *  - 純數字 → 直接回傳
+ *  - 含 @username → 從 getUpdates（私聊）/ 群組管理員 反查數字 user id
+ */
+function _normalizeTelegramChatId_(raw) {
+  if (!raw) return '';
+  const v = String(raw).trim();
+  if (/^-?\d+$/.test(v)) return v;
+
+  const m = v.match(/@([A-Za-z0-9_]+)/);
+  const username = m ? m[1] : '';
+  if (!username) return '';
+
+  const cacheKey = 'TG_USER_' + username.toLowerCase();
+  let cache = null;
+  try { cache = CacheService.getScriptCache(); } catch (e) {}
+  if (cache) {
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+  }
+
+  const props = PropertiesService.getScriptProperties();
+  const token = props.getProperty('TELEGRAM_BOT_TOKEN');
+  if (!token) return '';
+  const candidates = [];
+
+  // 1. getUpdates 私聊反查
+  try {
+    const r = UrlFetchApp.fetch(`https://api.telegram.org/bot${token}/getUpdates?limit=100`, { muteHttpExceptions: true });
+    const j = JSON.parse(r.getContentText());
+    (j.ok && j.result ? j.result : []).forEach(up => {
+      const msg = up.message || (up.callback_query && (up.callback_query.message || up.callback_query.from));
+      if (!msg || !msg.chat) return;
+      const from = msg.from || {};
+      if (String(from.username || '').toLowerCase() === username.toLowerCase() && msg.chat.type === 'private') {
+        candidates.push(String(msg.chat.id));
+      }
+    });
+  } catch (e) { console.error('getUpdates 反查 username 失敗：' + e); }
+
+  // 2. 公佈欄群組管理員反查（admin user id = 私人 chat id）
+  if (candidates.length === 0) {
+    try {
+      const groupId = props.getProperty('TELEGRAM_CHAT_ID');
+      if (groupId) {
+        const r = UrlFetchApp.fetch(`https://api.telegram.org/bot${token}/getChatAdministrators?chat_id=${encodeURIComponent(groupId)}`, { muteHttpExceptions: true });
+        const j = JSON.parse(r.getContentText());
+        (j.ok && j.result ? j.result : []).forEach(a => {
+          const u = a.user || {};
+          if (String(u.username || '').toLowerCase() === username.toLowerCase()) {
+            candidates.push(String(u.id));
+          }
+        });
+      }
+    } catch (e) { console.error('群組管理員反查 username 失敗：' + e); }
+  }
+
+  if (candidates.length === 0) return '';
+  const resolved = candidates[0];
+  try { cache.put(cacheKey, resolved, 600); } catch (e) {}
+  return resolved;
+}
+
 function lineApiFetch(endpoint, payload, token) {
   const url = 'https://api.line.me/v2/bot/message/' + endpoint;
   const apiToken = token || CONFIG.TOKEN;
+  // 🔔 回覆客戶時順便附上「待告知」的到貨通知（回覆不吃 LINE 免費則數）
+  const arrivalRows = (endpoint === 'reply' && !token && typeof attachPendingArrivalNotices_ === 'function')
+    ? attachPendingArrivalNotices_(payload) : null;
   try {
     const response = UrlFetchApp.fetch(url, {
       method: 'post',
-      headers: { 
+      headers: {
         'Authorization': "Bearer " + apiToken,
         'Content-Type': 'application/json'
       },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     });
+    if (arrivalRows && response.getResponseCode() === 200) markArrivalNoticesDelivered_(arrivalRows);
     return response;
   } catch (e) {
     console.error("UrlFetchApp 執行嚴重失敗: " + e);
@@ -1003,19 +1181,27 @@ function generateImagePreviews() {
   SpreadsheetApp.getUi().alert("✅ 圖片預覽已產生！");
 }
 
-/** 📧 觸發器設定工具 */
+/** 📧 觸發器設定工具：保留追蹤通知（週一~五 19:00，門檻在函式內依星期決定） */
 function setupDailyTrigger() {
   ScriptApp.getProjectTriggers().forEach(t => {
     if (t.getHandlerFunction() === 'sendReservationExpiryAlerts') ScriptApp.deleteTrigger(t);
   });
-  ScriptApp.newTrigger('sendReservationExpiryAlerts').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
-  ScriptApp.newTrigger('sendReservationExpiryAlerts').timeBased().onWeekDay(ScriptApp.WeekDay.THURSDAY).atHour(8).create();
-  SpreadsheetApp.getUi().alert('✅ 已設定 Email 到期提醒 (每週一、四 08:00)');
+  const weekdays = [
+    ScriptApp.WeekDay.MONDAY,
+    ScriptApp.WeekDay.TUESDAY,
+    ScriptApp.WeekDay.WEDNESDAY,
+    ScriptApp.WeekDay.THURSDAY,
+    ScriptApp.WeekDay.FRIDAY
+  ];
+  weekdays.forEach(day => {
+    ScriptApp.newTrigger('sendReservationExpiryAlerts').timeBased().onWeekDay(day).atHour(19).create();
+  });
+  SpreadsheetApp.getUi().alert('✅ 已設定保留追蹤 Telegram 通知 (每週一~五 19:00)');
 }
 
 function manualTriggerSendAlerts() {
   const ui = SpreadsheetApp.getUi();
-  const res = ui.alert('確定要立即發送 Email 到期通知嗎？', ui.ButtonSet.YES_NO);
+  const res = ui.alert('確定要立即發送保留追蹤 Telegram 通知嗎？', ui.ButtonSet.YES_NO);
   if (res === ui.Button.YES) {
     sendReservationExpiryAlerts(true);
     ui.alert('✅ 已執行發送程序！');
@@ -1065,11 +1251,11 @@ function batchBuildFlexCache() {
   const formulas = sheet.getDataRange().getFormulas();
   const map = getHeaderMap(data);
   const colCode = map['編號'];
-  const colFlexImg = map['FLEX圖卡'];
+  const colFlexImg = map['FLEX圖卡']; // 🚩 欄位可能已不存在（改用實景1~7/單片連結網址等），下面 colFlexImg undefined 時已安全處理，不強制要求存在
   const colCache = map['FLEX快取'];
 
-  if (colCode === undefined || colFlexImg === undefined || colCache === undefined) {
-    console.log("❌ 欄位配置錯誤（找不到「編號」「FLEX圖卡」或「FLEX快取」欄位）。");
+  if (colCode === undefined || colCache === undefined) {
+    console.log("❌ 欄位配置錯誤（找不到「編號」或「FLEX快取」欄位）。");
     return;
   }
 
@@ -1212,13 +1398,15 @@ function _batchWriteCache(sheet, items, colIdx) {
  */
 function clearPriceSheetCache() {
   if (typeof CacheManager !== 'undefined') {
-    CacheManager.removeLarge("price_sheet_data_large_v1");
+    // 🚩 修正版本號對不上的 bug：getPriceSheet() 實際存的 key 是 _v2，這裡原本清的是 _v1，
+    // 導致這個「清除快取」工具從快取機制升級到 v2 之後就從未真正清除過任何東西。
+    CacheManager.removeLarge("price_sheet_data_large_v2");
   }
   console.log("價目表快取已清除！下次查詢將重新載入。");
 }
 
 /**
- * 📦 大量快取處理工具 (解決 90KB 限制)
+ * 📦 大量快取處理工具 (解決 90KB 限制，批次原子讀寫)
  */
 const CacheManager = {
   putLarge: function(key, data, expirationInSeconds = 600) {
@@ -1226,19 +1414,16 @@ const CacheManager = {
     try {
       const json = JSON.stringify(data);
       const chunkSize = 80000; // 80KB chunks
-      const chunks = [];
+      const cacheMap = {};
+      let partIndex = 0;
       
       for (let i = 0; i < json.length; i += chunkSize) {
-        chunks.push(json.substring(i, i + chunkSize));
+        cacheMap[key + "_part_" + partIndex] = json.substring(i, i + chunkSize);
+        partIndex++;
       }
       
-      // 1. 存入分片資訊
-      cache.put(key + "_meta", JSON.stringify({ count: chunks.length, size: json.length, time: new Date().getTime() }), expirationInSeconds);
-      
-      // 2. 依序存入分片
-      chunks.forEach((chunk, idx) => {
-        cache.put(key + "_part_" + idx, chunk, expirationInSeconds);
-      });
+      cacheMap[key + "_meta"] = JSON.stringify({ count: partIndex, size: json.length, time: new Date().getTime() });
+      cache.putAll(cacheMap, expirationInSeconds);
       return true;
     } catch(e) {
       console.error("CacheManager 儲存失敗:", e);
@@ -1253,10 +1438,15 @@ const CacheManager = {
       if (!metaStr) return null;
       
       const meta = JSON.parse(metaStr);
+      const keys = [];
+      for (let i = 0; i < meta.count; i++) {
+        keys.push(key + "_part_" + i);
+      }
+      const parts = cache.getAll(keys);
       let fullJson = "";
       for (let i = 0; i < meta.count; i++) {
-        const part = cache.get(key + "_part_" + i);
-        if (part === null) return null; // 碎片遺失，視為快取過期
+        const part = parts[key + "_part_" + i];
+        if (part === undefined || part === null) return null; // 碎片遺失，視為快取過期
         fullJson += part;
       }
       
@@ -1269,13 +1459,18 @@ const CacheManager = {
   
   removeLarge: function(key) {
     const cache = CacheService.getScriptCache();
-    const metaStr = cache.get(key + "_meta");
-    if (metaStr) {
-      const meta = JSON.parse(metaStr);
-      for (let i = 0; i < meta.count; i++) {
-        cache.remove(key + "_part_" + i);
+    try {
+      const metaStr = cache.get(key + "_meta");
+      if (metaStr) {
+        const meta = JSON.parse(metaStr);
+        const keys = [key + "_meta"];
+        for (let i = 0; i < meta.count; i++) {
+          keys.push(key + "_part_" + i);
+        }
+        cache.removeAll(keys);
       }
-      cache.remove(key + "_meta");
+    } catch (e) {
+      console.error("CacheManager 清除失敗:", e);
     }
   }
 };
@@ -1302,16 +1497,23 @@ function normalizeImageUrlForLine(url) {
 
   url = url.trim();
 
-  // 1. Google Drive /file/d/ 格式 → /uc?export=download 格式
+  // 1. Google Drive /file/d/ 格式 → /thumbnail 格式
+  // 🚩 原本轉成 /uc?export=download，但這個端點常對較大檔案跳出「病毒掃描警告」中繼頁面，
+  // LINE 抓到的是 HTML 不是圖片，導致載入圈圈轉不停。改用全專案其他地方（今友利、多公司查詢、
+  // getBestImagesForItem 等）都證實穩定可用的 /thumbnail?id=...&sz=w600 代理格式。
   if (url.includes("drive.google.com/file/d/")) {
     const match = url.match(/\/file\/d\/([^\/]+)/);
     if (match && match[1]) {
-      return "https://drive.google.com/uc?export=download&id=" + match[1];
+      return "https://drive.google.com/thumbnail?id=" + match[1] + "&sz=w600";
     }
   }
 
-  // 2. Google Drive /uc?export=view 格式已可在 LINE 中使用，保持不變
-  if (url.includes("drive.google.com/uc?export=view")) {
+  // 2. Google Drive /uc?export=view 或 /uc?export=download 格式，同樣改轉成穩定的 /thumbnail 格式
+  if (url.includes("drive.google.com/uc?export=view") || url.includes("drive.google.com/uc?export=download")) {
+    const idMatch = url.match(/[?&]id=([^&]+)/);
+    if (idMatch && idMatch[1]) {
+      return "https://drive.google.com/thumbnail?id=" + idMatch[1] + "&sz=w600";
+    }
     return url;
   }
 

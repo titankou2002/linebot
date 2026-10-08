@@ -6,31 +6,34 @@
 
 ## 支援的圖片連結格式
 
+> ⚠️ **2026-09 更新**：`/uc?export=download` 已確認不可靠——Google Drive 對這個端點常會插入「病毒掃描警告」中繼頁面（尤其檔案較大時），LINE 抓到的是 HTML 不是圖片本體，會一直轉圈圈載入不出來（實際案例：新系列用「圖片抓取工具」批次匯入的 `/file/d/.../view?usp=drive_link` 連結，模面變化圖全部載入失敗）。已改用全專案其他地方（今友利、多公司查詢、`getBestImagesForItem` 等）都證實穩定可用的 `/thumbnail?id=...&sz=w600` 代理格式，`normalizeImageUrlForLine()` 現在統一轉換到這個格式。
+
 ### ✅ 支援的格式
 
 | 格式 | 舉例 | 處理方式 | 備註 |
 |------|------|---------|------|
-| **Google Drive `/uc?export=download`** | `https://drive.google.com/uc?export=download&id=1ABC...` | 直接使用 | ✅ LINE 可直接打開 |
-| **Google Drive `/uc?export=view`** | `https://drive.google.com/uc?export=view&id=1ABC...` | 直接使用 | ✅ LINE 可打開 |
-| **Google Drive `/file/d/` 分享連結** | `https://drive.google.com/file/d/1ABC.../view?usp=share_link` | 自動轉換為 `/uc?export=download` | ✅ 自動轉換 |
+| **Google Drive `/thumbnail`** | `https://drive.google.com/thumbnail?id=1ABC...&sz=w600` | 直接使用 | ✅ 最穩定，全專案標準格式 |
+| **Google Drive `/file/d/` 分享連結** | `https://drive.google.com/file/d/1ABC.../view?usp=drive_link` | 自動轉換為 `/thumbnail?id=...&sz=w600` | ✅ 自動轉換 |
+| **Google Drive `/uc?export=view` 或 `/uc?export=download`** | `https://drive.google.com/uc?export=view&id=1ABC...` | 自動轉換為 `/thumbnail?id=...&sz=w600` | ✅ 自動轉換（`/uc?export=download` 已知不穩定，一律改走 thumbnail） |
 | **wsrv.nl 代理連結** | `https://wsrv.nl/?url=...&w=600&q=80` | 直接使用 | ✅ 代理加速 |
 | **R2 / CDN 連結** | `https://r2.gao.com/...` | 直接使用 | ✅ 高速傳輸 |
 | **其他 HTTP/HTTPS 連結** | `https://example.com/image.jpg` | 直接使用 | ✅ 標準 Web 連結 |
 
 ## 自動轉換規則
 
-### Google Drive `/file/d/` → `/uc?export=download`
+### Google Drive `/file/d/`、`/uc?export=view`、`/uc?export=download` → `/thumbnail`
 
 **為什麼要轉換？**
 - Google Drive 的分享連結 (`/file/d/ID/view`) 在 LINE 中無法直接打開
-- 需要轉換為可下載格式 (`/uc?export=download&id=ID`)
+- `/uc?export=download` 曾經是轉換目標，但已確認對部分檔案會顯示「病毒掃描警告」頁面而失敗，**不要再手動填這個格式**
+- 統一轉換為最穩定的縮圖代理格式 (`/thumbnail?id=ID&sz=w600`)
 
 **轉換邏輯：**
 ```
-原始: https://drive.google.com/file/d/1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj/view?usp=share_link
+原始: https://drive.google.com/file/d/1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj/view?usp=drive_link
 ↓ 提取 ID: 1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj
 ↓
-結果: https://drive.google.com/uc?export=download&id=1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj
+結果: https://drive.google.com/thumbnail?id=1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj&sz=w600
 ```
 
 ## 套用位置
@@ -63,11 +66,11 @@
    ```
    → 系統自動轉換，無需手動處理
 
-2. **優先級 2 - 使用 `/uc?export=download` 格式**
+2. **優先級 2 - 直接使用 `/thumbnail` 格式**
    ```
-   https://drive.google.com/uc?export=download&id=1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj
+   https://drive.google.com/thumbnail?id=1m2eyf6QJGJxNzC9QjRchAeMcavBOLGOj&sz=w600
    ```
-   → 直接使用，速度最快
+   → 直接使用，最穩定，不會遇到病毒掃描警告頁面問題
 
 3. **優先級 3 - 使用 R2/CDN 連結**
    ```
@@ -81,13 +84,15 @@
    ```
    → 代理加速，適合大圖片
 
+> ❌ **不要手動填 `/uc?export=download` 格式**——這個端點對部分檔案會顯示 Google 的「病毒掃描警告」中繼頁面而非圖片本體，即使系統會自動轉換偵測到的舊格式，新填連結還是直接用 `/file/d/.../view` 分享連結或 `/thumbnail` 格式最保險。
+
 ## 常見問題
 
 ### Q: 為什麼我的 Drive 連結在 LINE 中打不開？
 **A:** 確認連結格式：
-- ❌ `drive.google.com/file/d/ID/view` → 需要手動轉換或直接貼入系統（自動轉換）
-- ✅ `drive.google.com/uc?export=download&id=ID` → 直接可用
-- ✅ `drive.google.com/uc?export=view&id=ID` → 直接可用
+- `drive.google.com/file/d/ID/view` → 系統會自動轉換成 `/thumbnail` 格式，正常情況下沒問題
+- ✅ `drive.google.com/thumbnail?id=ID&sz=w600` → 直接可用，最穩定
+- ⚠️ `drive.google.com/uc?export=download&id=ID` → 系統會自動轉換成 `/thumbnail`，但不建議手動新填這個格式（部分檔案曾出現病毒掃描警告頁面問題）
 
 ### Q: 為什麼有些圖片推送成功但有些失敗？
 **A:** 可能原因：

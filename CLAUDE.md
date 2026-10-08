@@ -32,80 +32,76 @@
 
 ## 🔶 通知盤點原則
 
-> 最後完整盤點日期：**2026-07-03**（含程式碼逐行核對 + `grep` 全專案呼叫點交叉比對 + GAS 專案「觸發條件」頁面實機截圖核對）。
+> 最後完整盤點日期：**2026-08-18**（GAS 部署 `@742`；含程式碼逐行核對 + `grep` 全專案呼叫點交叉比對 + `registerAnalysisTriggers()` 原始碼核對）。
+>
+> **架構定案：主動業務通知全面走 Telegram（不再用 LINE 主動推播），LINE 只保留「客戶本人」的直接回覆與極少數操作回饋；Email 精簡到只剩 4 種。** 詳細沿革見 [今友利.md](今友利.md)、[保留通知telegram.md](保留通知telegram.md)。
 
-1. 本專案通知分成兩類：`LINE` 與 `Email`，所有新功能上線前都要先確認會落到哪一類。
-2. 程式碼盤點結果（邏輯已寫好、實際存在於程式碼中的通知數量）：
-   - `LINE`：9 大類、20+ 個實際呼叫點（含各種錯誤提示與操作回饋）。
-   - `Email`：11 種主要觸發狀況。
+1. 本專案通知分三類：`LINE`（僅客戶端直接回覆）、`Telegram`（業務端主動通知的主要管道）、`Email`（備份信 + 1 份日報）。所有新功能上線前都要先確認會落到哪一類，並更新這裡。
+2. **Telegram 有兩種收件目標**，共用 [6_Tools.js](6_Tools.js) 底層：
+   - `pushTelegram(text, buttons)` → 固定推「高雅瓷公佈欄」群組（`TELEGRAM_CHAT_ID` script property，目前是 `-5042638784`）
+   - `pushTelegramTo(chatId, text, buttons)` → 推指定 chat_id（業務個人私人 Telegram），`chatId` 透過 `resolveBusinessTelegramChatId(業務名)` 動態查「系統設定」表的 `TELEGRAM` 欄位取得；查無業務私人 chat_id 時一律 fallback 回公佈欄群組並在訊息附註「⚠️ 業務未設定私人 Telegram」
+   - `buttons` 是 Telegram inline keyboard 格式（`[[{text, url}], ...]`），連結都指向 `doGet` 的網頁動作端點，點了就直接完成核准/續保/取消，不需要開 LINE
 
-### 3. `LINE` 明細（依收件對象分類）
+### 3. `LINE` 明細（現在只剩「客戶本人直接回覆」與「舊版 postback 操作回饋」，全部不是主動業務通知）
 
-**A. 推播給「管理員個人」**（`CONFIG.ADMIN_NOTIFY_ID` = `U8aa4bd4a...` 開頭，是**單一個人 LINE**、不是群組；走 `ADMIN_TOKEN` 後台機器人 token，函式為 `sendAdminFlexPush`/`sendFlexPush`）：
-   - 新好友加入（陌生人）— `0_Core.js` `follow` 事件
-   - 保留單送出（文字/口語指令）— `5_Order.js` `handleOrderRequest`
-   - 保留單送出（LIFF 網頁表單）— `5_Order.js` `handleWebFormSubmission`
-   - 保留單送出（OCR 手寫單辨識確認後）— `5_Order.js` `handleOCRPostback`
-   - 客戶報到申請權限（「公司-姓名」）— `5_Order.js` `handleNewUserApply`
-
-**B. 推播給「負責業務」個人**（動態查表決定 `salesLineId`/`auth.salesID`，函式為 `sendAdminPush`/`sendPush`）：
-   - 客戶查詢庫存「查無此品號」— `2_Business.js` `handleInventorySearch`（30分鐘防重複快取）
-   - 客戶查詢庫存「不足/沒貨」— `2_Business.js` `handleInventorySearch`（同上）
-   - 一般查詢後判定「有問題」需通知（free/class 等級 + 查數量 + 回覆含不足/❌/🟠）— `3_Notify.js` `handleSalesPush`，查無 `salesID` 時 fallback 推給管理員個人
-
-**C. 推播/回覆給「客戶本人」**（用客戶自己的 `userId`，函式為 `sendPush`/`lineApiFetch('reply',...)`）：
-   - OCR 手寫單辨識失敗/超時/取消 — `5_Order.js` `handleOCRPostback`
-   - OCR 手寫單確認送出成功（「✅ 保留申請已送出」）— `5_Order.js` `handleOCRPostback`
+**A. 回覆給「客戶本人」**（用客戶自己的 `userId`，函式 `sendPush`/`lineApiFetch('reply',...)`）：
    - 新用戶審核通過（「🎉 您的 AI 權限已核准開通」）— `5_Order.js` `processUserApproval`
    - 點「系列介紹/實景圖/模面變化圖/原廠目錄」按鈕，成功或查無資料 — `5_Order.js` `handleFlexImagePostback`
-   - 睡美人卡片「試試手氣」重新推薦 — `5_Order.js` `handlePostback`
 
-**D. 推播給「操作按鈕的管理員自己」**（權限確認/操作結果回饋，函式為 `sendPush`）：
-   - 非管理員點審核按鈕「⛔ 權限不足」、找不到工作表、核准單筆品項成功、核准新用戶成功 — 皆在 `5_Order.js` `handlePostback`
+**B. 操作按鈕的管理員自己收到的回饋**（`5_Order.js` `handlePostback`，走 legacy LINE postback 路徑，正常情況下已經不會再被觸發，因為對應的 Flex 審核卡片都已經改成 Telegram 通知，只有還握著極舊的 LINE 卡片時才會用到）：
+   - 「⛔ 權限不足」、找不到工作表、核准單筆/整筆品項、拒絕整筆保留單、核准新用戶
 
-**E. 推播到「業績戰情群組」**（`PERFORMANCE_GROUP_ID` = `C5b96fce6...` 開頭，是**真正的群組 ID**）：
+**C. 完全獨立的另一組 LINE Bot**（不同 Channel Token，物流查貨擴充模組，跟本專案通知系統無關）：
+   - 訊息含「查貨/進度/送貨/物流/貨到哪了」等關鍵字，在 `doPost` 最前面被攔截 — `GaoYaCi_Bot_Extension.js` `replyGaoYaCiLine_Core`，用獨立的 `GY_CONFIG.CHANNEL_ACCESS_TOKEN`
+
+**D.（補充，非通知）一般查詢的即時文字/Flex 回覆**：`sendReply`/`sendMultiReply`/`sendFlexReply`，底層走 `lineApiFetch('reply',...)`，涵蓋整個 `doPost` 的所有查詢分支。這是「正常對答」不是「主動通知」。
+
+**E.（2026-09-10 新增）客戶自助功能入口**（客戶主動觸發，非機器人主動推播）：
+   - 客戶輸入「我的保留」/「保留總覽」/「保留單查詢」→ 回覆 LIFF 按鈕卡片 → 開啟「我的保留單」自助查詢＋修改頁面（`cpanel_tracking.html`）— `5_Order.js` `buildMyReservationsLiffFlex_`。沿用既有 `CONFIG.LIFF_ID_RESERVE`（跟「填保留單」同一個 LIFF App，用網址帶 `mode=myReservations` 參數分流到不同頁面，不用額外去 LINE Developers Console 建新的 LIFF App）。頁面本身用 LIFF SDK 的 `liff.getProfile()` 驗證身份（不是讀網址參數，避免被冒用查改別人的保留）。
+
+**已停用的舊常數**（不要再用來發通知，只剩極少數內部 fallback 讀取，非主動推播）：`CONFIG.ADMIN_NOTIFY_ID`（只在 `6_Tools.js` `getContactForSales` 內部當最後備援 LINE ID）、`PERFORMANCE_GROUP_ID`（`7_Performance.js` 常數還在但已無人呼叫）。`sendAdminFlexPush`/`sendFlexPush`/`sendAdminPush`（`6_Tools.js`）函式本體都還在，但全專案**沒有任何主動通知呼叫點**在用它們了。`broadcastToLine`（multicast 群發）也是未使用的死代碼。
+
+### 4. `Telegram` 明細（依收件對象分類；除特別標註外都走 `pushTelegram`／`pushTelegramTo`）
+
+**公佈欄群組**：
+   - 新好友加入（陌生人）— `0_Core.js` `follow` 事件
+   - 保留單送出（文字/口語指令、LIFF 網頁表單、OCR 手寫單，3 個入口共用 `buildOrderApprovalTelegramText_`）— `5_Order.js` `handleOrderRequest`/`handleWebFormSubmission`/`handleOCRPostback`，含「核准單筆/核准整筆/拒絕整筆」按鈕（doGet `ac=approveOrderRow`/`approveOrder`/`denyOrder`）
+   - 客戶報到申請權限（「公司-姓名」）— `5_Order.js` `handleNewUserApply`，含「准許加入/拒絕」按鈕（doGet `ac=approveUser`/`denyUser`）
+   - 保留超佔警示（保留量超過庫存 50%／70%，各只在**首次**達標時發一次，狀態記錄在「庫存警示紀錄」表避免重複）— `3_Notify.js` `sendProductStockAlerts`
    - 每日業績戰報（平日、非假日自動判斷）— `7_Performance.js` `dailyPerformanceAutoPush`
-   - ⚠️ 目前 GAS 沒有對應觸發器，應該沒在自動跑
+   - 保留追蹤/貨量預警在查無業務私人 Telegram 時的 fallback（見下）
+   - （2026-09-10 新增）客戶在「我的保留單」LIFF 頁面自行調整/取消保留數量的 FYI 通知（減少或取消，立即生效後才通知，不用審核）— `3_Notify.js` `updateMyReservationRow_`
+   - （2026-09-10 新增）客戶在「我的保留單」LIFF 頁面申請「增加」保留數量，含「✅核准／❌拒絕」按鈕（增加需業務核准才會真的生效，避免客戶自行灌水搶庫存）— `3_Notify.js` `updateMyReservationRow_` 發出、`handleReserveIncreaseApproval_` 處理核准/拒絕（doGet `ac=approveReserveIncrease`/`denyReserveIncrease`）
 
-**F. 完全獨立的另一組 LINE Bot**（不同 Channel Token，物流查貨擴充模組）：
-   - 訊息含「查貨/進度/送貨/物流/貨到哪了」等關鍵字，在 `doPost` 最前面被攔截，不進主流程 — `GaoYaCi_Bot_Extension.js` `replyGaoYaCiLine_Core`，用獨立的 `GY_CONFIG.CHANNEL_ACCESS_TOKEN`
+**業務個人私人 Telegram**（`resolveBusinessTelegramChatId`，查無則 fallback 公佈欄）：
+   - 客戶查詢後判定「有問題」需通知（free/class 等級 + 查數量 + 回覆含不足/❌/🟠）— `3_Notify.js` `handleSalesPush`，依「業務分區表」（客戶名稱 → 負責業務）查出對應業務
+   - 保留追蹤通知（30/45/60 天分級：一/四=30天、二/五=45天、三=60天，只問「第一次滿期」，狀態記錄在「保留通知紀錄」表）— `3_Notify.js` `sendReservationExpiryAlerts`，含「✅ 繼續保留／❌ 取消保留」按鈕（doGet `ac=renewReserve`/`renewReserveWeb`/`renewReserveSubmit`/`cancelReserve`，45/60 天續保需網頁填原因，寫入「業務回報記錄」表）
 
-**G.（補充，非通知）一般查詢的即時文字/Flex 回覆**：`sendReply`/`sendMultiReply`/`sendFlexReply` 是 bot 對每句正常訊息（查庫存、查價格、查保留、AI對話等）的標準回覆管道，底層走 `lineApiFetch('reply',...)`，在 `0_Core.js` 共 25 處呼叫，涵蓋整個 `doPost` 的所有查詢分支。這是「正常對答」不是「主動通知」。
+**⚠️ 目前 `2_Business.js` `handleInventorySearch` 的「查無此品號」「庫存不足」通知已經不是走 `2_Business.js` 直接發送**，改成統一交給 `handleSalesPush`（`3_Notify.js`）判斷後發送，避免同一個查詢重複通知兩次。
 
-**未使用的死代碼**：`broadcastToLine`（multicast 群發，`6_Tools.js`）已定義但全專案沒有任何地方呼叫。
-
-### 4. `Email` 明細（全部走 `sendEmailNotification` 或直接 `GmailApp.sendEmail`；`sendEmailNotification` 沒指定 `toEmail` 時預設寄到 `CONFIG.ADMIN_EMAIL`）
+### 5. `Email` 明細（精簡到只剩 4 種，全部走 `sendEmailNotification` 或直接 `GmailApp.sendEmail`）
 
 | # | 觸發時機 | 收件人 | 函式/位置 |
 |---|---|---|---|
-| 1 | 新好友加好友（陌生人） | `CONFIG.ADMIN_EMAIL` | `0_Core.js` |
-| 2 | 客戶報到申請權限，含核准/拒絕按鈕連結 | `CONFIG.ADMIN_EMAIL` | `5_Order.js` `handleNewUserApply`，直接 `GmailApp.sendEmail` |
-| 3 | 保留單送出（文字/口語指令） | `CONFIG.ADMIN_EMAIL` | `5_Order.js` `handleOrderRequest` |
-| 4 | 保留單送出（LIFF 網頁表單） | `CONFIG.ADMIN_EMAIL` | `5_Order.js` `handleWebFormSubmission` |
-| 5 | 保留單送出（OCR 手寫單確認後） | `CONFIG.ADMIN_EMAIL` | `5_Order.js` `handleOCRPostback` |
-| 6 | 保留追蹤（新進榜 + 超過60天未更新） | 白名單裡 `king`/`queen`/`admin` 等級全體（逐一寄） | `3_Notify.js` `sendReservationExpiryAlerts`；⚠️ **沒有觸發器** |
-| 7 | 缺貨彙整（保留超過庫存一半 + 庫存低於月銷x5個月） | `CONFIG.ADMIN_EMAIL` | `3_Notify.js` `sendProductStockAlerts`；⚠️ 正確函式**沒有觸發器**，只有孤兒的 `sendOutofStockEmailSummary` 在跑且大量失敗 |
-| 8 | 每日綜合日報（18:30） | `CONFIG.ADMIN_EMAIL` | `3_Notify.js` `sendDailyQuerySummary`（正常運作中） |
-| 9 | 每週綜合報告（週一08:30） | `CONFIG.ADMIN_EMAIL` | `3_Notify.js` `sendWeeklyQueryAnalysis`（觸發器存在，但截圖顯示從未執行過） |
-| 10 | 每月綜合報告（每月1號09:00） | `CONFIG.ADMIN_EMAIL` | `3_Notify.js` `sendMonthlyQueryAnalysis`（正常運作中） |
-| 11 | 三家老闆每日彙整報表（19:00） | 寫死 `titankou2002@gmail.com`（不吃 `CONFIG.ADMIN_EMAIL`） | `3_Notify.js` `sendBossDailyReport`；⚠️ **沒有觸發器** |
+| 1 | 新好友加好友（陌生人）備份信 | `CONFIG.ADMIN_EMAIL` | `0_Core.js` |
+| 2 | 客戶報到申請權限備份信，含核准/拒絕按鈕連結（跟 Telegram 平行發送，同一組連結） | `CONFIG.ADMIN_EMAIL` | `5_Order.js` `handleNewUserApply`，直接 `GmailApp.sendEmail` |
+| 3 | 保留單送出備份信（文字/口語、LIFF 網頁表單、OCR 三入口都有） | `CONFIG.ADMIN_EMAIL` | `5_Order.js` `handleOrderRequest`/`handleWebFormSubmission`/`handleOCRPostback` |
+| 4 | 每日客戶查詢日報（18:30，**已排除 sales/king/queen/admin/premium/staff 等級的查詢紀錄**，只列一般客戶查詢） | `CONFIG.ADMIN_EMAIL` | `3_Notify.js` `sendDailyQueryLog`（原名 `sendDailyQuerySummary`，已改版） |
 
-### ⚠️ 實機觸發器現況（2026-07-03 GAS「觸發條件」頁面實際核對，只有 4 個）
+**已從程式碼移除、不要再參考的舊 Email 功能**：`sendWeeklyQueryAnalysis`（每週分析）、`sendMonthlyQueryAnalysis`（每月分析）、`sendBossDailyReport`（三家老闆彙整報表）、`runAnalytics`——這些函式已經整個從 `3_Notify.js` 刪除，不是停用，是真的不存在了。保留追蹤通知、缺貨/超佔警示也都已經從 Email 改成 Telegram（見上面第 4 節）。
 
-| 函式 | 上次執行 | 錯誤率 | 備註 |
-|---|---|---|---|
-| `sendMonthlyQueryAnalysis` | 2026/7/1 | 0% | 正常 |
-| `sendOutofStockEmailSummary` | 2026/7/3 | **76.22%** | ⚠️ **孤兒觸發器**：此函式名稱不存在於任何本機 `.js` 檔案中（缺貨彙整信的實際函式是 `sendProductStockAlerts`），推測是舊函式改名/刪除後留下的殘留觸發器，高錯誤率應與此有關 |
-| `sendWeeklyQueryAnalysis` | 從未執行過 | - | 尚待觀察 |
-| `sendDailyQuerySummary` | 2026/7/2 | 0% | 正常 |
+### 6. 觸發器現況（`registerAnalysisTriggers()`，[3_Notify.js](3_Notify.js) 目前唯一的排程註冊入口）
 
-**下列程式碼中已寫好邏輯、但目前 GAS 專案裡完全沒有對應觸發器的通知（等於沒有在自動執行）：**
-- `dailyPerformanceAutoPush`（LINE 每日業績戰報，推到業績戰情群組）
-- `sendReservationExpiryAlerts`（Email 保留追蹤通知）
-- `sendBossDailyReport`（Email 三家老闆彙整報表，即使 `registerAnalysisTriggers()` 裡有註冊也需要**實際執行過一次 `registerAnalysisTriggers()` 或 `manualSetupAnalysisTriggers()` 才會生效**）
-- `sendProductStockAlerts`（Email 缺貨彙整信，正確函式目前疑似沒有觸發器，只有孤兒的 `sendOutofStockEmailSummary` 在跑且大量失敗）
+| 函式 | 排程 | 管道 |
+|---|---|---|
+| `sendDailyQueryLog` | 每日 18:30 | Email |
+| `sendProductStockAlerts` | 週六 08:00 | Telegram 公佈欄 |
+| `dailyPerformanceAutoPush` | 每日 18:00 | Telegram 公佈欄 |
+| `sendReservationExpiryAlerts` | 週一~五 19:00（各自帶當天門檻） | Telegram 業務私人（fallback 公佈欄） |
 
-5. 若日後新增通知流程，必須先在這裡補上分類與數量，再改程式；若修改/重新命名任何有排程觸發器的函式名稱，**務必同步到 GAS 編輯器「觸發條件」頁面手動更新或刪除舊觸發器**，避免產生孤兒觸發器。
+`registerAnalysisTriggers()` 每次執行都會**先清掉這 4 個 handler 名稱的舊觸發器，再重建**，同時也會主動清掉 5 個舊函式名稱的殘留觸發器（`sendDailyQuerySummary`、`sendBossDailyReport`、`sendWeeklyQueryAnalysis`、`sendMonthlyQueryAnalysis`、`sendOutofStockEmailSummary`）避免孤兒觸發器——**先前發現的 `sendOutofStockEmailSummary` 孤兒觸發器（76% 錯誤率）已經被這個清理機制解決**。
+
+7. 若日後新增通知流程，必須先在這裡補上分類與收件對象，再改程式；若修改/重新命名任何有排程觸發器的函式名稱，**務必同步更新 `registerAnalysisTriggers()` 的 `handlerFuncs`／`legacyFuncs` 清單並重新執行一次**，讓舊觸發器被自動清掉，不要只手動去 GAS 編輯器「觸發條件」頁面刪。
 
 ---
 
@@ -181,3 +177,9 @@
 - Script Properties 數量上限約 50 個（超過後 GAS UI 變唯讀），定期清理已不再使用的
   舊版屬性（命名規則：`U<32hex>_...`、`limit_U<32hex>...`、`newfriend_U<32hex>...`、
   `welcome_U<32hex>...`）。
+- **圖片改優先讀 Cloudflare R2**（2026-09-10 起）：`11_R2Migration.js` 背景批次把 Drive 圖片
+  搬到 R2（每 10 分鐘自動接續，`ac=r2Stats&key=gyc_r2_migrate_2026` 有進度畫面），讀取優先序
+  改成「R2 優先、Drive 備援」（`5_Order.js`/`4_Flex.js`）。另一個獨立專案「圖片抓取工具」
+  （擁有者非目前維護者，已離職狀態不明，**不要把 R2 密鑰放進客戶版機器人以外還開放給不明身份
+  存取的專案**）抓圖時也會同步上傳 R2，兩邊各自用各自的 Script Properties 存放的密鑰，
+  互相獨立不共用，也不會重複上傳（都靠「目標欄位是否已經是真的 R2 網址」判斷）。

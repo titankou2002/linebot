@@ -116,11 +116,17 @@ function handleFlexTest(q, db, maps) {
       }
     }
 
-    // 讀「原廠目錄」欄位（用欄位標題，沒有就空）
+    // 讀「R2_原廠目錄」（已遷移到 R2 的優先讀取），沒有才退回「原廠目錄」（用欄位標題，沒有就空）
     var cUrl = "";
-    var catalogIdx = getColumnByName(maps.price, ['原廠目錄']);
-    if (catalogIdx !== undefined) {
-      cUrl = String(item[catalogIdx] || "").trim();
+    var r2CatalogIdx = getColumnByName(maps.price, ['R2_原廠目錄']);
+    if (r2CatalogIdx !== undefined) {
+      cUrl = String(item[r2CatalogIdx] || "").trim();
+    }
+    if (!cUrl || !cUrl.includes("http")) {
+      var catalogIdx = getColumnByName(maps.price, ['原廠目錄']);
+      if (catalogIdx !== undefined) {
+        cUrl = String(item[catalogIdx] || "").trim();
+      }
     }
     // 如果沒有原廠目錄連結，fallback 優先級：FLEX快取 > 雲端資料庫（Drive連結）> 空
     if (!cUrl || !cUrl.includes("http")) {
@@ -133,8 +139,11 @@ function handleFlexTest(q, db, maps) {
         cUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
       }
     }
-    // 🚩 v675：直接讀第 40 列（單片連結網址）和第 44 列（系列介紹）
-    var sUrl = String(item[maps.price['單片連結網址']] || "").trim();
+    // 讀「R2_單片連結網址」（已遷移到 R2 的優先讀取），沒有才退回 v675 直接讀「單片連結網址」
+    var sUrl = String(item[maps.price['R2_單片連結網址']] || "").trim();
+    if (!sUrl || !sUrl.includes("http")) {
+      sUrl = String(item[maps.price['單片連結網址']] || "").trim();
+    }
     // fallback：從 FLEX快取的 single 或 Drive 資料夾
     if (!sUrl || !sUrl.includes("http")) {
       sUrl = (cacheParsed && cacheParsed.single) ? cacheParsed.single : (parentId ? getSmartDownloadPath(parentId, currentCode, "") : "");
@@ -160,13 +169,17 @@ function handleFlexTest(q, db, maps) {
     var productSize = String(item[maps.price['尺寸(cm)']] || "");
     var productPcsPerBox = String(item[maps.price['片/箱']] || "");
 
+    // 🚩 修正：品項自己的「系列介紹」欄位（introUrl）才是正確來源，seriesIntroUrl 只有掃描 Drive 資料夾
+    // 才會有值（這個品項多半沒有 FLEX圖卡，永遠抓不到），優先用 introUrl，沒有才退回 seriesIntroUrl
+    const effectiveIntroUrl = introUrl || seriesIntroUrl;
+
     if (sceneImages.length > 0) {
       for (var j = 0; j < Math.min(sceneImages.length, limit); j++) {
         const titleSuffix = (isSingleQuery && sceneImages.length > 1) ? (" (" + (j+1) + ")") : "";
-        pool[currentCode].push(buildSingleBubble(sceneImages[j], currentSeriesName, fullCodeInfo + titleSuffix, currentCode, sUrl, cUrl, seriesIntroUrl, mfgCatalogUrl, driveUrl, seriesOrigin, productOrigin, productSize, productPcsPerBox, sceneImages.length));
+        pool[currentCode].push(buildSingleBubble(sceneImages[j], currentSeriesName, fullCodeInfo + titleSuffix, currentCode, sUrl, cUrl, effectiveIntroUrl, mfgCatalogUrl, driveUrl, seriesOrigin, productOrigin, productSize, productPcsPerBox, sceneImages.length));
       }
     } else if (parentId) {
-      pool[currentCode].push(buildSingleBubble(fetchCoverImageFromFolder(parentId), currentSeriesName, fullCodeInfo, currentCode, sUrl, cUrl, seriesIntroUrl, mfgCatalogUrl, driveUrl, seriesOrigin, productOrigin, productSize, productPcsPerBox, 1));
+      pool[currentCode].push(buildSingleBubble(fetchCoverImageFromFolder(parentId), currentSeriesName, fullCodeInfo, currentCode, sUrl, cUrl, effectiveIntroUrl, mfgCatalogUrl, driveUrl, seriesOrigin, productOrigin, productSize, productPcsPerBox, 1));
     }
   }
 
@@ -269,21 +282,33 @@ function getBestImagesForItem(item, maps, db) {
     } catch(e) {}
   }
 
-  // 2. 第一優先：試算表中的「實景1~7」
-  const sceneCols = ["實景1", "實景2", "實景3", "實景4", "實景5", "實景6", "實景7"];
-  sceneCols.forEach(colName => {
+  // 2. 第零優先：已遷移到 R2 的「R2_實景1~7」（速度最快，優先於 Drive 原始欄位）
+  const r2SceneCols = ["R2_實景1", "R2_實景2", "R2_實景3", "R2_實景4", "R2_實景5", "R2_實景6", "R2_實景7"];
+  r2SceneCols.forEach(colName => {
     const colIdx = maps.price[colName];
     if (colIdx !== undefined) {
       let val = String(item[colIdx] || "").trim();
-      if (val && val.includes("http")) {
-        if (val.includes("drive.google.com")) {
-          const id = val.match(/[\w-]{25,}/);
-          if (id) val = "https://drive.google.com/thumbnail?id=" + id[0] + "&sz=w600";
-        }
-        if (!images.includes(val)) images.push(val);
-      }
+      if (val && val.includes("http") && !images.includes(val)) images.push(val);
     }
   });
+
+  // 2b. 第一優先：試算表中的「實景1~7」— Drive 備援
+  const sceneCols = ["實景1", "實景2", "實景3", "實景4", "實景5", "實景6", "實景7"];
+  if (images.length === 0) {
+    sceneCols.forEach(colName => {
+      const colIdx = maps.price[colName];
+      if (colIdx !== undefined) {
+        let val = String(item[colIdx] || "").trim();
+        if (val && val.includes("http")) {
+          if (val.includes("drive.google.com")) {
+            const id = val.match(/[\w-]{25,}/);
+            if (id) val = "https://drive.google.com/thumbnail?id=" + id[0] + "&sz=w600";
+          }
+          if (!images.includes(val)) images.push(val);
+        }
+      }
+    });
+  }
 
   // 3. 第二優先：掃描 Google Drive 資料夾 (過濾掉單片)
   if (images.length === 0 && parentId) {
@@ -591,26 +616,18 @@ function buildSeriesGuideFlex(seriesName, db, maps, auth) {
   if (!primary) return null;
 
   var code = String(primary[priceMap['編號']] || "").toUpperCase();
-  var parentUrl = String(primary[priceMap['FLEX圖卡']] || "");
-  var parentId = (parentUrl.indexOf("folders/") > -1) ? parentUrl.match(/folders\/([\w-]+)/)[1] : "";
 
   var images = (typeof getBestImagesForItem === 'function') ? getBestImagesForItem(primary, maps, db) : [];
-  var imageUrl = images.length > 0 ? images[0] : (parentId ? fetchCoverImageFromFolder(parentId) : "https://via.placeholder.com/600?text=No+Image");
+  var imageUrl = images.length > 0 ? images[0] : "https://via.placeholder.com/600?text=No+Image";
 
-  // 🚩 [v680] 雲端圖庫連結：FLEX圖卡沒有就退回讀「雲端圖片」欄位（兩者是不同欄位）
-  var cloudUrl = "";
-  if (parentUrl.indexOf("http") > -1) {
-    cloudUrl = parentUrl;
-  } else {
-    var driveImgUrl = String(primary[priceMap['雲端圖片']] || "").trim();
-    if (driveImgUrl.indexOf("http") > -1) cloudUrl = driveImgUrl;
-  }
+  // 🚩 「雲端圖片」欄位現在會被 _getSheetRowsByName 正確解析出富文本連結背後的真實網址（不再只是顯示文字）
+  var cloudUrl = String(primary[priceMap['雲端圖片']] || "").trim();
 
   var footerButtons = [
     { "type": "button", "style": "primary", "color": "#1B1B1D", "height": "sm", "action": { "type": "message", "label": "🖼️ 看更多圖片", "text": seriesName + " 圖片" } }
   ];
-  // 🚩 [v679] 沒有雲端資料夾連結就不顯示按鈕，禁止用假網址兜底
-  if (cloudUrl) {
+  // 🚩 沒有雲端資料夾連結就不顯示按鈕，禁止用假網址兜底
+  if (cloudUrl.indexOf("http") > -1) {
     footerButtons.push({ "type": "button", "style": "secondary", "height": "sm", "action": { "type": "uri", "label": "📁 雲端圖庫", "uri": cloudUrl } });
   }
 
