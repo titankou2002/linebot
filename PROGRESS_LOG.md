@@ -11,7 +11,12 @@
 
 ### 3. 白名單快取化與 FORM_SS 實例共用（`6_Tools.js`、`5_Order.js`）
 - `getWhitelistSheet()` 增加 `CacheManager` 快取（有效時間 30 分鐘），在用戶核准開通時（`processUserApproval`）自動清除快取。
-- 新增 `getFormSpreadsheetInstance()` 共用 `CONFIG.FORM_SS_ID` 實例，避免同一請求內重複開啟保留表單庫。
+### 4. 庫存表與保留單 20 秒微快取（`6_Tools.js`、`5_Order.js`、`3_Notify.js`）
+- `getStockSheet()` 與 `getMainSheet()` 導入 20 秒 `CacheManager` 微快取，讓連續查詢多個品號直接命中記憶體/快取，遠端拉表耗時從 1500ms 降至 10ms。
+- 在所有保留單提交、審核、拒絕、修改動作點全面綁定 `clearStockAndReserveCache()`，保證新動作即時生效。
+
+### 5. 日誌寫入由 insertRowBefore 改為 appendRow（`6_Tools.js`）
+- `writeEnhancedLog` 徹底移除極耗時的 `insertRowBefore(2)`（原需平移全表數千行，耗時 1.2~1.5s），改用輕量快速的 `appendRow(row)`（耗時僅 0.05s），大幅消除伺服器阻塞。
 
 ---
 

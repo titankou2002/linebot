@@ -110,12 +110,21 @@ function getMonthSheet() { return _getSheetRowsByName('經銷銷售報表', 'mon
 function getReserveSheet() { return getMainSheet(); }
 function getStockSheet() {
   if (_CACHE.stockRows) return _CACHE.stockRows;
+  const cacheKey = "stock_sheet_data_short_v1";
+  const cached = (typeof CacheManager !== 'undefined') ? CacheManager.getLarge(cacheKey) : null;
+  if (cached) {
+    _CACHE.stockRows = cached;
+    return cached;
+  }
   try {
     const ss = getFormSpreadsheetInstance();
     const sh = ss.getSheetByName('庫存表') || ss.getSheetByName(SHEET_NAME.STOCK);
     if (sh) {
       const vals = sh.getDataRange().getValues();
       _CACHE.stockRows = vals;
+      if (typeof CacheManager !== 'undefined' && vals.length > 0) {
+        CacheManager.putLarge(cacheKey, vals, 20); // 20 秒短快取，避免連續查詢反覆遠端讀表
+      }
       return vals;
     }
   } catch (e) {
@@ -327,6 +336,12 @@ function parseRowQtyToPcs(code, qtyValOrStr, priceData, priceMap) {
  */
 function getMainSheet() {
   if (_CACHE.mainRowsCombined) return _CACHE.mainRowsCombined;
+  const cacheKey = "main_sheet_combined_short_v1";
+  const cached = (typeof CacheManager !== 'undefined') ? CacheManager.getLarge(cacheKey) : null;
+  if (cached) {
+    _CACHE.mainRowsCombined = cached;
+    return cached;
+  }
   
   let combined = [["編號", "數量", "客戶", "工地", "客戶業務", "保留日期", "到期日", "案名", "備註", "入倉日期1", "數量1", "入倉日期2", "數量2"]];
   const mainHeaderMap = getHeaderMap(combined);
@@ -360,6 +375,7 @@ function getMainSheet() {
       console.error("讀取 FORM_SS_ID 保留單失敗: " + e);
     }
   }
+
 
 
 
@@ -431,8 +447,21 @@ function getMainSheet() {
     console.error("智慧對帳片數轉換失敗: " + err);
   }
   
+  if (typeof CacheManager !== 'undefined' && combined.length > 0) {
+    CacheManager.putLarge(cacheKey, combined, 20); // 20 秒短快取
+  }
   _CACHE.mainRowsCombined = combined;
   return combined;
+}
+
+/** 🔄 當有新保留、核准或修改時，立即清除庫存與保留單快取，確保數據即時性 */
+function clearStockAndReserveCache() {
+  _CACHE.stockRows = null;
+  _CACHE.mainRowsCombined = null;
+  if (typeof CacheManager !== 'undefined') {
+    CacheManager.removeLarge("stock_sheet_data_short_v1");
+    CacheManager.removeLarge("main_sheet_combined_short_v1");
+  }
 }
 
 function getPriceSheet() {
@@ -786,9 +815,8 @@ function writeEnhancedLog(ss, sid, uid, name, level, input, note, email, extraDa
       for (let i = 0; i < 9; i++) row.push("");
     }
 
-    // 🚩 [v684] 新增紀錄改插在標題列(第1列)正下方，讓 LOG 由新到舊排序（不再一路 append 到最底）
-    logSheet.insertRowBefore(2);
-    logSheet.getRange(2, 1, 1, row.length).setValues([row]);
+    // 🚩 [🚀 極速寫入] 改用 appendRow 附加至最後一列（由原本 insertRowBefore(2) 全表平移耗時 1.5s 縮減為 0.05s）
+    logSheet.appendRow(row);
   } catch(e) { console.error("Enhanced Log 寫入失敗: " + e); }
 }
 

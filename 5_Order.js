@@ -338,6 +338,7 @@ function handleOrderRequest(input, auth, sourceId, db, maps) {
       orderReqSheet.getRange(lastRow, 12).setBackground("#FFF2CC"); // 塗黃
     });
     lock.releaseLock();
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
 
     let stockStatus = overallShortage ? "不足" : "充足";
     let currentStockMsg = checkDetails.join("|");
@@ -620,6 +621,7 @@ function approveOrderRow_(requestId, code, approverName, dbSS) {
   rowIndices.forEach(idx => {
     orderReqSheet.getRange(idx, statusCol + 1).setValue("已核准").setBackground("#D9EAD3");
   });
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return { success: true, code: code };
 }
 
@@ -660,6 +662,7 @@ function approveOrderAll_(requestId, approverName, dbSS) {
     rowIndices.forEach(idx => {
       orderReqSheet.getRange(idx, statusCol + 1).setValue("已核准").setBackground("#D9EAD3");
     });
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
     return { success: true, count: rowsToProcess.length };
   }
 
@@ -708,6 +711,7 @@ function approveOrderAll_(requestId, approverName, dbSS) {
     orderReqSheet.getRange(idx, statusCol + 1).setValue("已核准").setBackground("#D9EAD3");
   });
 
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return { success: true, count: rowsToProcess.length };
 }
 
@@ -739,6 +743,7 @@ function denyOrderAll_(requestId, approverName, dbSS) {
   rowIndices.forEach(idx => {
     orderReqSheet.getRange(idx, statusCol + 1).setValue("已拒絕").setBackground("#F4CCCC"); // 塗淺紅
   });
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return { success: true, count: rowIndices.length };
 }
 
@@ -935,6 +940,7 @@ function handleWebFormSubmission(data, dbSS) {
     });
 
     lock.releaseLock();
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
 
     // 推 Telegram 通知
     if (typeof buildOrderApprovalTelegramText_ === 'function') {

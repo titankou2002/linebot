@@ -561,6 +561,7 @@ function updateMyReservationRow_(auth, rowNum, cust, code, newQtyRaw) {
         threshold: '', action: nq === 0 ? '客戶取消' : '客戶調整(減少)', reason: '', biz: ''
       });
     } catch (e) {}
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
     return { success: true, applied: true, oldQty: oldQty, newQty: nq };
   }
 
@@ -623,6 +624,7 @@ function handleReserveIncreaseApproval_(params) {
       threshold: '', action: '核准增加保留', reason: '', biz: ''
     });
   } catch (e) {}
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return _renderReserveResultPage_('已核准', '&#10003;', '#059669', [`客戶：${cust}`, `編號：${code}`, `數量已更新為 ${newQty} 片`]);
 }
 
