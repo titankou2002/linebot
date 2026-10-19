@@ -6,10 +6,13 @@
 <meta name="theme-color" content="#121212">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="高雅瓷保留">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>高雅瓷 · 線上保留申請</title>
-<link rel="icon" type="image/svg+xml" href="https://bigt.cc/line/favicon.svg">
-<link rel="shortcut icon" href="https://bigt.cc/line/favicon.svg">
-<link rel="apple-touch-icon" href="https://bigt.cc/line/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="https://bigt.cc/line/favicon.svg?v=2">
+<link rel="shortcut icon" href="https://bigt.cc/line/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="https://bigt.cc/line/favicon.svg?v=2">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -634,15 +637,15 @@
     <div class="sec-body f-grid-pc">
       <div class="f">
         <label>案名 / 工程名稱 <span class="req">*</span></label>
-        <input id="fCase" type="text" placeholder="例：台中七期 A 棟浴室工程" />
+        <input id="fCase" type="text" autocomplete="off" placeholder="例：台中七期 A 棟浴室工程" />
       </div>
       <div class="f">
         <label>預計進場日期 <span class="req">*</span></label>
-        <input id="fEntry" type="date" />
+        <input id="fEntry" type="date" autocomplete="off" />
       </div>
       <div class="f full-pc">
         <label>工地地址 <span class="req">*</span></label>
-        <input id="fAddr" type="text" placeholder="例：台中市西屯區市政北一路 168 號" />
+        <input id="fAddr" type="text" autocomplete="off" placeholder="例：台中市西屯區市政北一路 168 號" />
       </div>
     </div>
   </div>
@@ -660,11 +663,11 @@
       <div class="f-row">
         <div class="f">
           <label>聯絡人</label>
-          <input id="fContact" type="text" placeholder="工地負責人" />
+          <input id="fContact" type="text" autocomplete="off" placeholder="工地負責人" />
         </div>
         <div class="f">
           <label>聯絡電話</label>
-          <input id="fPhone" type="tel" placeholder="0912-345-678" />
+          <input id="fPhone" type="tel" autocomplete="off" placeholder="0912-345-678" />
         </div>
       </div>
     </div>
@@ -1274,95 +1277,19 @@ async function submitForm() {
   }
 }
 
-// ── 草稿自動暫存與復原機制 ──
-let saveDraftTimer = null;
-function saveDraftDebounced() {
-  clearTimeout(saveDraftTimer);
-  saveDraftTimer = setTimeout(saveDraft, 500);
-}
+// ── 清除舊版草稿快取（避免每次開啟都自動帶入前次測試輸入）──
+try { localStorage.removeItem('gyc_reserve_draft'); } catch (e) {}
 
-function saveDraft() {
-  try {
-    const items = [];
-    document.querySelectorAll('.pi').forEach(el => {
-      const idx  = el.dataset.idx;
-      const code = document.getElementById('code_' + idx)?.value?.trim() || '';
-      const qty  = document.getElementById('qty_'  + idx)?.value?.trim() || '';
-      const unit = document.getElementById('unit_' + idx)?.value || '片';
-      if (code || qty) items.push({ code, qty, unit });
-    });
-    const draft = {
-      caseName: document.getElementById('fCase')?.value || '',
-      address:  document.getElementById('fAddr')?.value || '',
-      entry:    document.getElementById('fEntry')?.value || '',
-      contact:  document.getElementById('fContact')?.value || '',
-      phone:    document.getElementById('fPhone')?.value || '',
-      items,
-      savedAt: Date.now()
-    };
-    localStorage.setItem('gyc_reserve_draft', JSON.stringify(draft));
-  } catch (e) {}
-}
-
+function saveDraftDebounced() {}
+function saveDraft() {}
 function checkDraftOnLoad() {
-  try {
-    const raw = localStorage.getItem('gyc_reserve_draft');
-    if (!raw) return;
-    const draft = JSON.parse(raw);
-    if (!draft || Date.now() - draft.savedAt > 86400000) {
-      localStorage.removeItem('gyc_reserve_draft');
-      return;
-    }
-    const hasContent = (draft.caseName || draft.address || (draft.items && draft.items.length > 0 && (draft.items[0].code || draft.items[0].qty)));
-    if (hasContent) {
-      restoreDraft(true);
-    }
-  } catch (e) {}
+  clearDraft();
 }
-
-function restoreDraft(isAuto = false) {
-  try {
-    const raw = localStorage.getItem('gyc_reserve_draft');
-    if (!raw) return;
-    const draft = JSON.parse(raw);
-    if (draft.caseName) document.getElementById('fCase').value = draft.caseName;
-    if (draft.address)  document.getElementById('fAddr').value = draft.address;
-    if (draft.entry)    document.getElementById('fEntry').value = draft.entry;
-    if (draft.contact)  document.getElementById('fContact').value = draft.contact;
-    if (draft.phone)    document.getElementById('fPhone').value = draft.phone;
-
-    if (draft.items && draft.items.length > 0) {
-      const firstCode = document.getElementById('code_1')?.value || '';
-      const firstQty = document.getElementById('qty_1')?.value || '';
-      if (!firstCode && !firstQty) {
-        document.getElementById('itemList').innerHTML = '';
-        itemCount = 0;
-      }
-      draft.items.forEach(it => {
-        if (!it.code && !it.qty) return;
-        addItem(it.code, it.qty, false);
-        const idx = itemCount;
-        if (it.unit) {
-          const uEl = document.getElementById('unit_' + idx);
-          if (uEl) uEl.value = it.unit;
-        }
-        if (it.code && it.qty) checkStock(idx);
-      });
-    }
-    document.getElementById('draftNotice').style.display = 'none';
-    if (isAuto) {
-      showToast("已自動為您復原上次未完成的草稿");
-    } else {
-      showToast("已成功復原保留草稿");
-    }
-  } catch (e) {
-    showToast("復原草稿時發生錯誤");
-  }
-}
-
+function restoreDraft() {}
 function clearDraft() {
   try { localStorage.removeItem('gyc_reserve_draft'); } catch(e) {}
-  document.getElementById('draftNotice').style.display = 'none';
+  const notice = document.getElementById('draftNotice');
+  if (notice) notice.style.display = 'none';
 }
 
 // ── 分享保留單摘要至 LINE ──
@@ -1406,14 +1333,15 @@ function copyToClipboard(text) {
     .catch(() => alert(text));
 }
 
-// 在 initForm 時綁定欄位變更儲存草稿與檢查草稿
+// 在 initForm 時確保欄位清空且不復原舊草稿
 const origInitForm = initForm;
 initForm = function(params) {
-  origInitForm(params);
-  checkDraftOnLoad();
+  clearDraft();
   ['fCase', 'fAddr', 'fEntry', 'fContact', 'fPhone'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', saveDraftDebounced);
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
+  origInitForm(params);
 };
 
 function closeLiff() {

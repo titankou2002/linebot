@@ -14,10 +14,11 @@ function handleTemplateRequest(q, auth, priceData, priceMap) {
   const code = cmdMatch ? (cmdMatch[1] || '').toUpperCase() : '';
   const qty  = cmdMatch ? (cmdMatch[2] || '').replace(/\s/g, '') : '';
 
-  // 組 LIFF URL，帶入已知的品號和數量
+  // 組 LIFF URL，帶入已知的品號和數量與防快取參數
   const params = new URLSearchParams_GAS();
   if (code) params.set('code', code);
   if (qty)  params.set('qty',  qty.replace(/[^0-9.]/g, ''));
+  params.set('v', String(Math.floor(Date.now() / 60000)));
   const qs      = params.toString() ? '?' + params.toString() : '';
   const liffUrl = `https://liff.line.me/${CONFIG.LIFF_ID_RESERVE}${qs}`;
 
@@ -113,6 +114,63 @@ function handleTemplateRequest(q, auth, priceData, priceMap) {
   };
 
   return flex;
+}
+
+/**
+ * 🚩 [客戶自助] 產生「我的保留單」LIFF 按鈕卡片。
+ * 沿用既有的 CONFIG.LIFF_ID_RESERVE（跟填保留單同一個 LIFF app，這樣不用麻煩使用者再去
+ * LINE Developers Console 建立新的 LIFF app）——加一個 mode=myReservations 參數，LIFF
+ * 會把這個參數一起帶到 doGet，doGet 那邊看到這個參數就會改渲染 cpanel_tracking.html
+ * 而不是預設的 reservation_form.html。
+ */
+function buildMyReservationsLiffFlex_(auth) {
+  const liffUrl = `https://liff.line.me/${CONFIG.LIFF_ID_RESERVE}?mode=myReservations`;
+
+  const authName = String(auth.name || '');
+  const company  = auth.company || authName.split('-')[0] || '高雅瓷';
+  const userRealName = authName.includes('-') ? authName.split('-')[1] : authName;
+  const displayTitle = (userRealName && userRealName !== company) ? `${company} ${userRealName}` : company;
+
+  return {
+    type: 'bubble',
+    size: 'kilo',
+    header: {
+      type: 'box', layout: 'vertical',
+      backgroundColor: '#000000', paddingAll: '18px',
+      contents: [
+        { type: 'text', text: '📋 我的保留單', weight: 'bold', size: 'lg', color: '#ffffff' },
+        { type: 'text', text: displayTitle, size: 'sm', color: '#a8a8a8', margin: 'xs', weight: 'bold' }
+      ]
+    },
+    body: {
+      type: 'box', layout: 'vertical', spacing: 'sm',
+      backgroundColor: '#000000', paddingAll: '18px',
+      contents: [{
+        type: 'box', layout: 'vertical', margin: 'none',
+        backgroundColor: '#121212',
+        borderColor: '#1c1c1e',
+        borderWidth: '1px',
+        cornerRadius: '8px', paddingAll: '12px',
+        contents: [{
+          type: 'text', wrap: true, size: 'xs', color: '#e4e6eb', align: 'center',
+          text: '點下方按鈕，一次查看您所有的保留單。\n可以直接修改數量：\n減少或取消立即生效，\n增加需業務確認後才生效。'
+        }]
+      }]
+    },
+    footer: {
+      type: 'box', layout: 'vertical',
+      backgroundColor: '#000000', paddingAll: '14px',
+      contents: [{
+        type: 'box',
+        layout: 'vertical',
+        background: { type: 'linearGradient', angle: '45deg', startColor: '#f09433', endColor: '#bc1888' },
+        cornerRadius: '20px',
+        paddingAll: '10px',
+        action: { type: 'uri', label: '查看我的保留單', uri: liffUrl },
+        contents: [{ type: 'text', text: '查看我的保留單', color: '#ffffff', weight: 'bold', size: 'sm', align: 'center' }]
+      }]
+    }
+  };
 }
 
 // URLSearchParams polyfill for GAS（無原生 URLSearchParams）
@@ -259,7 +317,7 @@ function handleOrderRequest(input, auth, sourceId, db, maps) {
       itemsToBuffer.push({ c: code, q: qtyStr, s: sizeStr });
     });
 
-    const ss = SpreadsheetApp.openById(CONFIG.DATA_SS_ID);
+    const ss = (typeof getFormSpreadsheetInstance === 'function') ? getFormSpreadsheetInstance() : SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
     let orderReqSheet = ss.getSheetByName("(保留暫存)");
     if (!orderReqSheet) {
       orderReqSheet = ss.insertSheet("(保留暫存)");
@@ -281,6 +339,7 @@ function handleOrderRequest(input, auth, sourceId, db, maps) {
       orderReqSheet.getRange(lastRow, 12).setBackground("#FFF2CC"); // 塗黃
     });
     lock.releaseLock();
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
 
     let stockStatus = overallShortage ? "不足" : "充足";
     let currentStockMsg = checkDetails.join("|");
@@ -315,15 +374,15 @@ function handlePostback(event, auth, dbSS, maps) {
   var data = event.postback.data, params = {};
   data.split('&').forEach(p => { var s = p.split('='); params[s[0]] = decodeURIComponent(s[1] || ''); });
 
-  // 🚩 [OCR] 用戶確認/取消手寫單（任何已登錄用戶皆可，不需管理員）
-  if (params.ac === 'confirm_ocr' || params.ac === 'cancel_ocr') {
-    handleOCRPostback(params, event, auth, dbSS);
-    return;
-  }
-
   // 🚩 [Flex 卡片] 系列介紹、實景圖、模面變化圖（任何已登錄用戶皆可）
   if (params.t === 'intro' || params.t === 'scene' || params.t === 'piece' || params.t === 'catalog') {
     handleFlexImagePostback(params, event, auth, dbSS);
+    return;
+  }
+
+  // 🔔 到貨通知訂閱（任何已報到用戶皆可，見 3_Notify.js）
+  if (params.t === 'sub') {
+    handleArrivalSubscribe_(params, event, auth, dbSS);
     return;
   }
 
@@ -371,124 +430,289 @@ function handlePostback(event, auth, dbSS, maps) {
 }
 
 /**
+ * 🚩 查詢商品編號對應的片/坪與片/箱比例，供保留核准時換算為「純片數」寫入保留單
+ */
+function getPcsPerPingRatio_(code) {
+  try {
+    const dbSS = getSpreadsheetInstance();
+    const priceSheet = dbSS.getSheetByName("編輯價目表") || dbSS.getSheetByName("編號價目表") || dbSS.getSheetByName(SHEET_NAME.PRICE);
+    if (!priceSheet) return { ratio: 1, pcsPerBox: 1 };
+    const priceData = priceSheet.getDataRange().getValues();
+    const priceMap = getHeaderMap(priceData);
+    const codeIdx = priceMap['編號'];
+    const pingIdx = priceMap['片/坪'];
+    const boxIdx = priceMap['片/箱'];
+    const targetCode = String(code).trim().toUpperCase();
+    
+    for (let r = 1; r < priceData.length; r++) {
+      if (String(priceData[r][codeIdx]).trim().toUpperCase() === targetCode) {
+        const ratio = parseFloat(priceData[r][pingIdx]) || 1;
+        const pcsPerBox = parseFloat(priceData[r][boxIdx]) || 1;
+        return { ratio, pcsPerBox };
+      }
+    }
+  } catch (e) {
+    console.error("查價目表換算比失敗: " + e);
+  }
+  return { ratio: 1, pcsPerBox: 1 };
+}
+
+/**
  * 🚩 共用核准/拒絕邏輯（供 doGet 網頁連結與舊版 LINE postback 共用，避免邏輯重複兩份）
  */
 
 /**
- * 🚩 依申請單號尋找對應的「(保留暫存)」工作表。
- * 保留單有兩個不同入口：文字/口語/OCR 寫入 CONFIG.DATA_SS_ID，
- * LIFF 網頁表單（handleWebFormSubmission）則寫入 CONFIG.FORM_SS_ID，
- * 兩邊都要找過一輪才能保證核准/拒絕連結一定找得到單子。
+ * 🚩 依申請單號尋找對應的工作表（萬能全試算表、全工作表盲掃演算法）。
  */
 function findOrderReqSheetByRequestId_(requestId) {
-  const candidateSsIds = [CONFIG.DATA_SS_ID];
-  if (CONFIG.FORM_SS_ID && CONFIG.FORM_SS_ID !== CONFIG.DATA_SS_ID) {
-    candidateSsIds.push(CONFIG.FORM_SS_ID);
-  }
+  const targetReqId = String(requestId || '').trim();
+  if (!targetReqId) return null;
 
-  for (let i = 0; i < candidateSsIds.length; i++) {
-    try {
-      const ss = SpreadsheetApp.openById(candidateSsIds[i]);
-      const sheet = ss.getSheetByName("(保留暫存)");
-      if (!sheet) continue;
-      const data = sheet.getDataRange().getValues();
-      if (data.length < 2) continue;
-      const map = getHeaderMap(data);
-      const idCol = map['申請單號'];
-      if (idCol === undefined) continue;
-      for (let r = 1; r < data.length; r++) {
-        if (String(data[r][idCol]) === String(requestId)) return sheet;
+  const candidateSsList = [];
+
+  // 1. 嘗試加入 Active 試算表
+  try {
+    const activeSs = SpreadsheetApp.getActiveSpreadsheet();
+    if (activeSs) candidateSsList.push(activeSs);
+  } catch (e) {}
+
+  // 2. 嘗試加入 getSpreadsheetInstance()
+  try {
+    if (typeof getSpreadsheetInstance === 'function') {
+      const instSs = getSpreadsheetInstance();
+      if (instSs && !candidateSsList.some(s => s.getId() === instSs.getId())) {
+        candidateSsList.push(instSs);
       }
-    } catch (e) {
-      console.error('搜尋保留暫存工作表失敗 (' + candidateSsIds[i] + '): ' + e);
     }
+  } catch (e) {}
+
+  // 3. 嘗試加入 CONFIG.DATA_SS_ID 與 CONFIG.FORM_SS_ID
+  [CONFIG.DATA_SS_ID, CONFIG.FORM_SS_ID].forEach(ssId => {
+    if (ssId) {
+      try {
+        const ss = SpreadsheetApp.openById(ssId);
+        if (ss && !candidateSsList.some(s => s.getId() === ss.getId())) {
+          candidateSsList.push(ss);
+        }
+      } catch (e) {}
+    }
+  });
+
+  // 對每一個候選試算表的所有分頁進行全方位單號對齊
+  for (const ss of candidateSsList) {
+    try {
+      const sheets = ss.getSheets();
+      for (const sheet of sheets) {
+        try {
+          const data = sheet.getDataRange().getValues();
+          if (data.length < 2) continue;
+          const map = (typeof getHeaderMap === 'function') ? getHeaderMap(data) : {};
+          
+          let idCol = map['申請單號'];
+          if (idCol === undefined) idCol = map['單號'];
+          if (idCol === undefined) idCol = map['ID'];
+
+          if (idCol !== undefined) {
+            for (let r = 1; r < data.length; r++) {
+              if (String(data[r][idCol] || '').trim() === targetReqId) {
+                return { sheet: sheet, ss: ss, idCol: idCol, map: map };
+              }
+            }
+          } else {
+            // 盲掃前 20 欄
+            for (let r = 1; r < data.length; r++) {
+              for (let c = 0; c < Math.min(20, data[r].length); c++) {
+                if (String(data[r][c] || '').trim() === targetReqId) {
+                  return { sheet: sheet, ss: ss, idCol: c, map: map };
+                }
+              }
+            }
+          }
+        } catch (err) {}
+      }
+    } catch (err) {}
   }
   return null;
 }
 
 /** 核准保留單單一品項 */
 function approveOrderRow_(requestId, code, approverName, dbSS) {
-  const orderReqSheet = findOrderReqSheetByRequestId_(requestId);
-  const cloudSheet = getSpreadsheetInstance().getSheetByName(SHEET_NAME.CLOUD_RESERVE);
-  if (!orderReqSheet || !cloudSheet) return { success: false, error: '找不到保留相關工作表，操作失敗。' };
+  const reqResult = findOrderReqSheetByRequestId_(requestId);
+  if (!reqResult) return { success: false, error: '找不到保留相關工作表，操作失敗。' };
 
-  const cloudData = cloudSheet.getDataRange().getValues(), cMaps = getHeaderMap(cloudData);
+  const orderReqSheet = reqResult.sheet;
   const reqData = orderReqSheet.getDataRange().getValues();
-  // 🚩 [欄位對齊修復] 用來源的 header map 讀取，不用固定索引
-  const srcMaps = getHeaderMap(reqData);
+  const srcMaps = reqResult.map || getHeaderMap(reqData);
+  const idCol = reqResult.idCol;
+  const codeCol = srcMaps['編號'] !== undefined ? srcMaps['編號'] : 0;
+  const statusCol = srcMaps['狀態'] !== undefined ? srcMaps['狀態'] : (srcMaps['審核狀態'] !== undefined ? srcMaps['審核狀態'] : 11);
+
+  // 目標寫入：保留單 (SHEET_NAME.MAIN) - 優先從同一個試算表獲取，若無再找 CONFIG.FORM_SS_ID
+  let mainSheet = reqResult.ss.getSheetByName(SHEET_NAME.MAIN);
+  if (!mainSheet && CONFIG.FORM_SS_ID) {
+    const formSS = (typeof getFormSpreadsheetInstance === 'function') ? getFormSpreadsheetInstance() : SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
+    mainSheet = formSS.getSheetByName(SHEET_NAME.MAIN);
+  }
+  if (!mainSheet) return { success: false, error: '找不到「保留單」工作表，無法核准。' };
+  const mainData = mainSheet.getDataRange().getValues();
+  const dstMaps = getHeaderMap(mainData);
+
   const rowsToProcess = [], rowIndices = [];
   for (let i = 1; i < reqData.length; i++) {
-    if (String(reqData[i][9]) === String(requestId) &&
-        String(reqData[i][0]) === String(code) &&
-        reqData[i][11] !== "已核准") {
+    const rId = String(reqData[i][idCol] || '').trim();
+    const rCode = String(reqData[i][codeCol] || '').trim().toUpperCase();
+    const rStatus = String(reqData[i][statusCol] || '').trim();
+
+    if (rId === String(requestId).trim() && rCode === String(code).trim().toUpperCase() && rStatus !== "已核准") {
       rowsToProcess.push(reqData[i]); rowIndices.push(i + 1);
     }
   }
-  if (rowsToProcess.length === 0) return { success: false, error: '找不到待核准的品項，或已核准過。' };
+  if (rowsToProcess.length === 0) return { success: false, error: '找不到待核准的品項，或該品項已核准過。' };
 
+  // 若目標本身就是保留單，直接更新狀態
+  if (orderReqSheet.getName() === SHEET_NAME.MAIN) {
+    rowIndices.forEach(idx => {
+      orderReqSheet.getRange(idx, statusCol + 1).setValue("Spacer").setValue("已核准").setBackground("#D9EAD3");
+    });
+    return { success: true, code: code };
+  }
+
+  // 保留暫存 → 保留單 欄位對照
   rowsToProcess.forEach(row => {
-    var rowData = new Array(cloudData[0].length).fill("");
-    // 🚩 用 header name 對應，避免欄位索引差異造成數量/日期串位
+    var rowData = new Array(mainData[0].length).fill("");
     const fieldMap = {
-      '編號': srcMaps['編號'],      '數量': srcMaps['數量'],
-      '客戶': srcMaps['公司'],      '工地': srcMaps['地址'],
-      '客戶業務': srcMaps['申請人'], '保留日期': srcMaps['申請時間'],
-      '到期日': srcMaps['到期時間'], '案名': srcMaps['案名'],
-      '備註': srcMaps['進場日期']
+      '編號':     srcMaps['編號'],
+      '客戶':     srcMaps['公司']      !== undefined ? srcMaps['公司']      : srcMaps['客戶名稱'],
+      '工地':     srcMaps['地址']      !== undefined ? srcMaps['地址']      : srcMaps['工地地址'],
+      '客戶業務':  srcMaps['申請人']   !== undefined ? srcMaps['申請人']   : srcMaps['對應業務'],
+      '保留日期':  srcMaps['申請時間'] !== undefined ? srcMaps['申請時間'] : srcMaps['建立時間'],
+      '案名':     srcMaps['案名'],
+      '備註':     srcMaps['進場日期']
     };
     Object.entries(fieldMap).forEach(([destKey, srcIdx]) => {
-      if (cMaps[destKey] !== undefined && srcIdx !== undefined) {
-        rowData[cMaps[destKey]] = row[srcIdx];
+      if (dstMaps[destKey] !== undefined && srcIdx !== undefined) {
+        rowData[dstMaps[destKey]] = row[srcIdx];
       }
     });
-    rowData[cMaps['審核者']] = approverName;
-    cloudSheet.appendRow(rowData);
+
+    // 數量換算：坪數 -> 片數 (無條件進位)
+    if (dstMaps['數量'] !== undefined && srcMaps['數量'] !== undefined) {
+      const itemCode = String(row[srcMaps['編號']] || '').trim();
+      const rawQtyStr = String(row[srcMaps['數量']] || '').trim();
+      const qtyVal = parseFloat(rawQtyStr.replace(/[^\d\.]/g, '')) || 0;
+      const unit = rawQtyStr.replace(/[\d\.\s]/g, '').trim();
+
+      let pcsQty = qtyVal;
+      if (unit.includes('坪') || unit.toLowerCase().includes('p')) {
+        const ratioObj = getPcsPerPingRatio_(itemCode);
+        pcsQty = Math.ceil(qtyVal * ratioObj.ratio);
+      } else if (unit.includes('箱') || unit.includes('包') || unit.toLowerCase().includes('box')) {
+        const ratioObj = getPcsPerPingRatio_(itemCode);
+        pcsQty = Math.ceil(qtyVal * ratioObj.pcsPerBox);
+      } else {
+        pcsQty = Math.round(qtyVal);
+      }
+      rowData[dstMaps['數量']] = pcsQty;
+    }
+
+    if (dstMaps['審核者'] !== undefined) rowData[dstMaps['審核者']] = approverName;
+    mainSheet.appendRow(rowData);
   });
+
   rowIndices.forEach(idx => {
-    orderReqSheet.getRange(idx, 12).setValue("已核准").setBackground("#D9EAD3"); // 塗綠
+    orderReqSheet.getRange(idx, statusCol + 1).setValue("已核准").setBackground("#D9EAD3");
   });
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return { success: true, code: code };
 }
 
 /** 核准整筆保留單所有品項 */
 function approveOrderAll_(requestId, approverName, dbSS) {
-  const orderReqSheet = findOrderReqSheetByRequestId_(requestId);
-  const cloudSheet = getSpreadsheetInstance().getSheetByName(SHEET_NAME.CLOUD_RESERVE);
-  if (!orderReqSheet || !cloudSheet) return { success: false, error: '找不到保留相關工作表，操作失敗。' };
+  const reqResult = findOrderReqSheetByRequestId_(requestId);
+  if (!reqResult) return { success: false, error: '找不到保留相關工作表（單號：' + requestId + '）。' };
 
-  const cloudData = cloudSheet.getDataRange().getValues(), cMaps = getHeaderMap(cloudData);
+  const orderReqSheet = reqResult.sheet;
   const reqData = orderReqSheet.getDataRange().getValues();
-  // 🚩 [欄位對齊修復] 用來源的 header map 讀取，不用固定索引
-  const srcMaps = getHeaderMap(reqData);
+  const srcMaps = reqResult.map || getHeaderMap(reqData);
+  const idCol = reqResult.idCol;
+  const statusCol = srcMaps['狀態'] !== undefined ? srcMaps['狀態'] : (srcMaps['審核狀態'] !== undefined ? srcMaps['審核狀態'] : 11);
+
+  // 目標寫入：保留單 (SHEET_NAME.MAIN) - 優先從同一個試算表獲取，若無再找 CONFIG.FORM_SS_ID
+  let mainSheet = reqResult.ss.getSheetByName(SHEET_NAME.MAIN);
+  if (!mainSheet && CONFIG.FORM_SS_ID) {
+    const formSS = (typeof getFormSpreadsheetInstance === 'function') ? getFormSpreadsheetInstance() : SpreadsheetApp.openById(CONFIG.FORM_SS_ID);
+    mainSheet = formSS.getSheetByName(SHEET_NAME.MAIN);
+  }
+  if (!mainSheet) return { success: false, error: '找不到「保留單」工作表，無法核准。' };
+  const mainData = mainSheet.getDataRange().getValues();
+  const dstMaps = getHeaderMap(mainData);
+
   const rowsToProcess = [], rowIndices = [];
   for (let i = 1; i < reqData.length; i++) {
-    if (String(reqData[i][9]) === String(requestId) && reqData[i][11] !== "已核准") {
+    const rId = String(reqData[i][idCol] || '').trim();
+    const rStatus = String(reqData[i][statusCol] || '').trim();
+
+    if (rId === String(requestId).trim() && rStatus !== "已核准" && rStatus !== "已過期") {
       rowsToProcess.push(reqData[i]); rowIndices.push(i + 1);
     }
   }
-  if (rowsToProcess.length === 0) return { success: false, error: '找不到待核准的品項，或已核准過。' };
+  if (rowsToProcess.length === 0) return { success: false, error: '找不到待核准的單據品項，或該單據已核准過。' };
+
+  // 若目標工作表本身就是「保留單」
+  if (orderReqSheet.getName() === SHEET_NAME.MAIN) {
+    rowIndices.forEach(idx => {
+      orderReqSheet.getRange(idx, statusCol + 1).setValue("已核准").setBackground("#D9EAD3");
+    });
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
+    return { success: true, count: rowsToProcess.length };
+  }
 
   rowsToProcess.forEach(row => {
-    var rowData = new Array(cloudData[0].length).fill("");
-    // 🚩 用 header name 對應，避免欄位索引差異造成數量/日期串位
+    var rowData = new Array(mainData[0].length).fill("");
     const fieldMap = {
-      '編號': srcMaps['編號'],      '數量': srcMaps['數量'],
-      '客戶': srcMaps['公司'],      '工地': srcMaps['地址'],
-      '客戶業務': srcMaps['申請人'], '保留日期': srcMaps['申請時間'],
-      '到期日': srcMaps['到期時間'], '案名': srcMaps['案名'],
-      '備註': srcMaps['進場日期']
+      '編號':     srcMaps['編號'],
+      '客戶':     srcMaps['公司']      !== undefined ? srcMaps['公司']      : srcMaps['客戶名稱'],
+      '工地':     srcMaps['地址']      !== undefined ? srcMaps['地址']      : srcMaps['工地地址'],
+      '客戶業務':  srcMaps['申請人']   !== undefined ? srcMaps['申請人']   : srcMaps['對應業務'],
+      '保留日期':  srcMaps['申請時間'] !== undefined ? srcMaps['申請時間'] : srcMaps['建立時間'],
+      '案名':     srcMaps['案名']      !== undefined ? srcMaps['案名']      : srcMaps['工地案名'],
+      '備註':     srcMaps['進場日期']
     };
     Object.entries(fieldMap).forEach(([destKey, srcIdx]) => {
-      if (cMaps[destKey] !== undefined && srcIdx !== undefined) {
-        rowData[cMaps[destKey]] = row[srcIdx];
+      if (dstMaps[destKey] !== undefined && srcIdx !== undefined) {
+        rowData[dstMaps[destKey]] = row[srcIdx];
       }
     });
-    rowData[cMaps['審核者']] = approverName;
-    cloudSheet.appendRow(rowData);
+
+    // 數量換算：坪數 -> 片數 (無條件進位)
+    if (dstMaps['數量'] !== undefined && srcMaps['數量'] !== undefined) {
+      const itemCode = String(row[srcMaps['編號']] || '').trim();
+      const rawQtyStr = String(row[srcMaps['數量']] || '').trim();
+      const qtyVal = parseFloat(rawQtyStr.replace(/[^\d\.]/g, '')) || 0;
+      const unit = rawQtyStr.replace(/[\d\.\s]/g, '').trim();
+
+      let pcsQty = qtyVal;
+      if (unit.includes('坪') || unit.toLowerCase().includes('p')) {
+        const ratioObj = getPcsPerPingRatio_(itemCode);
+        pcsQty = Math.ceil(qtyVal * ratioObj.ratio);
+      } else if (unit.includes('箱') || unit.includes('包') || unit.toLowerCase().includes('box')) {
+        const ratioObj = getPcsPerPingRatio_(itemCode);
+        pcsQty = Math.ceil(qtyVal * ratioObj.pcsPerBox);
+      } else {
+        pcsQty = Math.round(qtyVal);
+      }
+      rowData[dstMaps['數量']] = pcsQty;
+    }
+
+    if (dstMaps['審核者'] !== undefined) rowData[dstMaps['審核者']] = approverName;
+    mainSheet.appendRow(rowData);
   });
+
   rowIndices.forEach(idx => {
-    orderReqSheet.getRange(idx, 12).setValue("已核准").setBackground("#D9EAD3");
+    orderReqSheet.getRange(idx, statusCol + 1).setValue("已核准").setBackground("#D9EAD3");
   });
+
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return { success: true, count: rowsToProcess.length };
 }
 
@@ -498,21 +722,29 @@ function approveOrderAll_(requestId, approverName, dbSS) {
  * 這次補上實作：把待核准品項狀態標為「已拒絕」並塗淺紅色，不寫入雲端保留。
  */
 function denyOrderAll_(requestId, approverName, dbSS) {
-  const orderReqSheet = findOrderReqSheetByRequestId_(requestId);
-  if (!orderReqSheet) return { success: false, error: '找不到保留暫存工作表，操作失敗。' };
+  const reqResult = findOrderReqSheetByRequestId_(requestId);
+  if (!reqResult) return { success: false, error: '找不到保留暫存工作表，操作失敗。' };
 
+  const orderReqSheet = reqResult.sheet;
   const reqData = orderReqSheet.getDataRange().getValues();
+  const srcMaps = reqResult.map || getHeaderMap(reqData);
+  const idCol = reqResult.idCol;
+  const statusCol = srcMaps['狀態'] !== undefined ? srcMaps['狀態'] : (srcMaps['審核狀態'] !== undefined ? srcMaps['審核狀態'] : 11);
+
   const rowIndices = [];
   for (let i = 1; i < reqData.length; i++) {
-    if (String(reqData[i][9]) === String(requestId) && reqData[i][11] !== "已核准" && reqData[i][11] !== "已拒絕") {
+    const rId = String(reqData[i][idCol] || '').trim();
+    const rStatus = String(reqData[i][statusCol] || '').trim();
+    if (rId === String(requestId).trim() && rStatus !== "已核准" && rStatus !== "已拒絕") {
       rowIndices.push(i + 1);
     }
   }
   if (rowIndices.length === 0) return { success: false, error: '找不到可拒絕的品項，或已處理過。' };
 
   rowIndices.forEach(idx => {
-    orderReqSheet.getRange(idx, 12).setValue("已拒絕").setBackground("#F4CCCC"); // 塗淺紅
+    orderReqSheet.getRange(idx, statusCol + 1).setValue("已拒絕").setBackground("#F4CCCC"); // 塗淺紅
   });
+  if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
   return { success: true, count: rowIndices.length };
 }
 
@@ -590,6 +822,7 @@ function processUserApproval(fullName, uid) {
     console.error("同步至物流庫失敗:", e);
   }
 
+  if (typeof clearWhitelistCache === 'function') clearWhitelistCache();
   sendPush(uid, "🎉 您的 AI 權限已核准開通！😊");
 }
 
@@ -686,7 +919,7 @@ function handleWebFormSubmission(data, dbSS) {
           ? getPcsPerPingFallback_(resolved.primary, resolved.priceMap)
           : ((typeof safeN === 'function' ? safeN(resolved.primary[resolved.priceMap['片/坪']]) : 1) || 1);
         const totalStockPcs = db.stock.filter(r => String(r[resolved.stockMap['編號']]).toUpperCase() === matchedCode && !String(r[resolved.stockMap['品名']]).includes("小計")).reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[resolved.stockMap['片數']]) : 0), 0);
-        const totalReservedPcs = db.main.filter(r => String(r[maps.main['編號']]).toUpperCase().includes(matchedCode)).reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[maps.main['數量']]) : 0), 0);
+        const totalReservedPcs = db.main.filter(r => String(r[maps.main['編號']]).toUpperCase().trim() === matchedCode).reduce((acc, r) => acc + (typeof safeN === 'function' ? safeN(r[maps.main['數量']]) : 0), 0);
         const availPcs = totalStockPcs - totalReservedPcs;
         const reqQtyVal = parseFloat(qty.replace(/[^\d.-]/g, '')) || 0;
         const reqQtyInPcs = (qty.includes('坪') || qty.toLowerCase().includes('p')) ? (reqQtyVal * ratio) : reqQtyVal;
@@ -708,6 +941,7 @@ function handleWebFormSubmission(data, dbSS) {
     });
 
     lock.releaseLock();
+    if (typeof clearStockAndReserveCache === 'function') clearStockAndReserveCache();
 
     // 推 Telegram 通知
     if (typeof buildOrderApprovalTelegramText_ === 'function') {
@@ -736,156 +970,6 @@ function handleWebFormSubmission(data, dbSS) {
   } catch (err) {
     return { success: false, error: String(err) };
   }
-}
-
-/**
- * 🚩 [OCR] 手寫單確認/取消 Postback 處理
- * - ac=confirm_ocr → 從 CacheService 取出 OCR 資料，寫入保留暫存並推 Flex
- * - ac=cancel_ocr  → 清除 cache，回覆取消訊息
- */
-function handleOCRPostback(params, event, auth, dbSS) {
-  const pushTo = event.source.userId;
-  const key    = params.key || '';
-
-  // ── 取消 ──
-  if (params.ac === 'cancel_ocr') {
-    if (key) CacheService.getScriptCache().remove(key);
-    sendPush(pushTo, '已取消這次辨識。如需保留，請重新傳照片或手動填寫。');
-    return;
-  }
-
-  // ── 確認送出 ──
-  if (!key) {
-    sendPush(pushTo, '⚠️ 找不到保留單資料，請重新傳照片。');
-    return;
-  }
-  const cached = CacheService.getScriptCache().get(key);
-  if (!cached) {
-    sendPush(pushTo, '⚠️ 保留單資料已超時（10分鐘），請重新傳照片！');
-    return;
-  }
-
-  var ocrData;
-  try { ocrData = JSON.parse(cached); } catch(e) {
-    sendPush(pushTo, '⚠️ 資料讀取異常，請重新傳照片。');
-    return;
-  }
-  CacheService.getScriptCache().remove(key); // 用完即刪
-
-  const caseName  = String(ocrData.project_name || '未填案名').trim();
-  const items     = Array.isArray(ocrData.items) ? ocrData.items : [];
-  const sourceId  = ocrData.sourceId || event.source.groupId || pushTo;
-
-  if (items.length === 0) {
-    sendPush(pushTo, '⚠️ 找不到品項資料，請重新傳照片。');
-    return;
-  }
-
-  // 取用戶資訊
-  const authName  = String(auth.name || '');
-  const company   = auth.company || (authName.includes('-') ? authName.split('-')[0] : authName) || '未知公司';
-  const userName  = authName.includes('-') ? authName.split('-')[1] : authName;
-  const now       = new Date();
-  const expire    = new Date(); expire.setDate(now.getDate() + 14);
-  const requestId = 'REQ-' + Utilities.formatDate(now, 'GMT+8', 'MMdd-HHmm') + '-' + (Math.floor(Math.random() * 900) + 100);
-
-  // 載入庫存資料進行庫存比對
-  const priceSheet = dbSS.getSheetByName('編輯價目表') || dbSS.getSheetByName('編號價目表') || dbSS.getSheetByName(SHEET_NAME.PRICE);
-  let priceData = priceSheet ? priceSheet.getDataRange().getValues() : [];
-  const priceMap = (typeof getHeaderMap === 'function') ? getHeaderMap(priceData) : {};
-  if (typeof filterPriceDataForUser === 'function') {
-    priceData = filterPriceDataForUser(priceData, priceMap, auth);
-  }
-  const db = {
-    price: priceData,
-    stock: (typeof getStockSheet === 'function') ? getStockSheet() : [],
-    main:  (typeof getMainSheet  === 'function') ? getMainSheet()  : []
-  };
-  const pMaps = {
-    price: priceMap,
-    stock: (typeof getHeaderMap === 'function') ? getHeaderMap(db.stock) : {},
-    main:  (typeof getHeaderMap === 'function') ? getHeaderMap(db.main)  : {}
-  };
-
-  // 寫入「(保留暫存)」
-  let sheet = dbSS.getSheetByName('(保留暫存)');
-  if (!sheet) {
-    sheet = dbSS.insertSheet('(保留暫存)');
-    const headers = ['編號','數量','公司','地址','申請人','申請時間','到期時間','案名','進場日期','申請單號','來源ID','狀態'];
-    sheet.appendRow(headers);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#D9E1F2');
-  }
-
-  const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-
-  const uiCodes = [], uiQtys = [], uiSizes = [], stockChecks = [];
-  let overallShortage = false;
-
-  items.forEach(function(item) {
-    const code    = String(item.product_code || '').toUpperCase().trim();
-    const qty     = String(item.quantity || '') + (item.unit || '坪');
-    const qtyVal  = parseFloat(String(item.quantity || 0)) || 0;
-    const unit    = String(item.unit || '坪');
-    let   sizeStr = '-';
-
-    // 庫存比對
-    const resolved = resolveStockFirstOrderMatch_(code, db, pMaps);
-    if (resolved && resolved.primary) {
-      const matched  = resolved.primary;
-      const matchedCode = String(matched[resolved.priceMap['編號']] || code).toUpperCase();
-      sizeStr = String(matched[resolved.priceMap['尺寸(cm)']] || '-');
-      const ratio = (typeof getPcsPerPingFallback_ === 'function')
-        ? getPcsPerPingFallback_(matched, resolved.priceMap)
-        : ((typeof safeN === 'function' ? safeN(matched[resolved.priceMap['片/坪']]) : 1) || 1);
-      const totalPcs = db.stock.filter(function(r) {
-        return String(r[resolved.stockMap['編號']]).toUpperCase() === matchedCode && !String(r[resolved.stockMap['品名']]).includes('小計');
-      }).reduce(function(acc, r) { return acc + (typeof safeN === 'function' ? safeN(r[resolved.stockMap['片數']]) : 0); }, 0);
-      const resPcs = db.main.filter(function(r) {
-        return String(r[pMaps.main['編號']]).toUpperCase().includes(matchedCode);
-      }).reduce(function(acc, r) { return acc + (typeof safeN === 'function' ? safeN(r[pMaps.main['數量']]) : 0); }, 0);
-      const avail = totalPcs - resPcs;
-      const reqPcs = (unit === '坪' || unit.toLowerCase() === 'p') ? qtyVal * ratio : qtyVal;
-      const isShort = avail < reqPcs * 0.95;
-      if (isShort) overallShortage = true;
-      stockChecks.push(code + ':' + Math.round(avail) + '片' + (isShort ? '(不足)' : ''));
-    } else {
-      stockChecks.push(code + ':查無(不足)');
-      overallShortage = true;
-    }
-
-    sheet.appendRow([code, qty, company, '', userName, now, expire, caseName, '', requestId, sourceId, '待核准']);
-    sheet.getRange(sheet.getLastRow(), 12).setBackground('#FFF2CC');
-    uiCodes.push(code); uiQtys.push(qty); uiSizes.push(sizeStr);
-  });
-
-  lock.releaseLock();
-
-  // 推 Telegram 通知
-  if (typeof buildOrderApprovalTelegramText_ === 'function') {
-    const tgMsg = buildOrderApprovalTelegramText_(
-      auth, caseName, '',
-      uiCodes.join(','), uiSizes.join(','), uiQtys.join(','),
-      '', sourceId,
-      overallShortage ? '不足' : '充足',
-      stockChecks.join('|'),
-      overallShortage, requestId
-    );
-    pushTelegram(tgMsg.text, tgMsg.buttons);
-  }
-
-  // Email 備份
-  if (typeof sendEmailNotification === 'function') {
-    sendEmailNotification(
-      '📸 OCR 手寫單保留：' + caseName,
-      '公司：' + company + '\n業務：' + userName + '\n案名：' + caseName +
-      '\n品號：' + uiCodes.join(', ') + '\n數量：' + uiQtys.join(', ') +
-      '\n申請單號：' + requestId
-    );
-  }
-
-  // 回覆用戶
-  sendPush(pushTo, '✅ 保留申請已送出！\n\n案名：' + caseName + '\n品項：' + uiCodes.length + ' 筆\n申請單號：' + requestId + '\n\n等待審核中，小高會通知您結果！😊');
 }
 
 /** 5. 處理「公司-姓名」自動申請 */
@@ -1249,62 +1333,43 @@ function extractImageUrlFromFormula(formula) {
 
 /**
  * 寫入 Flex 圖片推送診斷日誌到 LOG 分頁
- * 標準格式：A=時間 | B=使用者ID | C=姓名 | D=等級 | E=查詢內容 | F=LINE回覆 | G以後=診斷訊息
+ * 🚩 改走 writeEnhancedLog（跟其他 log 寫入點共用同一套正確欄位順序：
+ * A=日期 | B=來源類型 | C=使用者ID | D=姓名 | E=等級 | F=查詢內容 | G=回覆狀態 | H=Email | I=商品編號...）。
+ * 舊版自己手刻的 7 欄陣列少算了「來源類型」欄，導致 B 以後全部欄位錯位一格；
+ * 且用錯白名單欄位名稱（`使用者ID`/`姓名`，真正的欄位是 `userid`/`名字`）查不到人，姓名/等級永遠顯示「未知」。
+ * 現在直接複用呼叫端（handleFlexImagePostback）已經透過 checkAuth 正確解析好的 auth，不再自己重查白名單。
+ * @param {SpreadsheetApp.Spreadsheet} dbSS
+ * @param {Object} auth - 呼叫端已解析好的使用者權限物件（name/level/email）
+ * @param {Boolean} isGroup - 是否為群組來源，決定「來源類型」欄寫 GROUP 或 PRIVATE
+ * @param {String} userId
+ * @param {String} code
+ * @param {String} type - intro/scene/piece/catalog
+ * @param {String} message - 診斷訊息，寫入「通知狀態」欄
+ * @param {Boolean} isSuccess
  */
-function logFlexDebug(dbSS, userId, code, type, message, isSuccess) {
+function logFlexDebug(dbSS, auth, isGroup, userId, code, type, message, isSuccess) {
   try {
-    const logSheet = dbSS.getSheetByName("log");
-    if (!logSheet) return;
-    const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    const lastRow = logSheet.getLastRow();
+    // 🚩 [v684] 只記錄真正的結果（成功、或三層優先級都讀不到的最終失敗），
+    // 中間過程的診斷訊息（L1/L2/L3 逐層嘗試）幾乎都沒傳 isSuccess=true，
+    // 導致每一則都被貼上「❌ 推送失敗或無圖」，把 LOG 灌爆且誤導。
+    // 判定規則：isSuccess===true（真成功）或 message 本身以 ❌ 開頭（真失敗）才寫入，其餘中間過程一律略過。
+    const isGenuineOutcome = isSuccess === true || String(message || '').trim().indexOf('❌') === 0;
+    if (!isGenuineOutcome) return;
 
-    // 從白名單讀取使用者資料
-    let userName = "未知";
-    let userLevel = "未知";
-    try {
-      const wlSheet = dbSS.getSheetByName(SHEET_NAME.WHITELIST);
-      if (wlSheet) {
-        const wlData = wlSheet.getDataRange().getValues();
-        const wlMap = getHeaderMap(wlData);
-        const userIdIdx = wlMap['使用者ID'] || wlMap['LINE用戶ID'];
-        const nameIdx = wlMap['姓名'] || wlMap['名稱'];
-        const levelIdx = wlMap['等級'] || wlMap['權限'];
-
-        for (let i = 1; i < wlData.length; i++) {
-          if (String(wlData[i][userIdIdx] || '').trim() === userId) {
-            userName = String(wlData[i][nameIdx] || '未知').trim();
-            userLevel = String(wlData[i][levelIdx] || '未知').trim();
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      // 白名單讀取失敗，保持「未知」
-    }
-
-    // 查詢內容：品號 + 功能
-    const typeLabel = type === 'intro' ? '系列介紹' : (type === 'scene' ? '傳送實景圖' : '模面變化圖');
+    const typeLabel = type === 'intro' ? '系列介紹' : (type === 'scene' ? '傳送實景圖' : (type === 'catalog' ? '原廠目錄' : '模面變化圖'));
     const queryContent = code + " " + typeLabel;
-
-    // LINE 回覆狀態
     const lineReply = isSuccess ? "✅ 圖片已推送" : "❌ 推送失敗或無圖";
+    const sidLabel = isGroup ? "GROUP" : "PRIVATE";
+    const userName = (auth && auth.name) ? auth.name : "未知";
+    const userLevel = (auth && auth.level) ? auth.level : "未知";
+    const userEmail = (auth && auth.email) ? auth.email : "";
 
-    // 構建日誌行：A~F 按標準格式，G 放診斷訊息
-    const row = [
-      nowStr,           // A: 時間
-      userId,           // B: 使用者 ID
-      userName,         // C: 姓名
-      userLevel,        // D: 等級
-      queryContent,     // E: 查詢內容
-      lineReply,        // F: LINE 回覆
-      message           // G: 診斷訊息
-    ];
-
-    // 填滿至 17 欄以保持格式一致
-    for (let i = row.length; i < 17; i++) {
-      row.push("");
+    if (typeof writeEnhancedLog === 'function') {
+      writeEnhancedLog(dbSS, sidLabel, userId, userName, userLevel, queryContent, lineReply, userEmail, {
+        productCode: code,
+        notificationStatus: message
+      });
     }
-    logSheet.getRange(lastRow + 1, 1, 1, row.length).setValues([row]);
   } catch (e) {
     // 無聲失敗
   }
@@ -1315,11 +1380,46 @@ function logFlexDebug(dbSS, userId, code, type, message, isSuccess) {
  * 推送系列介紹、實景圖、模面變化圖（支援優先級讀取）
  * 診斷日誌寫入 LOG 分頁
  */
+/** 取得品項的雲端硬碟資料夾連結（FLEX圖卡欄），沒有則回傳空字串 */
+function getDriveFolderUrlFromRow_(row, priceMap) {
+  const idx = getColumnByName(priceMap, ['FLEX圖卡']);
+  if (idx === undefined) return '';
+  const url = String(row[idx] || '').trim();
+  return url.indexOf('http') === 0 ? url : '';
+}
+
+/** 「看全部圖片」雲端硬碟連結卡片 */
+function buildAllImagesDriveFlex_(code, driveUrl) {
+  return {
+    type: "flex",
+    altText: code + " 看全部圖片",
+    contents: {
+      type: "bubble",
+      size: "kilo",
+      body: {
+        type: "box", layout: "vertical", spacing: "sm",
+        contents: [
+          { type: "text", text: code, weight: "bold", size: "md", wrap: true },
+          { type: "text", text: "LINE 一次只能顯示部分圖片，完整圖片請到雲端硬碟查看", size: "xs", color: "#555555", wrap: true }
+        ]
+      },
+      footer: {
+        type: "box", layout: "vertical",
+        contents: [
+          { type: "button", style: "primary", color: "#8B6914", height: "sm", action: { type: "uri", label: "看全部圖片", uri: driveUrl } }
+        ]
+      }
+    }
+  };
+}
+
 function handleFlexImagePostback(params, event, auth, dbSS) {
   const userId = event.source.userId;
   const replyToken = event.replyToken;  // 用於 REPLY API
   const code = String(params.c || '').toUpperCase().trim();
   const type = params.t; // intro, scene, piece
+  const isGroupCtx = event.source.type !== 'user';
+  let effectiveDbSS = dbSS;
 
   if (!code) {
     sendPush(userId, "❌ 品號有誤，無法查詢。");
@@ -1327,26 +1427,48 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
   }
 
   try {
-    const priceSheet = dbSS.getSheetByName("編輯價目表") || dbSS.getSheetByName("編號價目表");
-    if (!priceSheet) {
-      sendPush(userId, "❌ 價目表未找到");
-      return;
-    }
-
-    const priceData = priceSheet.getDataRange().getValues();
-    const priceMap = getHeaderMap(priceData);
-    const codeIdx = priceMap['編號'];
-
-    if (codeIdx === undefined) {
-      sendPush(userId, "❌ 欄位映射錯誤");
-      return;
-    }
-
+    // 🚩 多公司 Postback 品號尋找支援：先在高雅瓷找，找不到自動在喜悅納/安帝嘉價目表中尋找
+    let priceSheet = effectiveDbSS.getSheetByName("編輯價目表") || effectiveDbSS.getSheetByName("編號價目表");
     let matchedRow = null;
-    for (let i = 1; i < priceData.length; i++) {
-      if (String(priceData[i][codeIdx]).toUpperCase().trim() === code) {
-        matchedRow = priceData[i];
-        break;
+    let priceMap = null;
+
+    if (priceSheet) {
+      const priceData = priceSheet.getDataRange().getValues();
+      priceMap = getHeaderMap(priceData);
+      const codeIdx = priceMap['編號'];
+      if (codeIdx !== undefined) {
+        for (let i = 1; i < priceData.length; i++) {
+          if (String(priceData[i][codeIdx]).toUpperCase().trim() === code) {
+            matchedRow = priceData[i];
+            break;
+          }
+        }
+      }
+    }
+
+    if (!matchedRow && typeof MULTI_COMPANIES !== 'undefined') {
+      for (const k of Object.keys(MULTI_COMPANIES)) {
+        const c = MULTI_COMPANIES[k];
+        try {
+          const mcSs = SpreadsheetApp.openById(c.ssId);
+          const mcSheet = mcSs.getSheetByName("編輯價目表") || mcSs.getSheetByName("編號價目表");
+          if (mcSheet) {
+            const mcData = mcSheet.getDataRange().getValues();
+            const mcMap = getHeaderMap(mcData);
+            const mcIdx = mcMap['編號'];
+            if (mcIdx !== undefined) {
+              for (let i = 1; i < mcData.length; i++) {
+                if (String(mcData[i][mcIdx]).toUpperCase().trim() === code) {
+                  matchedRow = mcData[i];
+                  priceMap = mcMap;
+                  effectiveDbSS = mcSs;
+                  break;
+                }
+              }
+            }
+          }
+        } catch (e) {}
+        if (matchedRow) break;
       }
     }
 
@@ -1356,44 +1478,45 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
     }
 
     const messages = [];
-    logFlexDebug(dbSS, userId, code, type, "開始處理", false);
+    logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "開始處理", false);
 
     if (type === 'intro') {
       let introUrl = null;
 
-      // 優先級 1：系列介紹（列 44）→ Google Drive URL 用 wsrv.nl 轉換
-      const introIdx = getColumnByName(priceMap, ['系列介紹']);
-      if (introIdx !== undefined) {
-        let rawUrl = String(matchedRow[introIdx] || '').trim();
-        if (rawUrl && rawUrl.includes("http")) {
-          // Google Drive URL 轉換為 wsrv.nl 代理 URL
-          if (rawUrl.includes("drive.google.com")) {
-            introUrl = "https://wsrv.nl/?url=" + encodeURIComponent(rawUrl) + "&w=600&q=80";
-            logFlexDebug(dbSS, userId, code, type, "✅ L1 系列介紹（Drive→wsrv）", false);
-          } else {
-            introUrl = rawUrl;
-            logFlexDebug(dbSS, userId, code, type, "✅ L1 系列介紹 URL", false);
-          }
+      // 優先級 1：R2_系列介紹（已遷移到 R2 的優先讀取，速度最快）
+      const r2IntroIdx = getColumnByName(priceMap, ['R2_系列介紹']);
+      if (r2IntroIdx !== undefined) {
+        introUrl = String(matchedRow[r2IntroIdx] || '').trim();
+        if (introUrl && introUrl.includes("http")) {
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 R2_系列介紹 URL", false);
         } else {
-          logFlexDebug(dbSS, userId, code, type, "⚠️ L1 系列介紹欄位為空或無效", false);
+          introUrl = null;
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 R2_系列介紹欄位為空或無效", false);
         }
       } else {
-        logFlexDebug(dbSS, userId, code, type, "⚠️ 找不到系列介紹欄位", false);
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 找不到 R2_系列介紹欄位", false);
       }
 
-      // 優先級 2：R2_系列介紹（列 71）— 備用
+      // 優先級 2：系列介紹（列 44）— Drive 備援
       if (!introUrl) {
-        const r2IntroIdx = getColumnByName(priceMap, ['R2_系列介紹']);
-        if (r2IntroIdx !== undefined) {
-          introUrl = String(matchedRow[r2IntroIdx] || '').trim();
-          if (introUrl && introUrl.includes("http")) {
-            logFlexDebug(dbSS, userId, code, type, "✅ L2 R2_系列介紹 URL", false);
+        const introIdx = getColumnByName(priceMap, ['系列介紹']);
+        if (introIdx !== undefined) {
+          let rawUrl = String(matchedRow[introIdx] || '').trim();
+          if (rawUrl && rawUrl.includes("http")) {
+            // 🚩 修正：原本把 /file/d/.../view（HTML 檢視頁面）直接包進 wsrv.nl 代理，
+            // wsrv.nl 抓到的是 HTML 不是圖片，永遠是破圖。改成跟全專案一致，直接轉成穩定的 /thumbnail 格式。
+            if (rawUrl.includes("drive.google.com")) {
+              introUrl = normalizeImageUrlForLine(rawUrl);
+              logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L2 系列介紹（Drive→thumbnail）", false);
+            } else {
+              introUrl = rawUrl;
+              logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L2 系列介紹 URL", false);
+            }
           } else {
-            introUrl = null;
-            logFlexDebug(dbSS, userId, code, type, "⚠️ L2 R2_系列介紹欄位為空或無效", false);
+            logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L2 系列介紹欄位為空或無效", false);
           }
         } else {
-          logFlexDebug(dbSS, userId, code, type, "⚠️ L2 找不到 R2_系列介紹欄位", false);
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L2 找不到系列介紹欄位", false);
         }
       }
 
@@ -1401,7 +1524,7 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         const finalIntroUrl = normalizeImageUrlForLine(introUrl);
         messages.push({ type: "image", originalContentUrl: finalIntroUrl, previewImageUrl: finalIntroUrl });
       } else {
-        logFlexDebug(dbSS, userId, code, type, "❌ 系列介紹欄位都是空的", false);
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "❌ 系列介紹欄位都是空的", false);
         sendPush(userId, "ℹ️ 此品號無系列介紹圖");
         return;
       }
@@ -1421,13 +1544,13 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
               const trimmedUrls = cacheObj.scene.map(u => String(u || '').trim()).filter(u => u && u.includes("http"));
               const uniqueSceneUrls = [...new Set(trimmedUrls)];
               sceneUrls.push(...uniqueSceneUrls);
-              logFlexDebug(dbSS, userId, code, type, "✅ L1 FLEX快取 原 " + cacheObj.scene.length + " → trim後 " + trimmedUrls.length + " → 去重後 " + uniqueSceneUrls.length + " 張圖");
+              logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 FLEX快取 原 " + cacheObj.scene.length + " → trim後 " + trimmedUrls.length + " → 去重後 " + uniqueSceneUrls.length + " 張圖");
             }
           } catch (e) {
-            logFlexDebug(dbSS, userId, code, type, "⚠️ FLEX快取 JSON 解析失敗: " + e);
+            logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ FLEX快取 JSON 解析失敗: " + e);
           }
         } else {
-          logFlexDebug(dbSS, userId, code, type, "⚠️ L1 FLEX快取欄位為空或非 JSON");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 FLEX快取欄位為空或非 JSON");
         }
       }
 
@@ -1447,9 +1570,9 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         const uniqueR2Urls = [...new Set(r2Urls)];
         sceneUrls.push(...uniqueR2Urls);
         if (sceneUrls.length > 0) {
-          logFlexDebug(dbSS, userId, code, type, "✅ L2 R2_實景 原 " + r2Urls.length + " → 去重後 " + uniqueR2Urls.length + " 張圖");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L2 R2_實景 原 " + r2Urls.length + " → 去重後 " + uniqueR2Urls.length + " 張圖");
         } else {
-          logFlexDebug(dbSS, userId, code, type, "⚠️ L2 R2_實景 沒有有效 URL");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L2 R2_實景 沒有有效 URL");
         }
       }
 
@@ -1475,14 +1598,14 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
           }
         }
         if (sceneUrls.length > 0) {
-          logFlexDebug(dbSS, userId, code, type, "✅ L3 實景公式 取得 " + sceneUrls.length + " 張圖");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L3 實景公式 取得 " + sceneUrls.length + " 張圖");
         } else {
-          logFlexDebug(dbSS, userId, code, type, "⚠️ L3 實景公式 沒有有效 URL");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L3 實景公式 沒有有效 URL");
         }
       }
 
       if (sceneUrls.length === 0) {
-        logFlexDebug(dbSS, userId, code, type, "❌ 三層優先級都讀不到 URL", false);
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "❌ 三層優先級都讀不到 URL", false);
         sendPush(userId, "ℹ️ 此品號無實景圖");
         return;
       }
@@ -1494,9 +1617,9 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         return trimmed.split('?')[0];
       }).filter(u => u && u.includes("http"));
       const uniqueFinalUrls = [...new Set(normalizedUrls)];
-      // LINE API 限制：最多 5 張圖片
-      const scenesForPush = uniqueFinalUrls.slice(0, 5);
-      logFlexDebug(dbSS, userId, code, type, "✅ 最終實景圖 原 " + sceneUrls.length + " → 正規化後 " + normalizedUrls.length + " → 去重後 " + uniqueFinalUrls.length + " 張，推送前 " + scenesForPush.length + " 張", false);
+      // LINE reply 最多 5 則訊息；有雲端硬碟連結時留 1 則給「看全部圖片」卡片
+      const scenesForPush = uniqueFinalUrls.slice(0, getDriveFolderUrlFromRow_(matchedRow, priceMap) ? 4 : 5);
+      logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 最終實景圖 原 " + sceneUrls.length + " → 正規化後 " + normalizedUrls.length + " → 去重後 " + uniqueFinalUrls.length + " 張，推送前 " + scenesForPush.length + " 張", false);
       scenesForPush.forEach(url => {
         const finalSceneUrl = normalizeImageUrlForLine(url);
         messages.push({ type: "image", originalContentUrl: finalSceneUrl, previewImageUrl: finalSceneUrl });
@@ -1505,37 +1628,42 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
     } else if (type === 'piece') {
       const pieceUrls = [];
 
-      // 優先級 1：單片 URL（列 61~69）
-      for (let j = 1; j <= 9; j++) {
-        const colIdx = getColumnByName(priceMap, ['單片' + j]);
-        if (colIdx !== undefined) {
-          let url = String(matchedRow[colIdx] || '').trim();
-          if (url && url.includes("http")) {
-            pieceUrls.push(url);
-          }
+      // 優先級 1：R2_單片1~9 + R2_單片連結網址（已遷移到 R2 的優先讀取，速度最快）
+      // 🚩 修正：原本只讀 R2_單片連結網址（1 張），讀到就不再讀單片1~9，導致永遠只有一張
+      const r2PieceCols = [];
+      for (let j = 1; j <= 9; j++) r2PieceCols.push('R2_單片' + j);
+      r2PieceCols.push('R2_單片連結網址');
+      r2PieceCols.forEach(function (colName) {
+        const idx = getColumnByName(priceMap, [colName]);
+        if (idx !== undefined) {
+          const url = String(matchedRow[idx] || '').trim();
+          if (url && url.includes("http") && pieceUrls.indexOf(url) === -1) pieceUrls.push(url);
         }
-      }
-
+      });
       if (pieceUrls.length > 0) {
-        logFlexDebug(dbSS, userId, code, type, "✅ L1 單片 取得 " + pieceUrls.length + " 張圖");
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 R2_單片 取得 " + pieceUrls.length + " 張圖");
+      } else {
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 R2_單片欄位都沒有有效 URL");
       }
 
-      // 優先級 2：R2 單片連結（列 70）—— 備用
+      // 優先級 2：單片 URL（列 61~69）— Drive 備援
       if (pieceUrls.length === 0) {
-        const r2PieceIdx = getColumnByName(priceMap, ['R2_單片連結網址']);
-        if (r2PieceIdx !== undefined) {
-          let url = String(matchedRow[r2PieceIdx] || '').trim();
-          if (url && url.includes("http")) {
-            pieceUrls.push(url);
-            logFlexDebug(dbSS, userId, code, type, "✅ L2 R2_單片連結 取得 1 張圖");
+        for (let j = 1; j <= 9; j++) {
+          const colIdx = getColumnByName(priceMap, ['單片' + j]);
+          if (colIdx !== undefined) {
+            let url = String(matchedRow[colIdx] || '').trim();
+            if (url && url.includes("http")) {
+              pieceUrls.push(url);
+            }
           }
-        } else {
-          logFlexDebug(dbSS, userId, code, type, "⚠️ L2 R2_單片連結欄位不存在");
+        }
+        if (pieceUrls.length > 0) {
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L2 單片 取得 " + pieceUrls.length + " 張圖");
         }
       }
 
       if (pieceUrls.length === 0) {
-        logFlexDebug(dbSS, userId, code, type, "❌ 單片/R2_單片都讀不到 URL", false);
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "❌ 單片/R2_單片都讀不到 URL", false);
         sendPush(userId, "ℹ️ 此品號無模面變化圖");
         return;
       }
@@ -1547,9 +1675,9 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         pieceUrls[i] = pieceUrls[j];
         pieceUrls[j] = temp;
       }
-      // LINE API 限制：最多 5 張圖片
-      const piecesForPush = pieceUrls.slice(0, 5);
-      logFlexDebug(dbSS, userId, code, type, "✅ 最終取得 " + pieceUrls.length + " 張，推送前 " + piecesForPush.length + " 張", false);
+      // LINE reply 最多 5 則訊息；有雲端硬碟連結時留 1 則給「看全部圖片」卡片
+      const piecesForPush = pieceUrls.slice(0, getDriveFolderUrlFromRow_(matchedRow, priceMap) ? 4 : 5);
+      logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 最終取得 " + pieceUrls.length + " 張，推送前 " + piecesForPush.length + " 張", false);
       piecesForPush.forEach(url => {
         const finalUrl = normalizeImageUrlForLine(url);
         messages.push({ type: "image", originalContentUrl: finalUrl, previewImageUrl: finalUrl });
@@ -1590,20 +1718,26 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
       }
     }
 
+    // 實景圖 / 模面變化圖：圖片後面附一張「看全部圖片」雲端硬碟卡片
+    if ((type === 'scene' || type === 'piece') && messages.length > 0 && messages.length < 5) {
+      const driveFolderUrl = getDriveFolderUrlFromRow_(matchedRow, priceMap);
+      if (driveFolderUrl) messages.push(buildAllImagesDriveFlex_(code, driveFolderUrl));
+    }
+
     if (messages.length > 0) {
       const payload = { replyToken: replyToken, messages: messages };
       try {
         const result = lineApiFetch('reply', payload);
-        logFlexDebug(dbSS, userId, code, type, "✅ 推送成功 | " + result, true);
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 推送成功 | " + result, true);
       } catch (replyErr) {
-        logFlexDebug(dbSS, userId, code, type, "❌ 推送異常: " + replyErr, false);
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "❌ 推送異常: " + replyErr, false);
       }
     } else {
-      logFlexDebug(dbSS, userId, code, type, "❌ messages 陣列為空", false);
+      logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "❌ messages 陣列為空", false);
     }
 
   } catch (err) {
-    logFlexDebug(dbSS, userId, code, type, "❌ 異常: " + err, false);
+    logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "❌ 異常: " + err, false);
     sendPush(userId, "❌ 查詢失敗：" + err);
   }
 }
