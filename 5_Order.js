@@ -14,10 +14,11 @@ function handleTemplateRequest(q, auth, priceData, priceMap) {
   const code = cmdMatch ? (cmdMatch[1] || '').toUpperCase() : '';
   const qty  = cmdMatch ? (cmdMatch[2] || '').replace(/\s/g, '') : '';
 
-  // 組 LIFF URL，帶入已知的品號和數量
+  // 組 LIFF URL，帶入已知的品號和數量與防快取參數
   const params = new URLSearchParams_GAS();
   if (code) params.set('code', code);
   if (qty)  params.set('qty',  qty.replace(/[^0-9.]/g, ''));
+  params.set('v', String(Math.floor(Date.now() / 60000)));
   const qs      = params.toString() ? '?' + params.toString() : '';
   const liffUrl = `https://liff.line.me/${CONFIG.LIFF_ID_RESERVE}${qs}`;
 
@@ -1379,6 +1380,39 @@ function logFlexDebug(dbSS, auth, isGroup, userId, code, type, message, isSucces
  * 推送系列介紹、實景圖、模面變化圖（支援優先級讀取）
  * 診斷日誌寫入 LOG 分頁
  */
+/** 取得品項的雲端硬碟資料夾連結（FLEX圖卡欄），沒有則回傳空字串 */
+function getDriveFolderUrlFromRow_(row, priceMap) {
+  const idx = getColumnByName(priceMap, ['FLEX圖卡']);
+  if (idx === undefined) return '';
+  const url = String(row[idx] || '').trim();
+  return url.indexOf('http') === 0 ? url : '';
+}
+
+/** 「看全部圖片」雲端硬碟連結卡片 */
+function buildAllImagesDriveFlex_(code, driveUrl) {
+  return {
+    type: "flex",
+    altText: code + " 看全部圖片",
+    contents: {
+      type: "bubble",
+      size: "kilo",
+      body: {
+        type: "box", layout: "vertical", spacing: "sm",
+        contents: [
+          { type: "text", text: code, weight: "bold", size: "md", wrap: true },
+          { type: "text", text: "LINE 一次只能顯示部分圖片，完整圖片請到雲端硬碟查看", size: "xs", color: "#555555", wrap: true }
+        ]
+      },
+      footer: {
+        type: "box", layout: "vertical",
+        contents: [
+          { type: "button", style: "primary", color: "#8B6914", height: "sm", action: { type: "uri", label: "看全部圖片", uri: driveUrl } }
+        ]
+      }
+    }
+  };
+}
+
 function handleFlexImagePostback(params, event, auth, dbSS) {
   const userId = event.source.userId;
   const replyToken = event.replyToken;  // 用於 REPLY API
@@ -1676,6 +1710,12 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         sendPush(userId, "此品號無原廠目錄");
         return;
       }
+    }
+
+    // 實景圖 / 模面變化圖：圖片後面附一張「看全部圖片」雲端硬碟卡片
+    if ((type === 'scene' || type === 'piece') && messages.length > 0 && messages.length < 5) {
+      const driveFolderUrl = getDriveFolderUrlFromRow_(matchedRow, priceMap);
+      if (driveFolderUrl) messages.push(buildAllImagesDriveFlex_(code, driveFolderUrl));
     }
 
     if (messages.length > 0) {
