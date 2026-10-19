@@ -60,6 +60,183 @@ const SHEET_NAME = {
   CLOUD_RESERVE: '雲端保留'
 };
 
+/** 🚀 建立網頁表單專用 10 分鐘庫存與規格快取快照（讓前端查庫存達成毫秒級零等待） */
+function getFormCatalogSnapshot_() {
+  const cacheKey = "form_catalog_snapshot_v1";
+  const cached = (typeof CacheManager !== 'undefined') ? CacheManager.getLarge(cacheKey) : null;
+  if (cached) return cached;
+
+  const priceData = getPriceSheet();
+  const stockData = getStockSheet();
+  const mainData  = getMainSheet();
+  const priceMap  = getHeaderMap(priceData);
+  const stockMap  = getHeaderMap(stockData);
+  const mainMap   = getHeaderMap(mainData);
+
+  // 1. 一次 O(N) 聚合庫存表與保留單（以「純數字 + 後綴」作為標準索引鍵）
+  const stockByKey = {};
+  const stockBatchesByKey = {};
+  if (stockData && stockData.length > 1 && stockMap['編號'] !== undefined) {
+    const sCodeIdx = stockMap['編號'];
+    const sNameIdx = stockMap['品名'];
+    const sBatchIdx = stockMap['批號'];
+    const sPcsIdx = stockMap['片數'];
+    for (let i = 1; i < stockData.length; i++) {
+      const r = stockData[i];
+      const sCode = String(r[sCodeIdx] || '').toUpperCase().trim();
+      if (!sCode || (sNameIdx !== undefined && String(r[sNameIdx]).includes('小計'))) continue;
+      const sDigits = sCode.replace(/\D/g, '');
+      if (!sDigits) continue;
+      const sSuffixMatch = sCode.match(/-[A-Z0-9]+$/i);
+      const sSuffix = sSuffixMatch ? sSuffixMatch[0].toUpperCase() : "";
+      const key = sDigits + '|' + sSuffix;
+      const keyAny = sDigits + '|*';
+      const pcs = safeN(r[sPcsIdx]);
+      stockByKey[key] = (stockByKey[key] || 0) + pcs;
+      stockByKey[keyAny] = (stockByKey[keyAny] || 0) + pcs;
+      const bName = sBatchIdx !== undefined ? String(r[sBatchIdx] || 'DEFAULT').trim() : 'DEFAULT';
+      if (!stockBatchesByKey[key]) stockBatchesByKey[key] = {};
+      stockBatchesByKey[key][bName] = (stockBatchesByKey[key][bName] || 0) + pcs;
+    }
+  }
+
+  const reservedByKey = {};
+  if (mainData && mainData.length > 1 && mainMap['編號'] !== undefined) {
+    const rCodeIdx = mainMap['編號'];
+    const rQtyIdx = mainMap['數量'];
+    for (let i = 1; i < mainData.length; i++) {
+      const r = mainData[i];
+      const rCode = String(r[rCodeIdx] || '').toUpperCase().trim();
+      if (!rCode || rCode.includes('-期')) continue;
+      const rDigits = rCode.replace(/\D/g, '');
+      if (!rDigits) continue;
+      const rSuffixMatch = rCode.match(/-[A-Z0-9]+$/i);
+      const rSuffix = rSuffixMatch ? rSuffixMatch[0].toUpperCase() : "";
+      const key = rDigits + '|' + rSuffix;
+      const keyAny = rDigits + '|*';
+      const pcs = safeN(r[rQtyIdx]);
+      reservedByKey[key] = (reservedByKey[key] || 0) + pcs;
+      reservedByKey[keyAny] = (reservedByKey[keyAny] || 0) + pcs;
+    }
+  }
+
+  const catalog = {};
+  const sizeCols = ['尺寸(cm)', '尺寸', '表定尺寸', '實際尺寸', '規格'];
+  const imgCols = ['R2_單片連結網址', 'R2_單片1', '單片連結網址', '單片1', '主圖URL'];
+
+  // 預先建立今友利索引（避免在迴圈內重複掃描）
+  const jylMapByCode = {};
+  if (typeof getJinYouLiSheetData_ === 'function') {
+    const jylData = getJinYouLiSheetData_();
+    if (jylData && jylData.length > 1) {
+      const jMap = getHeaderMap(jylData);
+      const iCode = jMap['編號'];
+      const iSeries = jMap['中文系列'] !== undefined ? jMap['中文系列'] : jMap['中文品名系列'];
+      const iSize = jMap['尺寸'];
+      const iStock = jMap['庫存'];
+      const iRes = jMap['保留'];
+      const iAvail = jMap['可用數量'];
+      const iImg = jMap['單片網址連結'];
+      if (iCode !== undefined) {
+        for (let i = 1; i < jylData.length; i++) {
+          const r = jylData[i];
+          const c = String(r[iCode] || '').toUpperCase().trim();
+          if (!c) continue;
+          const stock = iStock !== undefined ? safeN(r[iStock]) : 0;
+          const res = iRes !== undefined ? safeN(r[iRes]) : 0;
+          const avail = iAvail !== undefined ? safeN(r[iAvail]) : Math.max(0, stock - res);
+          jylMapByCode[c] = {
+            code: c,
+            series: iSeries !== undefined ? String(r[iSeries] || '').trim() : '今友利系列',
+            size: iSize !== undefined ? String(r[iSize] || '').trim() : '',
+            stock: stock,
+            reserved: res,
+            availPcs: avail,
+            imgUrl: iImg !== undefined ? String(r[iImg] || '').trim() : ''
+          };
+        }
+      }
+    }
+  }
+
+  if (priceData && priceData.length > 1 && priceMap['編號'] !== undefined) {
+    for (let i = 1; i < priceData.length; i++) {
+      const row = priceData[i];
+      const code = String(row[priceMap['編號']] || '').toUpperCase().trim();
+      if (!code) continue;
+
+      const digits = code.replace(/\D/g, '');
+      const suffixMatch = code.match(/-[A-Z0-9]+$/i);
+      const suffix = suffixMatch ? suffixMatch[0].toUpperCase() : "";
+      const key = digits + '|' + suffix;
+
+      let total = stockByKey[key] || 0;
+      let reserved = reservedByKey[key] || 0;
+      let imgUrl = '';
+      for (const col of imgCols) {
+        if (priceMap[col] !== undefined) {
+          const v = String(row[priceMap[col]] || '').trim();
+          if (v && v.includes('http')) { imgUrl = v; break; }
+        }
+      }
+
+      const jInv = jylMapByCode[code];
+      if (jInv) {
+        total += (jInv.stock || 0);
+        reserved += (jInv.reserved || 0);
+        if (!imgUrl && jInv.imgUrl) imgUrl = jInv.imgUrl;
+      }
+
+      let sizeName = '';
+      for (const col of sizeCols) {
+        if (priceMap[col] !== undefined) {
+          const v = String(row[priceMap[col]] || '').trim();
+          if (v) { sizeName = v; break; }
+        }
+      }
+
+      const seriesName = priceMap['中文系列'] !== undefined ? String(row[priceMap['中文系列']] || '').trim() : '';
+      const colorName = priceMap['顏色'] !== undefined ? String(row[priceMap['顏色']] || '').trim() : '';
+      const pcsPerBox = (typeof safeN === 'function') ? (safeN(row[priceMap['片/箱']]) || safeN(row[priceMap['P/C']]) || 1) : 1;
+      const ratio = (typeof getPcsPerPingFallback_ === 'function') ? getPcsPerPingFallback_(row, priceMap) : 1;
+      const avail = Math.max(0, total - reserved);
+
+      catalog[code] = {
+        code: code,
+        series: seriesName,
+        color: colorName,
+        size: sizeName,
+        pcsPerBox: pcsPerBox,
+        ratio: Math.round(ratio * 100) / 100,
+        imgUrl: imgUrl,
+        availPcs: avail
+      };
+    }
+  }
+
+  // 補充今友利獨立品號
+  Object.keys(jylMapByCode).forEach(c => {
+    if (!catalog[c]) {
+      const j = jylMapByCode[c];
+      catalog[c] = {
+        code: c,
+        series: j.series,
+        color: '',
+        size: j.size,
+        pcsPerBox: 1,
+        ratio: 1,
+        imgUrl: j.imgUrl,
+        availPcs: j.availPcs
+      };
+    }
+  });
+
+  if (typeof CacheManager !== 'undefined' && Object.keys(catalog).length > 0) {
+    CacheManager.putLarge(cacheKey, catalog, 600); // 快取 10 分鐘 (600 秒)
+  }
+  return catalog;
+}
+
 // ==========================================
 // 🌐 網頁表單 GET 端點 (doGet) — LIFF 使用
 // ==========================================
@@ -94,12 +271,19 @@ function doGet(e) {
       }
       if (!salesName) salesName = '客服';
 
+      let cachedCatalog = null;
+      try {
+        cachedCatalog = (typeof CacheManager !== 'undefined') ? CacheManager.getLarge("form_catalog_snapshot_v1") : null;
+      } catch (e) {}
+
       return json({
         success: true,
         company: companyName,
         sales:   salesName,
         level:   auth.level,
-        name:    auth.name
+        name:    auth.name,
+        catalog: cachedCatalog || null,
+        codes:   cachedCatalog ? Object.keys(cachedCatalog) : null
       });
     }
 
@@ -141,36 +325,14 @@ function doGet(e) {
       return json({ success: true, list: list });
     }
 
-    // ── 取得所有標準編號清單（包含今友利短編號，供表單 autocomplete）──
+    // ── 取得所有標準編號清單與 10 分鐘庫存快取快照（供表單 autocomplete 與即時查庫存）──
     if (action === 'getAllProductCodes') {
-      const userId = (params.userId || '').trim();
-      const auth = checkAuth(userId, wlData, wlMap);
-      if (!auth.allowed) return json({ success: false, error: '無權限' });
-
-      let priceData = getPriceSheet();
-      const priceMap  = getHeaderMap(priceData);
-      if (typeof filterPriceDataForUser === 'function') {
-        priceData = filterPriceDataForUser(priceData, priceMap, auth);
-      }
-      const codes = priceData.slice(1).map(r => String(r[priceMap['編號']] || '').toUpperCase().trim()).filter(Boolean);
-      
-      // 聯查今友利編號
-      if (typeof getJinYouLiSheetData_ === 'function') {
-        const jylData = getJinYouLiSheetData_();
-        if (jylData && jylData.length > 1) {
-          const jMap = getHeaderMap(jylData);
-          const iCode = jMap['編號'];
-          if (iCode !== undefined) {
-            jylData.slice(1).forEach(r => {
-              const c = String(r[iCode] || '').toUpperCase().trim();
-              if (c) codes.push(c);
-            });
-          }
-        }
-      }
-
-      const uniqueCodes = [...new Set(codes)];
-      return json({ success: true, codes: uniqueCodes });
+      let catalog = {};
+      try {
+        catalog = getFormCatalogSnapshot_() || {};
+      } catch (e) {}
+      const uniqueCodes = Object.keys(catalog);
+      return json({ success: true, codes: uniqueCodes, catalog: catalog, cachedAt: Date.now() });
     }
 
     // ── 全行為日誌寫入 API (logUserAction) ──
@@ -279,7 +441,7 @@ function doGet(e) {
         });
       }
 
-      // 高雅瓷主資料處理
+      // 高雅瓷主資料處理（R2 優先，並相容多種尺寸欄位標題）
       let imgUrl = '';
       let seriesName = '';
       let colorName = '';
@@ -288,10 +450,22 @@ function doGet(e) {
       let pcsPerBox = 1;
 
       if (matchedRow) {
-        if (priceMap['單片連結網址'] !== undefined) imgUrl = String(matchedRow[priceMap['單片連結網址']] || '').trim();
+        const imgCols = ['R2_單片連結網址', 'R2_單片1', '單片連結網址', '單片1', '主圖URL'];
+        for (const col of imgCols) {
+          if (priceMap[col] !== undefined) {
+            const v = String(matchedRow[priceMap[col]] || '').trim();
+            if (v && v.includes('http')) { imgUrl = v; break; }
+          }
+        }
         if (priceMap['中文系列'] !== undefined) seriesName = String(matchedRow[priceMap['中文系列']] || '').trim();
         if (priceMap['顏色'] !== undefined) colorName = String(matchedRow[priceMap['顏色']] || '').trim();
-        if (priceMap['尺寸(cm)'] !== undefined) sizeName = String(matchedRow[priceMap['尺寸(cm)']] || '').trim();
+        const sizeCols = ['尺寸(cm)', '尺寸', '表定尺寸', '實際尺寸', '規格'];
+        for (const col of sizeCols) {
+          if (priceMap[col] !== undefined) {
+            const v = String(matchedRow[priceMap[col]] || '').trim();
+            if (v) { sizeName = v; break; }
+          }
+        }
         if (priceMap['重量'] !== undefined) weightName = String(matchedRow[priceMap['重量']] || '').trim();
         if (!weightName && priceMap['kg/箱'] !== undefined) weightName = String(matchedRow[priceMap['kg/箱']] || '').trim();
         if (!weightName && priceMap['KG'] !== undefined) weightName = String(matchedRow[priceMap['KG']] || '').trim();
@@ -382,22 +556,10 @@ function doGet(e) {
         isAgent: isAgentUser
       };
 
-      // 行為 Log 寫入
-      if (typeof writeEnhancedLog === 'function') {
-        const salesName = (auth.salesID ? String(auth.salesID) : '');
-        writeEnhancedLog(getSpreadsheetInstance(), "WEB_FORM", userId, auth.name, auth.level, "CHECK_STOCK", canonicalCode, auth.email, {
-          productCode: canonicalCode,
-          reqQty: `${qty}${unit}`,
-          availPcs: Math.max(0, avail),
-          stockStatus: avail >= reqPcs ? 'OK' : 'SHORTAGE',
-          salesRepName: salesName
-        });
-      }
-
-      if (avail >= reqPcs) return json({ status: 'ok', ...resPayload });
-      if (avail <= 0) return json({ status: 'none', ...resPayload });
-      if (gapRatio <= 0.5) return json({ status: 'check', ...resPayload });
-      return json({ status: 'none', ...resPayload });
+      if (avail >= reqPcs) return json({ ...resPayload, status: 'ok' });
+      if (avail <= 0) return json({ ...resPayload, status: 'none' });
+      if (gapRatio <= 0.5) return json({ ...resPayload, status: 'check' });
+      return json({ ...resPayload, status: 'none' });
     }
 
     // ── Email 權限核准按鈕 ──

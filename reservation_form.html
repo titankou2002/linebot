@@ -436,56 +436,100 @@
     position: absolute;
     top: 100%;
     left: 0;
+    min-width: min(360px, 86vw);
     width: 100%;
-    max-height: 220px;
+    max-height: 260px;
     overflow-y: auto;
     background: var(--bg2);
     border: 1.5px solid #e1306c;
     border-radius: 10px;
     z-index: 1000;
     display: none;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.6), 0 8px 10px -6px rgba(0,0,0,0.6);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.4);
     margin-top: 5px;
   }
   .sug-item {
-    padding: 11px 14px;
+    padding: 10px 14px;
     font-size: 13.5px;
     color: var(--text);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background 0.15s ease;
     text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-  .sug-item:hover {
-    background: rgba(225,48,108,0.18);
-    color: #fff;
+  .sug-code {
+    font-weight: 800;
+    font-size: 14.5px;
+    color: var(--val-color);
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+  .sug-meta {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 500;
+    flex: 1;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sug-item:hover, .sug-item:active {
+    background: rgba(225,48,108,0.14);
+  }
+  .sug-item:hover .sug-code {
+    color: #e1306c;
   }
   .sug-item:not(:last-child) {
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--border);
   }
 
-  /* Single Tile image confirming preview styles */
+  .product-meta {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #c13584;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-weight: 600;
+    flex-wrap: wrap;
+  }
+  @media (prefers-color-scheme: dark) {
+    .product-meta {
+      color: #fcc2d7;
+    }
+  }
+
+  /* Single Tile image confirming preview styles (preserve actual tile aspect ratio) */
   .tile-img-container {
     margin-top: 8px;
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(128,128,128,0.05);
     padding: 8px 12px;
     border-radius: 8px;
-    border: 1px dashed rgba(255,255,255,0.1);
+    border: 1px dashed var(--border);
   }
   .tile-preview {
-    width: 50px;
-    height: 50px;
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.15);
-    object-fit: cover;
+    width: auto;
+    height: auto;
+    max-width: 150px;
+    max-height: 92px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    object-fit: contain;
+    display: block;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .tile-preview:hover {
-    transform: scale(1.08);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   }
 
   /* Zoom image overlay style */
@@ -745,7 +789,7 @@
 const CONFIG = {
   GAS_API : "https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7NvkB2oNGVMfXwJRJvMZcCR0GYhpNlIbTtEwqy_G4pVJ5N-x/exec",
   LIFF_ID : "2007666611-fbGOItDt",
-  CATALOG_CACHE_KEY: "gyc_form_catalog_cache_v1",
+  CATALOG_CACHE_KEY: "gyc_form_catalog_cache_v2",
   CATALOG_TTL_MS: 10 * 60 * 1000 // 每 10 分鐘更新一次快取
 };
 
@@ -828,6 +872,17 @@ async function fetchUserInfo(userId, retries = 3) {
       const data = await res.json();
       if (data.success) {
         authInfo = { userId, ...data };
+        if (data.catalog && typeof data.catalog === 'object') {
+          productCatalog = data.catalog;
+          productCodes = Array.isArray(data.codes) ? data.codes : Object.keys(data.catalog);
+          try {
+            localStorage.setItem(CONFIG.CATALOG_CACHE_KEY, JSON.stringify({
+              codes: productCodes,
+              catalog: productCatalog,
+              savedAt: Date.now()
+            }));
+          } catch (e) {}
+        }
         initForm(getUrlParams());
         return;
       } else {
@@ -858,7 +913,7 @@ function initForm({ code, qty }) {
 
   // 新增第一個品項（URL 有帶入編號才鎖定，否則可自由輸入）
   addItem(code, qty, !!code);
-  if (code && qty) {
+  if (code) {
     checkStock(1);
   }
 
@@ -888,16 +943,20 @@ function loadCatalogFromLocalCache() {
 }
 
 async function fetchProductCodes(forceRefresh = false) {
-  if (!forceRefresh && productCatalog && productCodes.length > 0) {
+  if (!forceRefresh && productCatalog && Object.keys(productCatalog).length > 0 && productCodes.length > 0) {
     return;
   }
   try {
-    const url = `${CONFIG.GAS_API}?action=getAllProductCodes&userId=${encodeURIComponent(authInfo.userId)}`;
+    const url = `${CONFIG.GAS_API}?action=getAllProductCodes&userId=${encodeURIComponent(authInfo?.userId || 'mock')}`;
     const res = await fetch(url);
     const data = await res.json();
     if (data.success) {
-      if (data.codes) productCodes = data.codes;
-      if (data.catalog) productCatalog = data.catalog;
+      if (data.catalog && typeof data.catalog === 'object') {
+        productCatalog = data.catalog;
+        productCodes = Array.isArray(data.codes) && data.codes.length > 0 ? data.codes : Object.keys(data.catalog);
+      } else if (data.codes) {
+        productCodes = data.codes;
+      }
       try {
         localStorage.setItem(CONFIG.CATALOG_CACHE_KEY, JSON.stringify({
           codes: productCodes,
@@ -905,49 +964,118 @@ async function fetchProductCodes(forceRefresh = false) {
           savedAt: Date.now()
         }));
       } catch (e) {}
+
+      // 若使用者已經在輸入框輸入了文字，快取載入完成後立即觸發提示與預覽更新
+      document.querySelectorAll('.pi').forEach(el => {
+        const idx = Number(el.dataset.idx);
+        const inp = document.getElementById('code_' + idx);
+        if (inp && inp.value.trim()) {
+          if (document.activeElement === inp) {
+            handleCodeInput(idx);
+          } else {
+            checkStock(idx);
+          }
+        }
+      });
     }
   } catch (e) {
     console.error("無法載入編號與庫存快取:", e);
   }
 }
 
-// ── 從 10 分鐘快取快照中高速比對編號（支援無連字號、純數字比對）──
-function findInLocalCatalog(rawInput) {
-  if (!productCatalog || !rawInput) return null;
-  const code = String(rawInput).trim().toUpperCase();
-  if (productCatalog[code]) return productCatalog[code];
+function normalizeCodeStr(str) {
+  return String(str || '')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .replace(/[－—–]/g, '-')
+    .trim()
+    .toUpperCase();
+}
 
-  const cleanInput = code.replace(/[\s-]/g, '');
-  const inputDigits = code.replace(/\D/g, '');
-  const inputSuffixMatch = code.match(/-[A-Z0-9]+$/i);
-  const inputSuffix = inputSuffixMatch ? inputSuffixMatch[0].toUpperCase() : "";
+// ── 智慧搜尋目錄（支援輸入數字如 61250 找 AA61250、輸入英文如 AA 找所有 AA 開頭含系列與顏色）──
+function searchCatalogMatches(rawVal) {
+  const val = normalizeCodeStr(rawVal);
+  if (!val) return [];
+  const valClean = val.replace(/[\s-]/g, '');
+  const valDigits = val.replace(/\D/g, '');
+  const valSuffixMatch = val.match(/-[A-Z0-9]+$/i);
+  const valSuffix = valSuffixMatch ? valSuffixMatch[0].toUpperCase() : '';
 
-  const keys = Object.keys(productCatalog);
-  for (let i = 0; i < keys.length; i++) {
-    const dbCode = keys[i];
-    if (dbCode.replace(/[\s-]/g, '') === cleanInput) {
-      return productCatalog[dbCode];
+  const allCodes = (productCatalog && Object.keys(productCatalog).length > 0)
+    ? Object.keys(productCatalog)
+    : productCodes;
+
+  const scored = [];
+  for (let i = 0; i < allCodes.length; i++) {
+    const c = allCodes[i];
+    const meta = (productCatalog && productCatalog[c]) ? productCatalog[c] : { code: c };
+    const cClean = c.replace(/[\s-]/g, '');
+    const cDigits = c.replace(/\D/g, '');
+    const cSuffixMatch = c.match(/-[A-Z0-9]+$/i);
+    const cSuffix = cSuffixMatch ? cSuffixMatch[0].toUpperCase() : '';
+
+    let score = 0;
+    if (c === val || cClean === valClean) {
+      score = 100;
+    } else if (valDigits.length >= 3 && cDigits === valDigits && (!valSuffix || valSuffix === cSuffix)) {
+      score = 95;
+    } else if (c.startsWith(val) || cClean.startsWith(valClean)) {
+      score = 88;
+    } else if (valDigits.length >= 2 && cDigits.startsWith(valDigits) && (!valSuffix || valSuffix === cSuffix)) {
+      score = 78;
+    } else if (c.includes(val) || cClean.includes(valClean)) {
+      score = 68;
+    } else if (valDigits.length >= 2 && cDigits.includes(valDigits)) {
+      score = 58;
+    } else if (
+      (meta.series && String(meta.series).toUpperCase().includes(val)) ||
+      (meta.color && String(meta.color).toUpperCase().includes(val))
+    ) {
+      score = 48;
+    }
+
+    if (score > 0) {
+      scored.push({
+        score,
+        code: c,
+        series: meta.series || '',
+        color: meta.color || '',
+        size: meta.size || '',
+        imgUrl: meta.imgUrl || '',
+        availPcs: meta.availPcs,
+        ratio: meta.ratio || 1,
+        pcsPerBox: meta.pcsPerBox || 1
+      });
     }
   }
-  if (inputDigits && inputDigits.length >= 3) {
-    for (let i = 0; i < keys.length; i++) {
-      const dbCode = keys[i];
-      const dbDigits = dbCode.replace(/\D/g, '');
-      const dbSuffixMatch = dbCode.match(/-[A-Z0-9]+$/i);
-      const dbSuffix = dbSuffixMatch ? dbSuffixMatch[0].toUpperCase() : "";
-      if (dbDigits === inputDigits || dbDigits.indexOf(inputDigits) !== -1) {
-        if (!inputSuffix || inputSuffix === dbSuffix) {
-          return productCatalog[dbCode];
-        }
-      }
-    }
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.code.localeCompare(b.code);
+  });
+
+  return scored.slice(0, 20);
+}
+
+// ── 從 10 分鐘快取快照中高速比對編號（支援無連字號、純數字如 61250 比對 AA61250、或前綴預覽）──
+function findInLocalCatalog(rawInput) {
+  if (!productCatalog || !rawInput) return null;
+  const code = normalizeCodeStr(rawInput);
+  if (productCatalog[code]) return productCatalog[code];
+
+  const matches = searchCatalogMatches(code);
+  if (matches.length > 0) {
+    return productCatalog[matches[0].code] || matches[0];
   }
   return null;
 }
 
+const autoCompleteTimers = {};
 function handleCodeInput(idx) {
-  const val = (document.getElementById('code_' + idx)?.value || '').trim().toUpperCase();
+  const input = document.getElementById('code_' + idx);
+  const rawVal = input?.value || '';
+  const val = normalizeCodeStr(rawVal);
   const dropdown = document.getElementById('sug_' + idx);
+  clearTimeout(autoCompleteTimers[idx]);
   if (!dropdown) return;
 
   if (!val) {
@@ -956,13 +1084,7 @@ function handleCodeInput(idx) {
     return;
   }
 
-  const valDigits = val.replace(/\D/g, '');
-  const matches = productCodes.filter(c => {
-    if (c.includes(val)) return true;
-    if (valDigits.length >= 3 && c.replace(/\D/g, '').includes(valDigits)) return true;
-    return false;
-  }).slice(0, 6);
-
+  const matches = searchCatalogMatches(val);
   if (matches.length === 0) {
     dropdown.style.display = 'none';
     scheduleCheck(idx);
@@ -973,18 +1095,40 @@ function handleCodeInput(idx) {
   matches.forEach(m => {
     const item = document.createElement('div');
     item.className = 'sug-item';
-    item.textContent = m;
-    item.onmousedown = () => {
-      selectCode(idx, m);
+    const metaParts = [];
+    if (m.series) metaParts.push(`系列：${m.series}`);
+    if (m.color)  metaParts.push(`顏色：${m.color}`);
+    if (m.size)   metaParts.push(m.size);
+
+    item.innerHTML = `
+      <span class="sug-code">${m.code}</span>
+      <span class="sug-meta">${metaParts.join(' · ')}</span>
+    `;
+    item.onmousedown = (e) => {
+      e.preventDefault();
+      selectCode(idx, m.code);
     };
     dropdown.appendChild(item);
   });
 
   dropdown.style.display = 'block';
+
+  // 當輸入純數字（例如 61250）且唯一精確命中某個型號的数字部分（如 AA61250）時，自動補全為完整編號
+  const valDigits = val.replace(/\D/g, '');
+  const exactDigitMatches = matches.filter(m => m.score >= 95);
+  if (valDigits.length >= 4 && exactDigitMatches.length === 1 && exactDigitMatches[0].code !== val) {
+    autoCompleteTimers[idx] = setTimeout(() => {
+      if (input && normalizeCodeStr(input.value) === val) {
+        input.value = exactDigitMatches[0].code;
+      }
+    }, 350);
+  }
+
   scheduleCheck(idx);
 }
 
 function selectCode(idx, val) {
+  clearTimeout(autoCompleteTimers[idx]);
   const input = document.getElementById('code_' + idx);
   if (input) {
     input.value = val;
@@ -1000,7 +1144,17 @@ function handleCodeBlur(idx) {
   setTimeout(() => {
     const dropdown = document.getElementById('sug_' + idx);
     if (dropdown) dropdown.style.display = 'none';
-  }, 200);
+    const input = document.getElementById('code_' + idx);
+    const val = normalizeCodeStr(input?.value || '');
+    if (val && input) {
+      const matches = searchCatalogMatches(val);
+      // 離開欄位時，若輸入數字（如 61250）有明確對應的編號（如 AA61250），自動帶入標準編號
+      if (matches.length === 1 || (matches.length > 0 && matches[0].score >= 95)) {
+        input.value = matches[0].code;
+        checkStock(idx);
+      }
+    }
+  }, 180);
 }
 
 // ── 品項管理（緊湊雙排防擠壓：第一排品項+編號+刪除，第二排寬版數量+單位+庫存狀態）──
@@ -1022,7 +1176,7 @@ function addItem(code='', qty='', fromLine=false) {
       <div class="pi-inline-group fc">
         <span class="pi-inline-lbl">編號</span>
         <input type="text" id="code_${idx}" value="${code}" autocomplete="off"
-          placeholder="輸入編號查詢" ${readonlyAttr}
+          placeholder="輸入編號查詢 (例: 61250 或 AA)" ${readonlyAttr}
           oninput="handleCodeInput(${idx}); saveDraftDebounced();"
           onfocus="handleCodeInput(${idx})"
           onblur="handleCodeBlur(${idx})" />
@@ -1078,14 +1232,14 @@ function updateCnt() {
   document.getElementById('itemCnt').textContent = itemCount + ' / ' + MAX_ITEMS;
 }
 
-// ── 即時庫存查詢（優先命中 10 分鐘本地快取達成 0ms 秒回，未命中才打後端 API）──
+// ── 即時庫存查詢（優先命中 10 分鐘本地快取達成 0ms 秒回，未填數量時亦即時預覽編號/系列/顏色/尺寸/單片圖）──
 const checkTimers = {};
 function scheduleCheck(idx) {
   clearTimeout(checkTimers[idx]);
-  checkTimers[idx] = setTimeout(() => checkStock(idx), 200);
+  checkTimers[idx] = setTimeout(() => checkStock(idx), 150);
 }
 
-function renderStockResult(idx, codeInput, code, data) {
+function renderStockResult(idx, codeInput, code, data, hasQty = true) {
   const badge  = document.getElementById('badge_' + idx);
   const detail = document.getElementById('detail_' + idx);
   const item   = document.querySelector(`.pi[data-idx="${idx}"]`);
@@ -1094,19 +1248,23 @@ function renderStockResult(idx, codeInput, code, data) {
   item.className = 'pi';
   detail.innerHTML = '';
 
-  // 自動校正/補全為標準型號 (例如 36033 -> RT36033)
-  if (data.code && data.code !== code && codeInput && document.activeElement !== codeInput) {
-    codeInput.value = data.code;
+  // 自動校正/補全為標準型號 (例如 61250 -> AA61250)
+  if (data.code && data.code !== code && codeInput) {
+    const codeDigits = code.replace(/\D/g, '');
+    if (document.activeElement !== codeInput || (codeDigits.length >= 4 && data.code.replace(/\D/g, '') === codeDigits)) {
+      codeInput.value = data.code;
+    }
   }
 
   let metaHtml = '';
-  if (data.series || data.color || data.size) {
+  if (data.code || data.series || data.color || data.size) {
     const parts = [];
+    if (data.code)   parts.push(`編號：${data.code}`);
     if (data.series) parts.push(`系列：${data.series}`);
     if (data.color)  parts.push(`顏色：${data.color}`);
     if (data.size)   parts.push(`尺寸：${data.size}`);
     metaHtml = `
-      <div class="product-meta" style="margin-top:8px;font-size:13px;color:#fcc2d7;display:flex;gap:6px;align-items:center;font-weight:500;flex-wrap:wrap;">
+      <div class="product-meta">
         ${SVG_ICONS.tag}
         <span>${parts.join(' | ')}</span>
       </div>
@@ -1123,12 +1281,26 @@ function renderStockResult(idx, codeInput, code, data) {
     imgHtml = `
       <div class="tile-img-container">
         <img src="${srcUrl}" class="tile-preview" onclick="zoomImage('${srcUrl}')" title="點擊放大確認單片樣品圖" />
-        <span style="font-size:11.5px;color:var(--muted)">單片樣品圖確認 (點擊可放大)</span>
+        <span style="font-size:11.5px;color:var(--muted)">單片樣品圖確認 (實際比例 · 點擊可放大)</span>
       </div>
     `;
   }
 
   const contentHtml = metaHtml + imgHtml;
+
+  if (!hasQty) {
+    if (data.availPcs !== undefined && data.availPcs <= 0) {
+      item.classList.add('none');
+      badge.className = 'sbadge r';
+      badge.innerHTML = `${SVG_ICONS.none}<span>目前無庫存</span>`;
+      detail.innerHTML = contentHtml + buildArrivalField(idx, 'none');
+    } else {
+      badge.className = 'sbadge gr';
+      badge.textContent = '- 請填數量';
+      detail.innerHTML = contentHtml;
+    }
+    return;
+  }
 
   if (data.status === 'ok' || data.status === 'mix') {
     item.classList.add('ok');
@@ -1150,26 +1322,41 @@ function renderStockResult(idx, codeInput, code, data) {
 
 async function checkStock(idx) {
   const codeInput = document.getElementById('code_' + idx);
-  const code = (codeInput?.value || '').trim();
+  const code = normalizeCodeStr(codeInput?.value || '');
   const qty  = parseFloat(document.getElementById('qty_' + idx)?.value || '0');
   const unit = document.getElementById('unit_' + idx)?.value || '片';
-  if (!code || !qty || qty <= 0) return;
+  const hasQty = !!(qty && qty > 0);
+
+  if (!code) {
+    const badge  = document.getElementById('badge_' + idx);
+    const detail = document.getElementById('detail_' + idx);
+    const item   = document.querySelector(`.pi[data-idx="${idx}"]`);
+    if (item) item.className = 'pi';
+    if (detail) detail.innerHTML = '';
+    if (badge) {
+      badge.className = 'sbadge gr';
+      badge.textContent = '- 尚未查詢';
+    }
+    return;
+  }
 
   // 1. 優先查詢 10 分鐘本地快取快照（0ms 零延遲）
   const cachedItem = findInLocalCatalog(code);
   if (cachedItem) {
-    let reqPcs = qty;
-    if (unit === '坪' || unit === 'p') {
-      reqPcs = qty * (cachedItem.ratio || 1);
-    } else if (unit === '箱' || unit === '包') {
-      reqPcs = qty * (cachedItem.pcsPerBox || 1);
-    }
-    const avail = cachedItem.availPcs || 0;
-    const gap = reqPcs - avail;
-    const gapRatio = reqPcs > 0 ? gap / reqPcs : 0;
     let status = 'none';
-    if (avail >= reqPcs) status = 'ok';
-    else if (avail > 0 && gapRatio <= 0.5) status = 'check';
+    if (hasQty) {
+      let reqPcs = qty;
+      if (unit === '坪' || unit === 'p') {
+        reqPcs = qty * (cachedItem.ratio || 1);
+      } else if (unit === '箱' || unit === '包') {
+        reqPcs = qty * (cachedItem.pcsPerBox || 1);
+      }
+      const avail = cachedItem.availPcs || 0;
+      const gap = reqPcs - avail;
+      const gapRatio = reqPcs > 0 ? gap / reqPcs : 0;
+      if (avail >= reqPcs) status = 'ok';
+      else if (avail > 0 && gapRatio <= 0.5) status = 'check';
+    }
 
     renderStockResult(idx, codeInput, code, {
       code: cachedItem.code,
@@ -1177,25 +1364,31 @@ async function checkStock(idx) {
       color: cachedItem.color,
       size: cachedItem.size,
       imgUrl: cachedItem.imgUrl,
+      availPcs: cachedItem.availPcs,
       status: status
-    });
+    }, hasQty);
+    return;
+  }
+
+  // 若只輸入了 1~2 個英文字母且本地快取尚未載入完成，避免頻繁打後端，等快取載入即可
+  if (!hasQty && code.replace(/\D/g, '').length < 3 && code.length < 3) {
     return;
   }
 
   // 2. 本地快取未命中時，向 GAS 後端查詢（後端同樣具備 10 分鐘快取）
   const badge = document.getElementById('badge_' + idx);
-  if (badge) {
+  if (badge && hasQty) {
     badge.className = 'sbadge gr';
     badge.innerHTML = `${SVG_ICONS.spinner}<span>查詢中...</span>`;
   }
 
   try {
-    const url  = `${CONFIG.GAS_API}?action=checkStockForForm&code=${encodeURIComponent(code)}&qty=${qty}&unit=${encodeURIComponent(unit)}&userId=${encodeURIComponent(authInfo.userId)}`;
+    const url  = `${CONFIG.GAS_API}?action=checkStockForForm&code=${encodeURIComponent(code)}&qty=${hasQty ? qty : 1}&unit=${encodeURIComponent(unit)}&userId=${encodeURIComponent(authInfo?.userId || 'mock')}`;
     const res  = await fetch(url);
     const data = await res.json();
-    renderStockResult(idx, codeInput, code, data);
+    renderStockResult(idx, codeInput, code, data, hasQty);
   } catch (e) {
-    if (badge) {
+    if (badge && hasQty) {
       badge.className = 'sbadge gr';
       badge.textContent = '- 查詢失敗';
     }
