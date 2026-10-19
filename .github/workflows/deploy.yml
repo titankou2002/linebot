@@ -14,14 +14,14 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
 
-      - name: 🚀 Sync LINE Reservation Form to /public_html/line/
+      - name: 🚀 Sync LINE Reservation Form to /line/
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          server-dir: /public_html/line/
+          server-dir: /line/
           exclude: |
             .git/**
             .github/**
@@ -30,14 +30,14 @@ jobs:
             *.json
             *.md
 
-      - name: 🚀 Sync TTS Logistics Tracking to /public_html/tts/
+      - name: 🚀 Sync TTS Logistics Tracking to /tts/
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          server-dir: /public_html/tts/
+          server-dir: /tts/
           exclude: |
             .git/**
             .github/**
