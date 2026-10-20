@@ -19,6 +19,7 @@
 !GaoYaCi_Bot_Extension.js
 !reservation_form.html
 !*.html
+dm_demo.html
 
 # Drive 同步衝突複本／線上沒有的檔案，不推
 * [0-9].*
