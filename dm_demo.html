@@ -1465,6 +1465,10 @@
     </div>
 
     <div class="top-controls">
+      <button type="button" class="btn-act staff-only btn-with-svg" onclick="openHelpModal()" id="btnHelpGuide">
+        <span class="btn-ico-holder"></span><span>操作說明</span>
+      </button>
+
       <button type="button" class="mob-filter-toggle staff-only" onclick="toggleMobileFilter()">
         <span id="mobFilterBtnTxt">功能與版型</span>
         <span id="mobFilterIcon"></span>
@@ -1797,6 +1801,54 @@
   </div>
 </div>
 
+<!-- 操作說明 Modal -->
+<div class="modal-backdrop" id="helpGuideModal" onclick="if(event.target===this)closeHelpModal()">
+  <div class="modal-card" style="max-width:680px;max-height:86vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+    <div class="modal-head">
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;font-size:16px;">
+        <span id="helpModalIcon"></span>Ebook 電子型錄產生器 · 操作指南
+      </div>
+      <button type="button" class="modal-close" onclick="closeHelpModal()" id="btnHelpModalClose"></button>
+    </div>
+    
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.65;">
+      <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">1. 挑選系列與多頁翻頁</div>
+        <p>• <b>挑選系列</b>：在左側第 1 區搜尋系列名（如：沙丘、波特蘭）或點擊「隨機換一個系列」。</p>
+        <p>• <b>尺寸與風格</b>：切換「尺寸 × 風格」可依尺寸（如 60×120）篩選全品項，若超過單頁片數會自動分頁，上方可點擊「◀ 上一頁 / 下一頁 ▶」平滑翻頁。</p>
+      </div>
+
+      <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">2. 磁磚卡片搬移與順序自訂</div>
+        <p>• <b>滑鼠拖曳換位</b>：滑鼠直接按住任意磁磚卡片拖拉至目標位置放開，即可即時調換順序！</p>
+        <p>• <b>快捷換位按鈕</b>：懸停卡片右上角，會浮現操作條：點 <b>◀ 前移</b>、<b>▶ 後移</b> 即可精準換位；點 <b>× 刪除</b> 可隱藏此款。</p>
+      </div>
+
+      <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">3. 文字修改與自訂排版</div>
+        <p>• <b>直接點擊編輯</b>：畫報上的主標題、英文系列名、Slogan 短語皆可直接點擊打字修改。</p>
+        <p>• <b>浮動文字編輯器</b>：用滑鼠選取任何字體，會自動浮現泡泡工具列，可自訂粗體、斜體、字體大小與文字顏色。</p>
+        <p>• <b>實景更換與上傳</b>：點擊實景圖上的「換圖」可從圖庫挑選，或從手機/電腦上傳新完工照！</p>
+      </div>
+
+      <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">4. 自動記憶功能（免手動存檔）</div>
+        <p>• 系統會為您<b>自動記憶</b>每個系列排版過的花色順序、自訂文案、挑選的實景照片、版型與微調開關。下次再開啟同系列時，會自動還原您調好的樣式！</p>
+      </div>
+
+      <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">5. 分享給客戶與匯出 PDF</div>
+        <p>• <b>傳給客戶看</b>：點左側「複製型錄分享連結」，客戶點開會進入純淨的「客戶唯讀視角」（隱藏所有編輯面板與按鈕）。</p>
+        <p>• <b>一鍵打包全型錄 PDF</b>：在尺寸模式點擊「一鍵打包本尺寸全型錄 PDF」，系統會依序排版每一頁，匯出成完整的雙頁跨頁雜誌 PDF！</p>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+      <button type="button" class="btn-act primary" onclick="closeHelpModal()">我知道了</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1858,8 +1910,19 @@ function setupStaticSvgIcons() {
   qBtn("btnGeneratePdf", SVG.book);
   qBtn("btnUploadSceneLabel", SVG.folder);
   qBtn("btnExportAllSizePages", SVG.book);
+  qBtn("btnHelpGuide", SVG.book);
+  setHtml("helpModalIcon", SVG.book);
   setHtml("btnModalClose", SVG.close);
   setHtml("btnSceneModalClose", SVG.close);
+  setHtml("btnHelpModalClose", SVG.close);
+}
+
+function openHelpModal() {
+  document.getElementById("helpGuideModal")?.classList.add("open");
+}
+
+function closeHelpModal() {
+  document.getElementById("helpGuideModal")?.classList.remove("open");
 }
 
 const SB_URL = "https://vzpizjhlwxsfzbiguvfo.supabase.co";
@@ -2989,6 +3052,7 @@ function toggleClientPreview() {
 function getShareUrl() {
   const codes = currentPicked.map(p => p.code).join(",");
   const u = new URL(window.location.href);
+  u.pathname = u.pathname.replace(/dm_demo\.html$/i, "ebook.html");
   u.search = "";
   if (codes) u.searchParams.set("codes", codes);
   u.searchParams.set("style", currentDmStyle);
