@@ -833,27 +833,16 @@
     gap: 12px;
     align-items: stretch;
   }
-  .pieces-grid.pcount-1 { grid-template-columns: 1fr; }
-  .pieces-grid.pcount-2 { grid-template-columns: 1fr 1fr; }
-  .pieces-grid.pcount-2 .tile-card .tile-stage { height: 210px; }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 { grid-template-columns: 1.35fr 1fr; }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child { grid-row: 1 / span 2; }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child .tile-stage { height: 270px; }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4 .tile-card:first-child,
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5 .tile-card:first-child,
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 .tile-card:first-child {
-    grid-column: span 2;
-    flex-direction: row;
-  }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4 .tile-card:first-child .tile-stage,
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5 .tile-card:first-child .tile-stage,
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 .tile-card:first-child .tile-stage {
-    width: 56%;
-    height: auto;
-    min-height: 185px;
-    border-bottom: none;
-    border-right: 1px solid var(--dm-card-border);
-  }
+  .pieces-grid.pcount-1 { grid-template-columns: minmax(0, 380px); justify-content: center; }
+  .pieces-grid.pcount-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pieces-grid.pcount-2 .tile-card .tile-stage { height: 180px; }
+  .pieces-grid.pcount-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pieces-grid.pcount-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pieces-grid.pcount-4 .tile-card .tile-stage { height: 165px; }
+  .pieces-grid.pcount-5,
+  .pieces-grid.pcount-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pieces-grid.pcount-7,
+  .pieces-grid.pcount-8,
   .pieces-grid.pcount-many {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
@@ -943,17 +932,6 @@
 
   @media (max-width: 640px) {
     .sidebar-editorial { grid-template-columns: 1fr; }
-    .dm-sheet[data-layout="bento"] .pieces-grid .tile-card:first-child {
-      grid-column: auto !important;
-      grid-row: auto !important;
-      flex-direction: column !important;
-    }
-    .dm-sheet[data-layout="bento"] .pieces-grid .tile-card:first-child .tile-stage {
-      width: 100% !important;
-      height: 135px !important;
-      border-right: none !important;
-      border-bottom: 1px solid var(--dm-card-border) !important;
-    }
     .pieces-grid,
     .pieces-grid.pcount-many {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -961,7 +939,7 @@
     }
   }
 
-  /* ── 兩行版單片磁磚卡片 ── */
+  /* ── 兩行版單片磁磚卡片（支援拖曳排序與前後移動） ── */
   .tile-card {
     background: var(--dm-card-bg);
     border: 1px solid var(--dm-card-border);
@@ -970,27 +948,81 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    user-select: none;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
   }
-  .remove-item-btn {
+  .tile-card[draggable="true"] {
+    cursor: grab;
+  }
+  .tile-card[draggable="true"]:active {
+    cursor: grabbing;
+  }
+  body.client-view .tile-card {
+    cursor: default !important;
+  }
+  .tile-card.is-dragging {
+    opacity: 0.35 !important;
+    border: 2px dashed var(--dm-accent, #B8860B) !important;
+    transform: scale(0.96);
+  }
+  .tile-card.drag-over {
+    border: 2px solid var(--dm-accent, #B8860B) !important;
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(184, 134, 11, 0.35);
+  }
+
+  /* 磁磚卡片快捷控制列（拖曳手把、往前移、往後移、刪除） */
+  .card-ctrl-bar {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 5;
+    top: 6px;
+    right: 6px;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(28, 25, 23, 0.82);
+    backdrop-filter: blur(4px);
+    padding: 2px 4px;
+    border-radius: 14px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .tile-card:hover .card-ctrl-bar { opacity: 1; }
+  @media (hover: none) { .card-ctrl-bar { opacity: 0.92; } }
+
+  .card-ctrl-btn {
     width: 22px;
     height: 22px;
     border-radius: 50%;
     border: none;
-    background: rgba(28, 25, 23, 0.72);
-    color: #fff;
+    background: transparent;
+    color: #FFFFFF;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.15s;
+    padding: 0;
+    transition: background 0.15s, color 0.15s;
   }
-  .tile-card:hover .remove-item-btn { opacity: 1; }
-  @media (hover: none) { .remove-item-btn { opacity: 0.88; } }
+  .card-ctrl-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.28);
+    color: #FFFFFF;
+  }
+  .card-ctrl-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  .card-ctrl-btn.drag-handle {
+    cursor: grab;
+  }
+  .card-ctrl-btn.drag-handle:active {
+    cursor: grabbing;
+  }
+  .card-ctrl-btn.delete-btn:hover {
+    background: #DC2626;
+    color: #FFFFFF;
+  }
 
   .tile-stage {
     height: 146px;
@@ -1520,7 +1552,7 @@
     <div class="style-preview-bar staff-only">
       <div class="bar-row">
         <span class="bar-lbl">雜誌版型：</span>
-        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">1. 跨欄大小片(Bento)</button>
+        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">1. 經典標準畫報</button>
         <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">2. 封面大圖疊字</button>
         <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">3. 左右分欄畫廊</button>
         <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">4. 上磚下景顛倒版</button>
@@ -1692,7 +1724,10 @@ const SVG = {
   folder: `<svg class="svg-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
   refresh: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`,
   chevronDown: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`,
-  chevronUp: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`
+  chevronUp: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`,
+  chevronLeft: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
+  chevronRight: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+  grip: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/></svg>`
 };
 
 const SVG_FLAGS = {
@@ -2432,6 +2467,70 @@ function removePickedCard(code) {
   renderDM();
 }
 
+// ── 磁磚卡片拖曳與排序功能 ──
+let dragSrcCardIdx = null;
+
+function handleCardDragStart(e, idx) {
+  if (document.body.classList.contains("client-view")) {
+    e.preventDefault();
+    return;
+  }
+  dragSrcCardIdx = idx;
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", String(idx));
+  setTimeout(() => {
+    const card = document.querySelector(`.tile-card[data-idx="${idx}"]`);
+    if (card) card.classList.add("is-dragging");
+  }, 0);
+}
+
+function handleCardDragOver(e) {
+  if (dragSrcCardIdx === null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  const card = e.currentTarget;
+  if (card && !card.classList.contains("drag-over")) {
+    card.classList.add("drag-over");
+  }
+}
+
+function handleCardDragLeave(e) {
+  const card = e.currentTarget;
+  if (card) card.classList.remove("drag-over");
+}
+
+function handleCardDrop(e, targetIdx) {
+  e.preventDefault();
+  e.stopPropagation();
+  const card = e.currentTarget;
+  if (card) card.classList.remove("drag-over");
+  if (dragSrcCardIdx === null || dragSrcCardIdx === targetIdx) return;
+  
+  const fromIdx = dragSrcCardIdx;
+  const item = currentPicked.splice(fromIdx, 1)[0];
+  currentPicked.splice(targetIdx, 0, item);
+  dragSrcCardIdx = null;
+  renderDM();
+  showToast(`已調整磁磚順序：${item.code} 移至第 ${targetIdx + 1} 位`);
+}
+
+function handleCardDragEnd(e) {
+  dragSrcCardIdx = null;
+  document.querySelectorAll(".tile-card").forEach(c => {
+    c.classList.remove("is-dragging");
+    c.classList.remove("drag-over");
+  });
+}
+
+function movePickedCard(idx, direction) {
+  const targetIdx = idx + direction;
+  if (targetIdx < 0 || targetIdx >= currentPicked.length) return;
+  const item = currentPicked.splice(idx, 1)[0];
+  currentPicked.splice(targetIdx, 0, item);
+  renderDM();
+  showToast(`已移動磁磚：${item.code} 移至第 ${targetIdx + 1} 位`);
+}
+
 function buildSceneCollageHtml() {
   if (activeScenes.length === 0) {
     return `
@@ -2462,7 +2561,7 @@ function buildPiecesGridHtml() {
   const showPing = document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true;
   const pCountClass = currentPicked.length >= 9 ? "pcount-many" : `pcount-${currentPicked.length}`;
 
-  const cardsHtml = currentPicked.map(p => {
+  const cardsHtml = currentPicked.map((p, idx) => {
     const flagSvg = getOriginFlagSvg(p.origin);
     const priceHtml = showPrice && (p.pricePcs > 0 || p.pricePing > 0)
       ? `<div class="price-line">
@@ -2479,8 +2578,20 @@ function buildPiecesGridHtml() {
     const webHref = `https://bigt.cc/web/product.html?code=${encodeURIComponent(p.code)}`;
 
     return `
-      <article class="tile-card">
-        <button type="button" class="remove-item-btn staff-only" title="移除此款" onclick="removePickedCard('${p.code}')">${SVG.close}</button>
+      <article class="tile-card"
+               draggable="true"
+               data-idx="${idx}"
+               ondragstart="handleCardDragStart(event, ${idx})"
+               ondragover="handleCardDragOver(event)"
+               ondragleave="handleCardDragLeave(event)"
+               ondrop="handleCardDrop(event, ${idx})"
+               ondragend="handleCardDragEnd(event)">
+        <div class="card-ctrl-bar staff-only">
+          <span class="card-ctrl-btn drag-handle" title="按住拖曳可調整順序">${SVG.grip}</span>
+          <button type="button" class="card-ctrl-btn" title="往前移一位" onclick="movePickedCard(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>${SVG.chevronLeft}</button>
+          <button type="button" class="card-ctrl-btn" title="往後移一位" onclick="movePickedCard(${idx}, 1)" ${idx === currentPicked.length - 1 ? 'disabled' : ''}>${SVG.chevronRight}</button>
+          <button type="button" class="card-ctrl-btn delete-btn" title="移除此款" onclick="removePickedCard('${p.code}')">${SVG.close}</button>
+        </div>
         <div class="tile-stage">
           <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}')">
           ${flagSvg}
@@ -2892,7 +3003,12 @@ async function renderPortraitPageToCanvas(pageState) {
   function paintPiecesArea(bx, by, bw, bh) {
     if (items.length === 0 || bh <= 0) return;
     const gap = 14;
-    let cols = items.length >= 9 ? 4 : (items.length <= 2 ? items.length : 3);
+    let cols = 3;
+    if (items.length === 1) cols = 1;
+    else if (items.length === 2) cols = 2;
+    else if (items.length === 4) cols = 2; // 2x2 完美均勻
+    else if (items.length === 3 || items.length === 5 || items.length === 6) cols = 3;
+    else cols = 4;
     if (magLayout === "sidebar") cols = items.length <= 3 ? 1 : 2;
     const rows = Math.max(1, Math.ceil(items.length / cols));
     const cardW = (bw - gap * (cols - 1)) / cols;
