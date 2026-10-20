@@ -1694,7 +1694,10 @@
         <button type="button" class="btn-act btn-with-svg" onclick="cycleTagline()" id="btnCycleTagline">
           <span class="btn-ico-holder"></span>換一句形容短語
         </button>
-        <button type="button" class="btn-act primary btn-with-svg" onclick="exportFullPosterJPG()" id="btnDownloadJpg">
+        <button type="button" class="btn-act primary btn-with-svg" onclick="exportSinglePagePdf()" id="btnDownloadSinglePdf">
+          <span class="btn-ico-holder"></span>下載直式單頁 PDF (A4)
+        </button>
+        <button type="button" class="btn-act btn-with-svg" onclick="exportFullPosterJPG()" id="btnDownloadJpg">
           <span class="btn-ico-holder"></span>下載直式單頁 JPG
         </button>
         <button type="button" class="btn-act gold btn-with-svg" id="btnExportAllSizePages" onclick="exportAllPagesToPdf()">
@@ -1756,6 +1759,9 @@
       <span style="font-size:12px;color:#D6D3CD;">生成 PDF 自動採用「一左一右雙頁跨頁」排版（單頁亦可自動拆為左景右磚雙頁）</span>
     </div>
     <div class="dock-btns">
+      <button type="button" class="dock-btn btn-with-svg" onclick="exportSinglePagePdf()" id="btnDockSinglePdf">
+        <span class="btn-ico-holder"></span>下載單頁 A4 PDF
+      </button>
       <button type="button" class="dock-btn btn-with-svg" onclick="addCurrentPageToPdfQueue()" id="btnAddToPdf">
         <span class="btn-ico-holder"></span>加入目前這頁至 PDF
       </button>
@@ -1839,7 +1845,9 @@
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
         <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">5. 分享給客戶與匯出 PDF</div>
         <p>• <b>傳給客戶看</b>：點左側「複製型錄分享連結」，客戶點開會進入純淨的「客戶唯讀視角」（隱藏所有編輯面板與按鈕）。</p>
-        <p>• <b>一鍵打包全型錄 PDF</b>：在尺寸模式點擊「一鍵打包本尺寸全型錄 PDF」，系統會依序排版每一頁，匯出成完整的雙頁跨頁雜誌 PDF！</p>
+        <p>• <b>下載單頁 A4 PDF / JPG</b>：點擊「下載單頁 A4 PDF」可直接下載直式單頁 A4 PDF，適合直接傳給客戶審閱。</p>
+        <p>• <b>生成雙頁型錄 PDF</b>：自動排版為一左一右雜誌跨頁（第 1 頁在左側並帶有完整系列大標題與精選花色，第 2 頁在右側延伸規格與實景）。</p>
+        <p>• <b>一鍵打包全尺寸型錄</b>：在尺寸模式點擊「一鍵打包本尺寸全型錄 PDF」，系統會依序排版每一頁，匯出成完整的雙頁跨頁雜誌 PDF！</p>
       </div>
     </div>
 
@@ -1905,6 +1913,8 @@ function setupStaticSvgIcons() {
   qBtn("btnOpenScenePicker", SVG.plus);
   qBtn("btnCycleTagline", SVG.pencil);
   qBtn("btnCopyShare", SVG.link);
+  qBtn("btnDownloadSinglePdf", SVG.download);
+  qBtn("btnDockSinglePdf", SVG.download);
   qBtn("btnDownloadJpg", SVG.download);
   qBtn("btnAddToPdf", SVG.plus);
   qBtn("btnGeneratePdf", SVG.book);
@@ -3552,18 +3562,18 @@ async function renderPortraitPageToCanvas(pageState) {
   } else if (magLayout === "museum") {
     const startY = paintSplitHeader(24);
     const scH = scCount > 0 ? 390 : 0;
-    const piecesH = contentBottom - startY - (scH > 0 ? scH + 22 : 0);
-    paintPiecesArea(pad, startY, W - pad * 2, piecesH);
+    const piecesH = contentBottom - (startY + 16) - (scH > 0 ? scH + 22 : 0);
+    paintPiecesArea(pad, startY + 16, W - pad * 2, piecesH);
     if (scH > 0) {
-      paintCollageBox(pad, startY + piecesH + 22, W - pad * 2, scH);
+      paintCollageBox(pad, startY + 16 + piecesH + 22, W - pad * 2, scH);
     }
   } else {
     const startY = paintSplitHeader(24);
     const scH = scCount > 0 ? 430 : 0;
     if (scH > 0) {
-      paintCollageBox(pad, startY + piecesH, W - pad * 2, scH);
+      paintCollageBox(pad, startY + 16, W - pad * 2, scH);
     }
-    const pStartY = startY + (scH > 0 ? scH + 22 : 0);
+    const pStartY = startY + (scH > 0 ? scH + 32 : 16);
     paintPiecesArea(pad, pStartY, W - pad * 2, contentBottom - pStartY);
   }
 
@@ -3726,27 +3736,62 @@ async function exportAllPagesToPdf() {
 }
 
 function buildAutoTwoPagesFromSingle(snap) {
-  const half = Math.max(1, Math.min(2, Math.ceil(snap.items.length / 3)));
+  const items = snap.items || [];
+  const scenes = snap.scenes || [];
+  const mid = Math.ceil(items.length / 2);
+
+  // 清除舊有的分頁標記，避免重複累積
+  const baseSubtitle = (snap.headerText.subtitle || "")
+    .replace(/\s*·\s*(第\s*\d+\/\d+\s*頁|精選主打|規格明細|主打色|延伸色|空間實景|規格詳情).*/g, "")
+    .trim();
+
+  // 第 1 頁（左側）：主頁，具有完整系列大標題 (paintSplitHeader)，精選主打花色與空間實景
   const leftPage = {
     ...snap,
-    magLayout: snap.scenes.length > 0 ? "cover" : "bento",
-    items: snap.items.slice(0, half),
+    magLayout: (snap.magLayout && snap.magLayout !== "cover") ? snap.magLayout : "bento",
+    items: items.length > 2 ? items.slice(0, mid) : items.slice(0, 1),
+    scenes: scenes.slice(0, 2),
     headerText: {
       ...snap.headerText,
-      subtitle: `${snap.headerText.subtitle} · 精選主打色`
+      eyebrow: snap.headerText.eyebrow || "PORCELAIN SURFACE",
+      title: snap.headerText.title || "磁磚型錄",
+      subtitle: `${baseSubtitle ? baseSubtitle + " · " : ""}精選主打 (第 1/2 頁)`,
+      tagline: snap.headerText.tagline || ""
     }
   };
+
+  // 第 2 頁（右側）：延伸規格明細頁，頂部同樣有優雅系列標題，展示剩餘款項與延伸實景
   const rightPage = {
     ...snap,
-    magLayout: "museum",
-    scenes: snap.scenes.slice(1),
-    items: snap.items,
+    magLayout: snap.magLayout === "sidebar" ? "sidebar" : "museum",
+    items: items.length > 2 ? items.slice(mid) : (items.length > 1 ? items.slice(1) : items),
+    scenes: scenes.length > 2 ? scenes.slice(2) : scenes.slice(1),
     headerText: {
       ...snap.headerText,
-      subtitle: `${snap.headerText.subtitle} · 規格明細一覽`
+      eyebrow: snap.headerText.eyebrow || "PORCELAIN SURFACE",
+      title: snap.headerText.title || "磁磚型錄",
+      subtitle: `${baseSubtitle ? baseSubtitle + " · " : ""}規格明細 (第 2/2 頁)`,
+      tagline: snap.headerText.tagline || ""
     }
   };
   return [leftPage, rightPage];
+}
+
+async function exportSinglePagePdf() {
+  if (currentPicked.length === 0) return showToast("目前畫面沒有產品可匯出");
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    return showToast("PDF 引擎載入中，請稍候 1 秒再試");
+  }
+  showToast(`正在產生第 ${currentPageIndex + 1} 頁單頁 A4 PDF...`);
+  const snap = getCurrentPageStateSnapshot();
+  const cv = await renderPortraitPageToCanvas(snap);
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [210, 297] });
+  pdf.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+  const cleanTitle = (snap.headerText.title || "磁磚型錄").replace(/<[^>]*>/g, "").replace(/\s+/g, "_");
+  const fileName = `Ebook_${cleanTitle}_第${currentPageIndex + 1}頁_A4.pdf`;
+  pdf.save(fileName);
+  showToast(`已下載單頁 A4 PDF：${fileName}`);
 }
 
 async function generateSpreadPDF() {
@@ -3787,7 +3832,7 @@ async function generateSpreadPDF() {
     pdf.line(210, 0, 210, 297);
   }
 
-  const cleanTitle = pages[0].headerText.title.replace(/<[^>]*>/g, "");
+  const cleanTitle = (pages[0].headerText.title || "磁磚型錄").replace(/<[^>]*>/g, "").replace(/\s+/g, "_");
   const fileName = `Ebook_雙頁型錄_${cleanTitle}.pdf`;
   pdf.save(fileName);
   showToast(`已下載雙頁排版 PDF：${fileName}`);
