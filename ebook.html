@@ -1921,6 +1921,10 @@
           <input type="checkbox" id="chkCardSquare" onchange="toggleCardCorner(this.checked)">
           <span>極簡直角</span>
         </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkShowQrCode" checked onchange="toggleQrCode(this.checked)">
+          <span>顯示 QR 碼</span>
+        </label>
       </div>
     </div>
 
@@ -1973,16 +1977,15 @@
         </div>
       </div>
 
-      <div class="dm-footer">
+      <div class="dm-footer" id="dmFooter">
         <div>
           <div class="dm-valid-time" id="dmValidTimeTxt">庫存有效時間：載入中</div>
-          <div class="dm-valid-sub">現場庫存即時變動，如需鎖貨請點選卡片「下保留」或洽負責業務</div>
         </div>
-        <div class="dm-qr-box">
+        <div class="dm-qr-box" id="dmQrBox">
           <img id="dmQrImg" alt="QR Code" src="">
           <div class="dm-qr-txt">
-            <div>掃描開互動頁</div>
-            <div style="color:#78716C;font-weight:500;">看大圖 · 下保留</div>
+            <div>手機掃描型錄</div>
+            <div style="color:#78716C;font-weight:500;">線上看大圖</div>
           </div>
         </div>
       </div>
@@ -2592,6 +2595,7 @@ function saveCurrentCustomMemory() {
     showReserveBtn: document.getElementById("chkShowReserveBtn") ? document.getElementById("chkShowReserveBtn").checked : true,
     showFlags: document.getElementById("chkShowFlags") ? document.getElementById("chkShowFlags").checked : true,
     cardSquare: document.getElementById("chkCardSquare") ? document.getElementById("chkCardSquare").checked : false,
+    showQrCode: document.getElementById("chkShowQrCode") ? document.getElementById("chkShowQrCode").checked : true,
     updatedAt: Date.now()
   };
 
@@ -2685,6 +2689,12 @@ function toggleCardCorner(square) {
     if (square) sheet.classList.add("card-style-square");
     else sheet.classList.remove("card-style-square");
   }
+  saveSeriesCustomMemory();
+}
+
+function toggleQrCode(show) {
+  const qrBox = document.getElementById("dmQrBox");
+  if (qrBox) qrBox.style.display = show ? "" : "none";
   saveSeriesCustomMemory();
 }
 
@@ -3080,6 +3090,10 @@ function applySavedMemoryToState(mem) {
   if (mem.cardSquare !== undefined) {
     const chk = document.getElementById("chkCardSquare");
     if (chk) { chk.checked = mem.cardSquare; toggleCardCorner(mem.cardSquare); }
+  }
+  if (mem.showQrCode !== undefined) {
+    const chk = document.getElementById("chkShowQrCode");
+    if (chk) { chk.checked = mem.showQrCode; toggleQrCode(mem.showQrCode); }
   }
 }
 
@@ -3521,8 +3535,12 @@ function renderDM() {
   if (showingEl) showingEl.textContent = currentPicked.length;
   const sceneEl = document.getElementById("sceneCountTxt");
   if (sceneEl) sceneEl.textContent = activeScenes.length;
+  const showPing = document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true;
   const validTimeEl = document.getElementById("dmValidTimeTxt");
-  if (validTimeEl) validTimeEl.textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
+  if (validTimeEl) {
+    validTimeEl.style.display = showPing ? "" : "none";
+    if (showPing) validTimeEl.textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
+  }
 
   const shareUrl = getShareUrl();
   const qrImg = document.getElementById("dmQrImg");
@@ -3643,15 +3661,28 @@ function toggleClientPreview() {
 }
 
 function getShareUrl() {
-  const codes = currentPicked.map(p => p.code).join(",");
-  const u = new URL(window.location.href);
-  u.pathname = u.pathname.replace(/dm_demo\.html$/i, "ebook.html");
+  const isHttp = window.location.protocol.startsWith("http") && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1");
+  const baseUrl = isHttp
+    ? window.location.href.split("?")[0].replace(/dm_demo\.html$/i, "ebook.html")
+    : "https://bigt.cc/line/ebook.html";
+  const u = new URL(baseUrl);
   u.search = "";
-  if (codes) u.searchParams.set("codes", codes);
-  u.searchParams.set("style", currentDmStyle);
-  u.searchParams.set("fn", currentDmFont);
-  u.searchParams.set("ly", currentMagLayout);
-  u.searchParams.set("sc", currentSceneLayout);
+
+  if (currentMode === "series") {
+    const sel = document.getElementById("selSeries");
+    const ser = (sel && sel.value) ? sel.value : (currentPicked[0] ? currentPicked[0].series : "");
+    if (ser) u.searchParams.set("ser", ser);
+  } else {
+    if (selectedSize) u.searchParams.set("sz", selectedSize);
+    if (selectedStyle) u.searchParams.set("styleFilter", selectedStyle);
+    const codes = currentPicked.map(p => p.code).join(",");
+    if (codes) u.searchParams.set("codes", codes);
+  }
+
+  if (currentDmStyle && currentDmStyle !== "warm") u.searchParams.set("style", currentDmStyle);
+  if (currentDmFont && currentDmFont !== "serif") u.searchParams.set("fn", currentDmFont);
+  if (currentMagLayout && currentMagLayout !== "bento") u.searchParams.set("ly", currentMagLayout);
+  if (currentSceneLayout && currentSceneLayout !== "auto") u.searchParams.set("sc", currentSceneLayout);
   const chkPrice = document.getElementById("chkShowPrice");
   if (chkPrice && chkPrice.checked) u.searchParams.set("price", "1");
   const chkPing = document.getElementById("chkShowPing");
@@ -3680,6 +3711,16 @@ function restoreFromUrl() {
   if (params.get("ly")) setMagLayout(params.get("ly"));
   if (params.get("sc")) currentSceneLayout = params.get("sc");
   if (params.get("view") === "client") document.body.classList.add("client-view");
+
+  const serParam = params.get("ser");
+  if (serParam) {
+    const sel = document.getElementById("selSeries");
+    if (sel) {
+      sel.value = serParam;
+      pickBySeries(false);
+      return;
+    }
+  }
 
   const codesParam = params.get("codes");
   if (codesParam) {
@@ -4318,15 +4359,17 @@ async function renderPortraitPageToCanvas(pageState) {
   ctx.fillStyle = pal.cardBorder;
   ctx.fillRect(0, footY, W, 1.5);
 
-  ctx.fillStyle = pal.ink;
-  ctx.font = "800 19px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 42);
+  if (showPing) {
+    ctx.fillStyle = pal.ink;
+    ctx.font = "800 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 56);
+  }
 
-  ctx.fillStyle = pal.muted;
-  ctx.font = "600 15px 'Noto Sans TC', sans-serif";
-  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看大圖或直接下保留單", pad, footY + 70);
+  const showQr = pageState.showQrCode !== undefined
+    ? pageState.showQrCode
+    : (document.getElementById("chkShowQrCode") ? document.getElementById("chkShowQrCode").checked : true);
 
-  if (qrImg) {
+  if (qrImg && showQr) {
     ctx.fillStyle = "#FFFFFF";
     roundRect(ctx, W - pad - 76, footY + 12, 76, 76, 6);
     ctx.fill();
@@ -4347,6 +4390,7 @@ function getCurrentPageStateSnapshot() {
     productRotations: { ...productRotations },
     showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
     showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
+    showQrCode: document.getElementById("chkShowQrCode") ? document.getElementById("chkShowQrCode").checked : true,
     shareUrl: getShareUrl()
   };
 }
