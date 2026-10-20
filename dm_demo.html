@@ -1708,7 +1708,7 @@
     <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-stat-info">
-        <span>本頁：<strong id="showingCountTxt">0</strong> 款 · 此條件符合 <strong id="totalPoolCountTxt">0</strong> 款 · 共 <strong id="totalPagesTxt">1</strong> 頁</span>
+        <span>本頁：<strong id="showingCountTxt">0</strong> 款 · 實景 <strong id="sceneCountTxt">0</strong> 張 · 共 <strong id="totalPoolCountTxt">0</strong> 款 · <strong id="totalPagesTxt">1</strong> 頁</span>
       </div>
       <div class="page-nav-btns">
         <button type="button" class="btn-act" id="btnPrevPage" onclick="goToPrevPage()">◀ 上一頁</button>
@@ -2181,10 +2181,73 @@ function filterSeriesSelect() {
   pickBySeries();
 }
 
+// ════════════════════════════════════════════════════════════════
+// 系列專屬自訂樣式記憶系統 (LocalStorage)
+// ════════════════════════════════════════════════════════════════
+const SERIES_MEMORY_KEY = "ebook_series_memory_v1";
+
+function getAllSavedSeriesMemory() {
+  try {
+    const raw = localStorage.getItem(SERIES_MEMORY_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function loadSeriesCustomMemory(ser) {
+  if (!ser) return null;
+  const memory = getAllSavedSeriesMemory();
+  return memory[ser] || null;
+}
+
+function saveSeriesCustomMemory() {
+  if (currentMode !== "series") return;
+  const sel = document.getElementById("selSeries");
+  if (!sel || !sel.value) return;
+  const ser = sel.value;
+
+  const memory = getAllSavedSeriesMemory();
+  memory[ser] = {
+    magLayout: currentMagLayout,
+    dmStyle: currentDmStyle,
+    dmFont: currentDmFont,
+    sceneLayout: currentSceneLayout,
+    customHeaderText: { ...customHeaderText },
+    activeScenes: activeScenes.map(s => ({ ...s })),
+    pickedCodes: currentPicked.map(p => p.code),
+    showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
+    showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
+    showReserveBtn: document.getElementById("chkShowReserveBtn") ? document.getElementById("chkShowReserveBtn").checked : true,
+    showFlags: document.getElementById("chkShowFlags") ? document.getElementById("chkShowFlags").checked : true,
+    cardSquare: document.getElementById("chkCardSquare") ? document.getElementById("chkCardSquare").checked : false,
+    updatedAt: Date.now()
+  };
+
+  try {
+    localStorage.setItem(SERIES_MEMORY_KEY, JSON.stringify(memory));
+  } catch (e) {}
+}
+
+function clearCurrentSeriesMemory() {
+  if (currentMode !== "series") return;
+  const sel = document.getElementById("selSeries");
+  if (!sel || !sel.value) return;
+  const ser = sel.value;
+  const memory = getAllSavedSeriesMemory();
+  delete memory[ser];
+  try {
+    localStorage.setItem(SERIES_MEMORY_KEY, JSON.stringify(memory));
+  } catch (e) {}
+  showToast(`已重置「${ser}」為預設版型`);
+  pickBySeries();
+}
+
 function setMagLayout(ly) {
   currentMagLayout = ly;
   document.getElementById("dmSheet").setAttribute("data-layout", ly);
   document.querySelectorAll('.style-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === ly));
+  saveSeriesCustomMemory();
   renderDM();
 }
 
@@ -2192,18 +2255,23 @@ function setDmStyle(st) {
   currentDmStyle = st;
   document.getElementById("dmSheet").setAttribute("data-style", st);
   document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === st));
+  saveSeriesCustomMemory();
+  renderDM();
 }
 
 function setDmFont(fn) {
   currentDmFont = fn;
   document.getElementById("dmSheet").setAttribute("data-font", fn);
   document.querySelectorAll('.style-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === fn));
+  saveSeriesCustomMemory();
+  renderDM();
 }
 
 function setSceneLayout(sc) {
   currentSceneLayout = sc;
   document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
   rebuildActiveScenesFromPool();
+  saveSeriesCustomMemory();
   renderDM();
 }
 
@@ -2213,6 +2281,7 @@ function toggleReserveBtns(show) {
     if (show) sheet.classList.remove("hide-reserve-btns");
     else sheet.classList.add("hide-reserve-btns");
   }
+  saveSeriesCustomMemory();
 }
 
 function toggleOriginFlags(show) {
@@ -2221,6 +2290,7 @@ function toggleOriginFlags(show) {
     if (show) sheet.classList.remove("hide-origin-flags");
     else sheet.classList.add("hide-origin-flags");
   }
+  saveSeriesCustomMemory();
 }
 
 function toggleCardCorner(square) {
@@ -2229,6 +2299,7 @@ function toggleCardCorner(square) {
     if (square) sheet.classList.add("card-style-square");
     else sheet.classList.remove("card-style-square");
   }
+  saveSeriesCustomMemory();
 }
 
 function switchMode(mode) {
@@ -2318,12 +2389,14 @@ function cycleTagline() {
   customHeaderText.tagline = pickAutoTagline();
   const el = document.getElementById("dmTagline");
   if (el) el.textContent = customHeaderText.tagline;
-  showToast("已更換系列形容短語（可點擊文字編輯修改）");
+  saveSeriesCustomMemory();
+  showToast("已更換系列形容短語（已自動記憶）");
 }
 
 function onHeaderTextEdited(field, el) {
   if (!el) return;
   customHeaderText[field] = el.innerHTML.trim();
+  saveSeriesCustomMemory();
 }
 
 function collectSeriesScenes() {
@@ -2357,6 +2430,7 @@ function rebuildActiveScenesFromPool() {
 function removeSceneAtIndex(idx, ev) {
   if (ev) ev.stopPropagation();
   activeScenes.splice(idx, 1);
+  saveSeriesCustomMemory();
   renderDM();
   showToast("已移除該張圖片");
 }
@@ -2435,6 +2509,7 @@ function applySceneItem(newItem) {
     showToast("已新增圖片至版面");
   }
   closeScenePickerModal();
+  saveSeriesCustomMemory();
   renderDM();
 }
 
@@ -2454,8 +2529,79 @@ function pickBySeries(preservePage = false) {
     return true;
   });
 
-  document.getElementById("poolCountBadge").textContent = `共 ${filteredPool.length} 款`;
+  const mem = loadSeriesCustomMemory(ser);
+  if (mem) {
+    // 1. 若有記憶的磁磚排序，依記憶排序排列
+    if (mem.pickedCodes && mem.pickedCodes.length > 0) {
+      const codeMap = new Map();
+      filteredPool.forEach(p => codeMap.set(p.code, p));
+      const reordered = [];
+      mem.pickedCodes.forEach(code => {
+        if (codeMap.has(code)) {
+          reordered.push(codeMap.get(code));
+          codeMap.delete(code);
+        }
+      });
+      codeMap.forEach(p => reordered.push(p));
+      filteredPool = reordered;
+    }
+    // 2. 恢復版型、色彩風格、字體、實景排版
+    if (mem.magLayout) {
+      currentMagLayout = mem.magLayout;
+      document.getElementById("dmSheet")?.setAttribute("data-layout", mem.magLayout);
+      document.querySelectorAll('.style-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === mem.magLayout));
+    }
+    if (mem.dmStyle && STYLE_PALETTES[mem.dmStyle]) {
+      currentDmStyle = mem.dmStyle;
+      document.getElementById("dmSheet")?.setAttribute("data-style", mem.dmStyle);
+      document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === mem.dmStyle));
+    }
+    if (mem.dmFont) {
+      currentDmFont = mem.dmFont;
+      document.getElementById("dmSheet")?.setAttribute("data-font", mem.dmFont);
+      document.querySelectorAll('.style-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === mem.dmFont));
+    }
+    if (mem.sceneLayout) {
+      currentSceneLayout = mem.sceneLayout;
+      document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === mem.sceneLayout));
+    }
+    // 3. 恢復微調設定
+    if (mem.showPrice !== undefined) {
+      const chk = document.getElementById("chkShowPrice");
+      if (chk) chk.checked = mem.showPrice;
+    }
+    if (mem.showPing !== undefined) {
+      const chk = document.getElementById("chkShowPing");
+      if (chk) chk.checked = mem.showPing;
+    }
+    if (mem.showReserveBtn !== undefined) {
+      const chk = document.getElementById("chkShowReserveBtn");
+      if (chk) { chk.checked = mem.showReserveBtn; toggleReserveBtns(mem.showReserveBtn); }
+    }
+    if (mem.showFlags !== undefined) {
+      const chk = document.getElementById("chkShowFlags");
+      if (chk) { chk.checked = mem.showFlags; toggleOriginFlags(mem.showFlags); }
+    }
+    if (mem.cardSquare !== undefined) {
+      const chk = document.getElementById("chkCardSquare");
+      if (chk) { chk.checked = mem.cardSquare; toggleCardCorner(mem.cardSquare); }
+    }
+  }
+
+  const badge = document.getElementById("poolCountBadge");
+  if (badge) badge.textContent = `共 ${filteredPool.length} 款`;
+  
   updatePaginationAndPick(preservePage);
+
+  if (mem) {
+    if (mem.customHeaderText) {
+      customHeaderText = { ...mem.customHeaderText };
+    }
+    if (mem.activeScenes && mem.activeScenes.length > 0) {
+      activeScenes = mem.activeScenes.map(s => ({ ...s }));
+    }
+    renderDM();
+  }
 }
 
 function applyAndPick(preservePage = false) {
@@ -2520,11 +2666,18 @@ function goToNextPage() {
 function renderPaginationBar() {
   const bar = document.getElementById("paginationBar");
   if (!bar) return;
-  const pageSize = parseInt(document.getElementById("selCount").value, 10) || 8;
+  const pageSize = parseInt(document.getElementById("selCount")?.value, 10) || 8;
 
-  document.getElementById("totalPoolCountTxt").textContent = filteredPool.length;
-  document.getElementById("totalPagesTxt").textContent = totalPages;
-  document.getElementById("pageIndicatorTxt").textContent = `第 ${currentPageIndex + 1} / ${totalPages} 頁`;
+  const totalPoolEl = document.getElementById("totalPoolCountTxt");
+  if (totalPoolEl) totalPoolEl.textContent = filteredPool.length;
+  const totalPagesEl = document.getElementById("totalPagesTxt");
+  if (totalPagesEl) totalPagesEl.textContent = totalPages;
+  const pageIndEl = document.getElementById("pageIndicatorTxt");
+  if (pageIndEl) pageIndEl.textContent = `第 ${currentPageIndex + 1} / ${totalPages} 頁`;
+  const showingEl = document.getElementById("showingCountTxt");
+  if (showingEl) showingEl.textContent = currentPicked.length;
+  const sceneEl = document.getElementById("sceneCountTxt");
+  if (sceneEl) sceneEl.textContent = activeScenes.length;
 
   const btnPrev = document.getElementById("btnPrevPage");
   const btnNext = document.getElementById("btnNextPage");
@@ -2576,6 +2729,7 @@ function randomizePick() {
 function removePickedCard(code) {
   currentPicked = currentPicked.filter(p => p.code !== code);
   filteredPool = filteredPool.filter(p => p.code !== code);
+  saveSeriesCustomMemory();
   renderPaginationBar();
   renderDM();
 }
@@ -2623,8 +2777,9 @@ function handleCardDrop(e, targetIdx) {
   const item = currentPicked.splice(fromIdx, 1)[0];
   currentPicked.splice(targetIdx, 0, item);
   dragSrcCardIdx = null;
+  saveSeriesCustomMemory();
   renderDM();
-  showToast(`已調整磁磚順序：${item.code} 移至第 ${targetIdx + 1} 位`);
+  showToast(`已調整磁磚順序：${item.code} 移至第 ${targetIdx + 1} 位（已自動記憶）`);
 }
 
 function handleCardDragEnd(e) {
@@ -2640,8 +2795,9 @@ function movePickedCard(idx, direction) {
   if (targetIdx < 0 || targetIdx >= currentPicked.length) return;
   const item = currentPicked.splice(idx, 1)[0];
   currentPicked.splice(targetIdx, 0, item);
+  saveSeriesCustomMemory();
   renderDM();
-  showToast(`已移動磁磚：${item.code} 移至第 ${targetIdx + 1} 位`);
+  showToast(`已移動磁磚：${item.code} 移至第 ${targetIdx + 1} 位（已自動記憶）`);
 }
 
 function buildSceneCollageHtml() {
@@ -2750,12 +2906,16 @@ function buildEditableHeaderHtml(extraClass = "header-split") {
 }
 
 function renderDM() {
-  document.getElementById("showingCountTxt").textContent = currentPicked.length;
-  document.getElementById("sceneCountTxt").textContent = activeScenes.length;
-  document.getElementById("dmValidTimeTxt").textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
+  const showingEl = document.getElementById("showingCountTxt");
+  if (showingEl) showingEl.textContent = currentPicked.length;
+  const sceneEl = document.getElementById("sceneCountTxt");
+  if (sceneEl) sceneEl.textContent = activeScenes.length;
+  const validTimeEl = document.getElementById("dmValidTimeTxt");
+  if (validTimeEl) validTimeEl.textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
 
   const shareUrl = getShareUrl();
-  document.getElementById("dmQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
+  const qrImg = document.getElementById("dmQrImg");
+  if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
 
   const mount = document.getElementById("dmDynamicMount");
   if (currentPicked.length === 0) {
@@ -2835,8 +2995,10 @@ function getShareUrl() {
   u.searchParams.set("fn", currentDmFont);
   u.searchParams.set("ly", currentMagLayout);
   u.searchParams.set("sc", currentSceneLayout);
-  if (document.getElementById("chkShowPrice").checked) u.searchParams.set("price", "1");
-  if (!document.getElementById("chkShowPing").checked) u.searchParams.set("ping", "0");
+  const chkPrice = document.getElementById("chkShowPrice");
+  if (chkPrice && chkPrice.checked) u.searchParams.set("price", "1");
+  const chkPing = document.getElementById("chkShowPing");
+  if (chkPing && !chkPing.checked) u.searchParams.set("ping", "0");
   u.searchParams.set("view", "client");
   return u.toString();
 }
@@ -2852,8 +3014,10 @@ function copyShareLink() {
 
 function restoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("price") === "1") document.getElementById("chkShowPrice").checked = true;
-  if (params.get("ping") === "0") document.getElementById("chkShowPing").checked = false;
+  const chkPrice = document.getElementById("chkShowPrice");
+  if (chkPrice && params.get("price") === "1") chkPrice.checked = true;
+  const chkPing = document.getElementById("chkShowPing");
+  if (chkPing && params.get("ping") === "0") chkPing.checked = false;
   if (params.get("style") && STYLE_PALETTES[params.get("style")]) setDmStyle(params.get("style"));
   if (params.get("fn")) setDmFont(params.get("fn"));
   if (params.get("ly")) setMagLayout(params.get("ly"));
@@ -3371,7 +3535,7 @@ function getCurrentPageStateSnapshot() {
     dmStyle: currentDmStyle,
     dmFont: currentDmFont,
     magLayout: currentMagLayout,
-    showPrice: document.getElementById("chkShowPrice").checked,
+    showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
     showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
     shareUrl: getShareUrl()
   };
@@ -3458,7 +3622,7 @@ async function exportAllPagesToPdf() {
       dmStyle: currentDmStyle,
       dmFont: currentDmFont,
       magLayout: currentMagLayout,
-      showPrice: document.getElementById("chkShowPrice").checked,
+      showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
       showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
       shareUrl: getShareUrl()
     });
@@ -3656,7 +3820,7 @@ async function exportSingleTileJPG(code) {
     ctx.fillText(`${p.availPcs > 0 ? p.pingStr + "坪" : "洽詢"}`, 76, curY + 128);
   }
 
-  const showPrice = document.getElementById("chkShowPrice").checked;
+  const showPrice = document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false;
   if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
     ctx.fillStyle = pal.accent;
     ctx.font = "800 30px 'Noto Sans TC', sans-serif";
