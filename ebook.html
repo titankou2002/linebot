@@ -102,10 +102,83 @@
     --dm-stock: #1F5E3B;
   }
 
-  /* 字體風格 */
-  .dm-sheet[data-font="sans"] { --font-title-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; }
-  .dm-sheet[data-font="cormorant"] { --font-title-family: 'Cormorant Garamond', 'Noto Serif TC', serif; }
+  /* 配色 5：京都侘寂 */
+  .dm-sheet[data-style="wabisabi"] {
+    --dm-bg: #F2EFEB;
+    --dm-header-bg: #3A3530;
+    --dm-header-text: #F5F1EB;
+    --dm-header-sub: #C4BCB3;
+    --dm-eyebrow: #8A7D70;
+    --dm-accent: #726558;
+    --dm-card-bg: #FAF8F5;
+    --dm-card-border: #DED6CC;
+    --dm-stage-bg: #E8E2D8;
+    --dm-ink: #2A2521;
+    --dm-ink-2: #4F4741;
+    --dm-muted: #82776E;
+    --dm-stock: #2E5C44;
+  }
+
+  /* 配色 6：蔚藍海岸 */
+  .dm-sheet[data-style="riviera"] {
+    --dm-bg: #F4F7FB;
+    --dm-header-bg: #0F253E;
+    --dm-header-text: #F0F5FA;
+    --dm-header-sub: #B8CCE0;
+    --dm-eyebrow: #2B5E94;
+    --dm-accent: #1B4472;
+    --dm-card-bg: #FFFFFF;
+    --dm-card-border: #D4E2F0;
+    --dm-stage-bg: #EAF0F8;
+    --dm-ink: #0D1E32;
+    --dm-ink-2: #2A415C;
+    --dm-muted: #5F7691;
+    --dm-stock: #1E7E52;
+  }
+
+  /* 配色 7：英倫摩登 */
+  .dm-sheet[data-style="modern"] {
+    --dm-bg: #F3F5F4;
+    --dm-header-bg: #11221B;
+    --dm-header-text: #F4F7F5;
+    --dm-header-sub: #B9CCC1;
+    --dm-eyebrow: #B38C48;
+    --dm-accent: #1E3B2F;
+    --dm-card-bg: #FFFFFF;
+    --dm-card-border: #D5DDD7;
+    --dm-stage-bg: #E8EEEA;
+    --dm-ink: #122019;
+    --dm-ink-2: #30433A;
+    --dm-muted: #63746C;
+    --dm-stock: #196642;
+  }
+
+  /* 配色 8：清水建築 */
+  .dm-sheet[data-style="cement"] {
+    --dm-bg: #EDEDED;
+    --dm-header-bg: #262626;
+    --dm-header-text: #F5F5F5;
+    --dm-header-sub: #BDBDBD;
+    --dm-eyebrow: #525252;
+    --dm-accent: #404040;
+    --dm-card-bg: #FAFAFA;
+    --dm-card-border: #D4D4D4;
+    --dm-stage-bg: #E0E0E0;
+    --dm-ink: #171717;
+    --dm-ink-2: #383838;
+    --dm-muted: #6B6B6B;
+    --dm-stock: #2B6146;
+  }
+
+  /* 8 種字體風格 */
   .dm-sheet[data-font="serif"] { --font-title-family: 'Noto Serif TC', serif; }
+  .dm-sheet[data-font="sans"] { --font-title-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; }
+  .dm-sheet[data-font="display"] { --font-title-family: 'Playfair Display', 'Noto Serif TC', serif; }
+  .dm-sheet[data-font="geometric"] { --font-title-family: 'Montserrat', 'Noto Sans TC', sans-serif; }
+  .dm-sheet[data-font="humanist"] { --font-title-family: 'Noto Serif TC', 'Noto Sans TC', serif; letter-spacing: 0.04em; }
+  .dm-sheet[data-font="couture"] { --font-title-family: 'Cinzel', 'Playfair Display', serif; }
+  .dm-sheet[data-font="organic"] { --font-title-family: 'Cormorant Garamond', 'Noto Serif TC', serif; font-style: italic; }
+  .dm-sheet[data-font="industrial"] { --font-title-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif; }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -989,8 +1062,122 @@
     border-right: 1px solid var(--dm-card-border);
   }
 
+  /* 左右對話 Split 版型 */
+  .split-editorial {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+    flex: 1;
+  }
+  .split-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .split-left .scene-collage {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+  }
+  .split-left .sc-item {
+    height: 380px !important;
+  }
+  .split-right .pieces-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  /* 極簡留白 Minimal 版型 */
+  .dm-sheet[data-layout="minimal"] .mag-header {
+    text-align: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--dm-card-border);
+    padding-bottom: 22px;
+    margin-bottom: 24px;
+  }
+  .dm-sheet[data-layout="minimal"] .mag-header > div:first-child {
+    text-align: center;
+    margin: 0 auto;
+  }
+  .dm-sheet[data-layout="minimal"] .mag-tagline-wrap {
+    border-left: none;
+    border-top: 2px solid var(--dm-accent);
+    padding-left: 0;
+    padding-top: 12px;
+    margin-top: 14px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .dm-sheet[data-layout="minimal"] .scene-collage {
+    max-height: 340px;
+    margin-bottom: 24px;
+  }
+
+  /* 幾何錯落 Cascade 版型 */
+  .cascade-editorial-top {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--dm-card-border);
+  }
+  .cascade-editorial-top .mag-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .cascade-editorial-top .scene-collage {
+    height: 240px;
+  }
+
+  /* 高訂專題 Monograph 版型 */
+  .dm-sheet[data-layout="monograph"] .mag-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 2px solid var(--dm-ink);
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+  }
+  .dm-sheet[data-layout="monograph"] .mag-title {
+    font-size: 38px;
+    letter-spacing: -0.01em;
+  }
+  .dm-sheet[data-layout="monograph"] .mag-tagline-wrap {
+    border-left: none;
+    padding-left: 0;
+    font-style: italic;
+    opacity: 0.92;
+  }
+
+  /* 實景特殊排版：電影寬幅 & 階梯聚焦 */
+  .scene-collage.sc-layout-cinematic {
+    height: 300px !important;
+  }
+  .scene-collage.sc-layout-cinematic .sc-item {
+    grid-column: 1 / -1 !important;
+    height: 100% !important;
+  }
+  .scene-collage.sc-layout-focus {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 360px;
+  }
+  .scene-collage.sc-layout-focus .sc-item:first-child {
+    grid-row: 1 / span 2;
+    height: 100%;
+  }
+
   @media (max-width: 640px) {
-    .sidebar-editorial { grid-template-columns: 1fr; }
+    .sidebar-editorial,
+    .split-editorial,
+    .cascade-editorial-top { grid-template-columns: 1fr; }
     .pieces-grid,
     .pieces-grid.pcount-many {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1594,6 +1781,21 @@
         </div>
       </div>
 
+      <div style="margin-top:6px;">
+        <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>最低坪數需求</span>
+          <span style="font-size:11px;font-weight:normal;color:var(--muted);">(滿足條件才顯示)</span>
+        </div>
+        <div class="chip-group" id="minPingChips">
+          <button type="button" class="chip active" data-ping="0" onclick="setMinPing(0)">不限</button>
+          <button type="button" class="chip" data-ping="5" onclick="setMinPing(5)">5坪+</button>
+          <button type="button" class="chip" data-ping="10" onclick="setMinPing(10)">10坪+</button>
+          <button type="button" class="chip" data-ping="20" onclick="setMinPing(20)">20坪+</button>
+          <button type="button" class="chip" data-ping="50" onclick="setMinPing(50)">50坪+</button>
+        </div>
+        <input type="number" id="customMinPingInput" class="input" style="margin-top:6px;" placeholder="或自訂最低坪數 (例: 15、30)" min="0" step="1" oninput="onCustomMinPingInput()">
+      </div>
+
       <div style="margin-top:4px;">
         <div class="sec-title"><span>單頁排列上限</span></div>
         <select id="selCount" class="select" onchange="applyAndPick()">
@@ -1618,10 +1820,14 @@
 
       <div class="ctrl-sub-label">雜誌排版風格：</div>
       <div class="chip-group">
-        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">1. 經典標準</button>
-        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">2. 封面大圖</button>
-        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">3. 左右分欄</button>
-        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">4. 上磚下景</button>
+        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">當代藝廊</button>
+        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">滿版焦點</button>
+        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">建築雙欄</button>
+        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">策展巡禮</button>
+        <button type="button" class="style-pill" data-ly="minimal" onclick="setMagLayout('minimal')">極簡留白</button>
+        <button type="button" class="style-pill" data-ly="split" onclick="setMagLayout('split')">左右對話</button>
+        <button type="button" class="style-pill" data-ly="cascade" onclick="setMagLayout('cascade')">幾何錯落</button>
+        <button type="button" class="style-pill" data-ly="monograph" onclick="setMagLayout('monograph')">高訂專題</button>
       </div>
 
       <div class="ctrl-sub-label" style="margin-top:4px;">色彩主題風格：</div>
@@ -1638,13 +1844,30 @@
         <button type="button" class="style-pill" data-st="minimal" onclick="setDmStyle('minimal')">
           <i class="swatch-dot" style="background:#1F4D3A"></i>北歐極簡
         </button>
+        <button type="button" class="style-pill" data-st="wabisabi" onclick="setDmStyle('wabisabi')">
+          <i class="swatch-dot" style="background:#726558"></i>京都侘寂
+        </button>
+        <button type="button" class="style-pill" data-st="riviera" onclick="setDmStyle('riviera')">
+          <i class="swatch-dot" style="background:#1B4472"></i>蔚藍海岸
+        </button>
+        <button type="button" class="style-pill" data-st="modern" onclick="setDmStyle('modern')">
+          <i class="swatch-dot" style="background:#1E3B2F"></i>英倫摩登
+        </button>
+        <button type="button" class="style-pill" data-st="cement" onclick="setDmStyle('cement')">
+          <i class="swatch-dot" style="background:#404040"></i>清水建築
+        </button>
       </div>
 
       <div class="ctrl-sub-label" style="margin-top:4px;">字體風格：</div>
       <div class="chip-group">
         <button type="button" class="style-pill active" data-fn="serif" onclick="setDmFont('serif')">經典宋體</button>
         <button type="button" class="style-pill" data-fn="sans" onclick="setDmFont('sans')">現代黑體</button>
-        <button type="button" class="style-pill" data-fn="cormorant" onclick="setDmFont('cormorant')">奢華襯線</button>
+        <button type="button" class="style-pill" data-fn="display" onclick="setDmFont('display')">典雅襯線</button>
+        <button type="button" class="style-pill" data-fn="geometric" onclick="setDmFont('geometric')">幾何現代</button>
+        <button type="button" class="style-pill" data-fn="humanist" onclick="setDmFont('humanist')">人文開闊</button>
+        <button type="button" class="style-pill" data-fn="couture" onclick="setDmFont('couture')">頂級訂製</button>
+        <button type="button" class="style-pill" data-fn="organic" onclick="setDmFont('organic')">藝文手作</button>
+        <button type="button" class="style-pill" data-fn="industrial" onclick="setDmFont('industrial')">現代工藝</button>
       </div>
     </div>
 
@@ -1654,12 +1877,14 @@
     <div class="ctrl-sec staff-only">
       <div class="sec-title"><span>3. 實景情境圖排版</span></div>
       <div class="chip-group">
-        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動張數</button>
-        <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">1張大圖</button>
-        <button type="button" class="style-pill" data-sc="2" onclick="setSceneLayout('2')">2張雙併</button>
-        <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌</button>
-        <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張錯落</button>
-        <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏圖片</button>
+        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">智慧自適</button>
+        <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">單幅全景</button>
+        <button type="button" class="style-pill" data-sc="2" onclick="setSceneLayout('2')">經典雙拼</button>
+        <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">雜誌三分</button>
+        <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">四格矩陣</button>
+        <button type="button" class="style-pill" data-sc="cinematic" onclick="setSceneLayout('cinematic')">電影寬畫</button>
+        <button type="button" class="style-pill" data-sc="focus" onclick="setSceneLayout('focus')">階梯聚焦</button>
+        <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">純磚展示</button>
       </div>
       <button type="button" class="btn-act btn-with-svg" onclick="openScenePickerModal(-1)" style="margin-top:4px;width:100%;justify-content:center;" id="btnOpenScenePicker">
         <span class="scene-plus-icon"></span>新增 / 更換實景情境圖
@@ -1976,6 +2201,26 @@ const STYLE_PALETTES = {
     bg: "#FFFFFF", headerBg: "#1F4D3A", headerText: "#FFFFFF", headerSub: "#D5E6DF",
     eyebrow: "#1F4D3A", accent: "#1F4D3A", cardBg: "#FFFFFF", cardBorder: "#E2E8F0",
     stageBg: "#F4F6F8", ink: "#0F172A", ink2: "#334155", muted: "#64748B", stock: "#15803D"
+  },
+  wabisabi: {
+    bg: "#F2EFEB", headerBg: "#3A3530", headerText: "#F5F1EB", headerSub: "#C4BCB3",
+    eyebrow: "#8A7D70", accent: "#726558", cardBg: "#FAF8F5", cardBorder: "#DED6CC",
+    stageBg: "#E8E2D8", ink: "#2A2521", ink2: "#4F4741", muted: "#82776E", stock: "#2E5C44"
+  },
+  riviera: {
+    bg: "#F4F7FB", headerBg: "#0F253E", headerText: "#F0F5FA", headerSub: "#B8CCE0",
+    eyebrow: "#2B5E94", accent: "#1B4472", cardBg: "#FFFFFF", cardBorder: "#D4E2F0",
+    stageBg: "#EAF0F8", ink: "#0D1E32", ink2: "#2A415C", muted: "#5F7691", stock: "#1E7E52"
+  },
+  modern: {
+    bg: "#F3F5F4", headerBg: "#11221B", headerText: "#F4F7F5", headerSub: "#B9CCC1",
+    eyebrow: "#B38C48", accent: "#1E3B2F", cardBg: "#FFFFFF", cardBorder: "#D5DDD7",
+    stageBg: "#E8EEEA", ink: "#122019", ink2: "#30433A", muted: "#63746C", stock: "#196642"
+  },
+  cement: {
+    bg: "#EDEDED", headerBg: "#262626", headerText: "#F5F5F5", headerSub: "#BDBDBD",
+    eyebrow: "#525252", accent: "#404040", cardBg: "#FAFAFA", cardBorder: "#D4D4D4",
+    stageBg: "#E0E0E0", ink: "#171717", ink2: "#383838", muted: "#6B6B6B", stock: "#2B6146"
   }
 };
 
@@ -2016,6 +2261,7 @@ let currentDmStyle = "warm";
 let currentDmFont = "serif";
 let currentMagLayout = "bento";
 let currentSceneLayout = "auto";
+let minPingRequirement = 0;
 
 let activeScenes = [];
 let seriesScenePool = [];
@@ -2335,6 +2581,7 @@ function saveCurrentCustomMemory() {
     dmStyle: currentDmStyle,
     dmFont: currentDmFont,
     sceneLayout: currentSceneLayout,
+    minPingRequirement: minPingRequirement,
     customHeaderText: { ...customHeaderText },
     activeScenes: activeScenes.map(s => ({ ...s })),
     pageScenesMap: JSON.parse(JSON.stringify(pageScenesMap)),
@@ -2486,6 +2733,30 @@ function setLevel(lv) {
   }
 }
 
+function setMinPing(val) {
+  minPingRequirement = Number(val) || 0;
+  document.querySelectorAll('#minPingChips .chip').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.ping) === minPingRequirement);
+  });
+  const inp = document.getElementById('customMinPingInput');
+  if (inp) inp.value = minPingRequirement > 0 ? minPingRequirement : '';
+  saveSeriesCustomMemory();
+  if (currentMode === "series") pickBySeries();
+  else applyAndPick();
+}
+
+function onCustomMinPingInput() {
+  const inp = document.getElementById('customMinPingInput');
+  const val = Math.max(0, parseFloat(inp.value) || 0);
+  minPingRequirement = val;
+  document.querySelectorAll('#minPingChips .chip').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.ping) === minPingRequirement);
+  });
+  saveSeriesCustomMemory();
+  if (currentMode === "series") pickBySeries();
+  else applyAndPick();
+}
+
 function initEditableHeaderForSelection() {
   const first = currentPicked[0];
   const pageTag = totalPages > 1 ? ` · 第 ${currentPageIndex + 1}/${totalPages} 頁` : "";
@@ -2559,9 +2830,16 @@ function rebuildActiveScenesFromPool() {
     activeScenes = [];
     return;
   }
-  const maxN = currentSceneLayout === "auto"
-    ? Math.min(4, seriesScenePool.length)
-    : Math.min(parseInt(currentSceneLayout, 10) || 1, seriesScenePool.length);
+  let maxN = 1;
+  if (currentSceneLayout === "auto") {
+    maxN = Math.min(4, seriesScenePool.length);
+  } else if (currentSceneLayout === "cinematic") {
+    maxN = 1;
+  } else if (currentSceneLayout === "focus") {
+    maxN = Math.min(3, seriesScenePool.length);
+  } else {
+    maxN = Math.min(parseInt(currentSceneLayout, 10) || 1, seriesScenePool.length);
+  }
   activeScenes = seriesScenePool.slice(0, maxN).map(s => ({ ...s }));
 }
 
@@ -2719,6 +2997,14 @@ function applySavedMemoryToState(mem) {
     currentSceneLayout = mem.sceneLayout;
     document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === mem.sceneLayout));
   }
+  if (mem.minPingRequirement !== undefined) {
+    minPingRequirement = Number(mem.minPingRequirement) || 0;
+    document.querySelectorAll('#minPingChips .chip').forEach(b => {
+      b.classList.toggle('active', Number(b.dataset.ping) === minPingRequirement);
+    });
+    const inp = document.getElementById('customMinPingInput');
+    if (inp) inp.value = minPingRequirement > 0 ? minPingRequirement : '';
+  }
   if (mem.showPrice !== undefined) {
     const chk = document.getElementById("chkShowPrice");
     if (chk) chk.checked = mem.showPrice;
@@ -2754,6 +3040,7 @@ function pickBySeries(preservePage = false) {
     if (p.series !== ser) return false;
     if (currentLevel !== "all" && p.level !== currentLevel) return false;
     if (onlyInStock && p.availPcs <= 0) return false;
+    if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
     return true;
   });
 
@@ -2785,6 +3072,7 @@ function applyAndPick(preservePage = false) {
   filteredPool = allProducts.filter(p => {
     if (currentLevel !== "all" && p.level !== currentLevel) return false;
     if (onlyInStock && p.availPcs <= 0) return false;
+    if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
     if (selectedSize && !isSizeMatchWithTolerance(p.size, selectedSize)) return false;
     if (selectedStyle) {
       const hay = `${p.area} ${p.style} ${p.series} ${p.size}`.toLowerCase();
@@ -3063,7 +3351,7 @@ function buildSceneCollageHtml() {
     </div>
     `;
   }).join("");
-  return `<div class="scene-collage count-${cnt}">${itemsHtml}</div>`;
+  return `<div class="scene-collage count-${cnt} sc-layout-${currentSceneLayout}">${itemsHtml}</div>`;
 }
 
 function buildPiecesGridHtml() {
@@ -3206,6 +3494,51 @@ function renderDM() {
             ${piecesHtml}
           </div>
         </div>
+      </div>
+    `;
+  } else if (currentMagLayout === "split") {
+    mount.innerHTML = `
+      <div class="mag-content">
+        <div class="split-editorial">
+          <div class="split-left">
+            <div style="border-bottom:2px solid var(--dm-accent);padding-bottom:12px;">
+              <div class="mag-eyebrow" id="dmEyebrow" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('eyebrow', this)">${customHeaderText.eyebrow}</div>
+              <h1 class="mag-title" id="dmTitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('title', this)">${customHeaderText.title}</h1>
+              <div class="mag-subtitle" id="dmSubtitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('subtitle', this)">${customHeaderText.subtitle}</div>
+              <div class="mag-tagline" id="dmTagline" style="text-align:left;margin-top:10px;" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('tagline', this)">${customHeaderText.tagline}</div>
+            </div>
+            ${sceneHtml}
+          </div>
+          <div class="split-right">
+            ${piecesHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (currentMagLayout === "cascade") {
+    mount.innerHTML = `
+      <div class="mag-content">
+        <div class="cascade-editorial-top">
+          ${buildEditableHeaderHtml("header-cascade")}
+          <div>${sceneHtml}</div>
+        </div>
+        ${piecesHtml}
+      </div>
+    `;
+  } else if (currentMagLayout === "monograph") {
+    mount.innerHTML = `
+      ${buildEditableHeaderHtml("header-monograph")}
+      <div class="mag-content">
+        ${sceneHtml}
+        ${piecesHtml}
+      </div>
+    `;
+  } else if (currentMagLayout === "minimal") {
+    mount.innerHTML = `
+      ${buildEditableHeaderHtml("header-minimal")}
+      <div class="mag-content">
+        ${sceneHtml}
+        ${piecesHtml}
       </div>
     `;
   } else if (currentMagLayout === "museum") {
@@ -3486,10 +3819,22 @@ function applyTextSize(dir) {
 // 直式雜誌單頁 Canvas 渲染 (1080 x 1528)
 // ════════════════════════════════════════════════════════════════
 async function renderPortraitPageToCanvas(pageState) {
-  const { items, scenes, headerText, dmStyle, magLayout, showPrice, showPing, shareUrl, productRotations: stateRotations } = pageState;
+  const { items, scenes, headerText, dmStyle, magLayout, showPrice, showPing, shareUrl, productRotations: stateRotations, dmFont: stateFont } = pageState;
   const pal = STYLE_PALETTES[dmStyle] || STYLE_PALETTES.warm;
   const scCount = Math.min(4, scenes.length);
   const rotationsToUse = stateRotations || productRotations;
+
+  const fontFamilies = {
+    serif: "'Noto Serif TC', serif",
+    sans: "'Plus Jakarta Sans', 'Noto Sans TC', sans-serif",
+    display: "'Playfair Display', 'Noto Serif TC', serif",
+    geometric: "'Montserrat', 'Noto Sans TC', sans-serif",
+    humanist: "'Noto Serif TC', 'Noto Sans TC', serif",
+    couture: "'Cinzel', 'Playfair Display', serif",
+    organic: "'Cormorant Garamond', 'Noto Serif TC', serif",
+    industrial: "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
+  };
+  const titleFont = fontFamilies[stateFont || currentDmFont] || "'Noto Serif TC', serif";
 
   const W = 1080;
   const H = 1528;
@@ -3678,7 +4023,7 @@ async function renderPortraitPageToCanvas(pageState) {
     ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, topY + 28);
 
     ctx.fillStyle = pal.ink;
-    ctx.font = "900 40px 'Noto Serif TC', 'Noto Sans TC', serif";
+    ctx.font = `900 40px ${titleFont}`;
     ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, topY + 78);
 
     ctx.fillStyle = pal.accent;
@@ -3701,6 +4046,52 @@ async function renderPortraitPageToCanvas(pageState) {
     return topY + 150;
   }
 
+  function paintMinimalHeader(topY) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = pal.eyebrow;
+    ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), W / 2, topY + 24);
+
+    ctx.fillStyle = pal.ink;
+    ctx.font = `900 38px ${titleFont}`;
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), W / 2, topY + 70);
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = "700 17px 'Noto Sans TC', sans-serif";
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), W / 2, topY + 102);
+
+    ctx.font = "600 16px 'Noto Serif TC', serif";
+    ctx.fillStyle = pal.ink2;
+    ctx.fillText((headerText.tagline || "").replace(/<[^>]*>/g, "").slice(0, 46), W / 2, topY + 130);
+
+    ctx.textAlign = "start";
+    ctx.fillStyle = pal.cardBorder;
+    ctx.fillRect(pad + 120, topY + 148, W - (pad + 120) * 2, 1.5);
+    return topY + 168;
+  }
+
+  function paintMonographHeader(topY) {
+    ctx.fillStyle = pal.eyebrow;
+    ctx.font = "700 16px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, topY + 26);
+
+    ctx.fillStyle = pal.ink;
+    ctx.font = `900 44px ${titleFont}`;
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, topY + 76);
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), pad, topY + 110);
+
+    ctx.font = "italic 600 17px 'Noto Serif TC', serif";
+    ctx.fillStyle = pal.ink2;
+    ctx.fillText((headerText.tagline || "").replace(/<[^>]*>/g, "").slice(0, 48), pad, topY + 140);
+
+    ctx.fillStyle = pal.ink;
+    ctx.fillRect(pad, topY + 158, W - pad * 2, 2.5);
+    return topY + 178;
+  }
+
   const contentBottom = H - footerH - 24;
 
   if (magLayout === "cover" && scCount > 0) {
@@ -3719,7 +4110,7 @@ async function renderPortraitPageToCanvas(pageState) {
     ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad + 30, 36 + heroH - 135);
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "900 44px 'Noto Serif TC', serif";
+    ctx.font = `900 44px ${titleFont}`;
     ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad + 30, 36 + heroH - 82);
 
     ctx.fillStyle = "rgba(255,255,255,0.9)";
@@ -3741,7 +4132,7 @@ async function renderPortraitPageToCanvas(pageState) {
     ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, 66);
 
     ctx.fillStyle = pal.ink;
-    ctx.font = "900 38px 'Noto Serif TC', serif";
+    ctx.font = `900 38px ${titleFont}`;
     ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, 114);
 
     ctx.fillStyle = pal.accent;
@@ -3757,10 +4148,77 @@ async function renderPortraitPageToCanvas(pageState) {
     if (scCount > 0) {
       const eachH = (contentBottom - scStartY - (scCount - 1) * 12) / scCount;
       for (let i = 0; i < scCount; i++) {
-        drawCoverImage(ctx, scImgs[i], pad, scStartY + i * (eachH + 12), leftW, eachH, 10);
+        drawCoverImage(ctx, scImgs[i], pad, scStartY + i * (eachH + 12), leftW, eachH, 10, (scenes[i] && scenes[i].rotation) || 0);
       }
     }
     paintPiecesArea(rightX, 42, rightW, contentBottom - 42);
+  } else if (magLayout === "split") {
+    const leftW = 480;
+    const rightX = pad + leftW + 24;
+    const rightW = W - pad - rightX;
+
+    ctx.fillStyle = pal.eyebrow;
+    ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, 66);
+
+    ctx.fillStyle = pal.ink;
+    ctx.font = `900 38px ${titleFont}`;
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, 114);
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), pad, 146);
+
+    ctx.font = "600 17px 'Noto Serif TC', serif";
+    ctx.fillStyle = pal.ink2;
+    const lines = wrapTextLines(ctx, headerText.tagline || "", leftW);
+    lines.slice(0, 3).forEach((ln, i) => ctx.fillText(ln, pad, 182 + i * 26));
+
+    const scStartY = 182 + Math.min(3, lines.length) * 26 + 20;
+    if (scCount > 0) {
+      drawCoverImage(ctx, scImgs[0], pad, scStartY, leftW, contentBottom - scStartY, 10, (scenes[0] && scenes[0].rotation) || 0);
+    }
+    paintPiecesArea(rightX, 42, rightW, contentBottom - 42);
+  } else if (magLayout === "cascade") {
+    const topH = 260;
+    ctx.fillStyle = pal.eyebrow;
+    ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, 66);
+
+    ctx.fillStyle = pal.ink;
+    ctx.font = `900 38px ${titleFont}`;
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, 114);
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), pad, 146);
+
+    ctx.font = "600 16px 'Noto Serif TC', serif";
+    ctx.fillStyle = pal.ink2;
+    const lines = wrapTextLines(ctx, headerText.tagline || "", 440);
+    lines.slice(0, 2).forEach((ln, i) => ctx.fillText(ln, pad, 180 + i * 24));
+
+    if (scCount > 0) {
+      const sceneW = W - pad - 520;
+      drawCoverImage(ctx, scImgs[0], 520, 36, sceneW, topH, 10, (scenes[0] && scenes[0].rotation) || 0);
+    }
+    paintPiecesArea(pad, 36 + topH + 24, W - pad * 2, contentBottom - (36 + topH + 24));
+  } else if (magLayout === "minimal") {
+    const startY = paintMinimalHeader(24);
+    const scH = scCount > 0 ? 360 : 0;
+    if (scH > 0) {
+      paintCollageBox(pad, startY + 16, W - pad * 2, scH);
+    }
+    const pStartY = startY + (scH > 0 ? scH + 30 : 16);
+    paintPiecesArea(pad, pStartY, W - pad * 2, contentBottom - pStartY);
+  } else if (magLayout === "monograph") {
+    const startY = paintMonographHeader(24);
+    const scH = scCount > 0 ? 400 : 0;
+    if (scH > 0) {
+      paintCollageBox(pad, startY + 16, W - pad * 2, scH);
+    }
+    const pStartY = startY + (scH > 0 ? scH + 30 : 16);
+    paintPiecesArea(pad, pStartY, W - pad * 2, contentBottom - pStartY);
   } else if (magLayout === "museum") {
     const startY = paintSplitHeader(24);
     const scH = scCount > 0 ? 390 : 0;

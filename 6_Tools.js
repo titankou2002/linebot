@@ -123,7 +123,7 @@ function getStockSheet() {
       const vals = sh.getDataRange().getValues();
       _CACHE.stockRows = vals;
       if (typeof CacheManager !== 'undefined' && vals.length > 0) {
-        CacheManager.putLarge(cacheKey, vals, 20); // 20 秒短快取，避免連續查詢反覆遠端讀表
+        CacheManager.putLarge(cacheKey, vals, 600); // 10 分鐘快取，避免反覆遠端讀表（有新保留時由 clearStockAndReserveCache 立即清除）
       }
       return vals;
     }
@@ -448,7 +448,7 @@ function getMainSheet() {
   }
   
   if (typeof CacheManager !== 'undefined' && combined.length > 0) {
-    CacheManager.putLarge(cacheKey, combined, 20); // 20 秒短快取
+    CacheManager.putLarge(cacheKey, combined, 600); // 10 分鐘快取（有新保留時由 clearStockAndReserveCache 立即清除）
   }
   _CACHE.mainRowsCombined = combined;
   return combined;
@@ -461,6 +461,7 @@ function clearStockAndReserveCache() {
   if (typeof CacheManager !== 'undefined') {
     CacheManager.removeLarge("stock_sheet_data_short_v1");
     CacheManager.removeLarge("main_sheet_combined_short_v1");
+    CacheManager.removeLarge("form_catalog_snapshot_v1");
   }
 }
 

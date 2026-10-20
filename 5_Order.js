@@ -1617,8 +1617,8 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         return trimmed.split('?')[0];
       }).filter(u => u && u.includes("http"));
       const uniqueFinalUrls = [...new Set(normalizedUrls)];
-      // LINE API 限制：最多 5 張圖片
-      const scenesForPush = uniqueFinalUrls.slice(0, 5);
+      // LINE reply 最多 5 則訊息；有雲端硬碟連結時留 1 則給「看全部圖片」卡片
+      const scenesForPush = uniqueFinalUrls.slice(0, getDriveFolderUrlFromRow_(matchedRow, priceMap) ? 4 : 5);
       logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 最終實景圖 原 " + sceneUrls.length + " → 正規化後 " + normalizedUrls.length + " → 去重後 " + uniqueFinalUrls.length + " 張，推送前 " + scenesForPush.length + " 張", false);
       scenesForPush.forEach(url => {
         const finalSceneUrl = normalizeImageUrlForLine(url);
@@ -1628,16 +1628,22 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
     } else if (type === 'piece') {
       const pieceUrls = [];
 
-      // 優先級 1：R2_單片連結網址（已遷移到 R2 的優先讀取，速度最快）
-      const r2PieceIdx = getColumnByName(priceMap, ['R2_單片連結網址']);
-      if (r2PieceIdx !== undefined) {
-        let url = String(matchedRow[r2PieceIdx] || '').trim();
-        if (url && url.includes("http")) {
-          pieceUrls.push(url);
-          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 R2_單片連結 取得 1 張圖");
+      // 優先級 1：R2_單片1~9 + R2_單片連結網址（已遷移到 R2 的優先讀取，速度最快）
+      // 🚩 修正：原本只讀 R2_單片連結網址（1 張），讀到就不再讀單片1~9，導致永遠只有一張
+      const r2PieceCols = [];
+      for (let j = 1; j <= 9; j++) r2PieceCols.push('R2_單片' + j);
+      r2PieceCols.push('R2_單片連結網址');
+      r2PieceCols.forEach(function (colName) {
+        const idx = getColumnByName(priceMap, [colName]);
+        if (idx !== undefined) {
+          const url = String(matchedRow[idx] || '').trim();
+          if (url && url.includes("http") && pieceUrls.indexOf(url) === -1) pieceUrls.push(url);
         }
+      });
+      if (pieceUrls.length > 0) {
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 R2_單片 取得 " + pieceUrls.length + " 張圖");
       } else {
-        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 R2_單片連結欄位不存在");
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 R2_單片欄位都沒有有效 URL");
       }
 
       // 優先級 2：單片 URL（列 61~69）— Drive 備援
@@ -1669,8 +1675,8 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         pieceUrls[i] = pieceUrls[j];
         pieceUrls[j] = temp;
       }
-      // LINE API 限制：最多 5 張圖片
-      const piecesForPush = pieceUrls.slice(0, 5);
+      // LINE reply 最多 5 則訊息；有雲端硬碟連結時留 1 則給「看全部圖片」卡片
+      const piecesForPush = pieceUrls.slice(0, getDriveFolderUrlFromRow_(matchedRow, priceMap) ? 4 : 5);
       logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 最終取得 " + pieceUrls.length + " 張，推送前 " + piecesForPush.length + " 張", false);
       piecesForPush.forEach(url => {
         const finalUrl = normalizeImageUrlForLine(url);

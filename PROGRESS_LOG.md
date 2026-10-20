@@ -20,6 +20,42 @@
 
 ---
 
+## 2026-10-06 進度更新：本機檔案被同步清空的搶救、Token 移出原始碼、「您是不是要找」、到貨通知訂閱
+
+部署：`@821`（前三項）、`@822`（到貨通知）。兩次都先 `clasp clone` 線上版本到暫存區逐檔比對，確認只推自己的改動、不會刪掉線上任何檔案，才 `clasp push` + `clasp deploy -i <正式ID>`，部署後 `curl .../exec` 回 200。
+
+### 0. 緊急搶救：本機核心檔案被 Google Drive 同步清成 0 bytes
+- **狀況**：`0_Core.js`、`00_Debug.js`、`2_Business.js`、`3_Notify.js`、`4_Flex.js`、`4_OrderFlex.js`、`5_Order.js`、`6_Tools.js`、`cpanel_tracking.html`、`.claspignore` 在 9/10~9/24 間被同步成空檔，真正的內容跑到「xxx 2.js」「xxx 3.js」衝突複本。兩台電腦同時改同一個 Drive 資料夾造成的。
+- **風險**：此狀態下任何人執行 `clasp push` 都會把正式機器人整個清空；`.claspignore` 空掉則會把「2」「3」重複檔一起推上去，同名函式互蓋。
+- **處理**：`clasp clone` 線上版到暫存區，確認線上完好、且衝突複本與線上一字不差後，用線上版還原所有空檔；`.claspignore` 用「.claspignore 2」（白名單版）還原，並加一條 `* [0-9].*` 排除所有「空格+數字」的衝突複本。
+- **教訓**：`clasp push` 會用本機「整包覆蓋」線上，本機少的檔案線上會被刪掉。推送前一律先 clone 線上版逐檔比對。新功能也不要開新檔案，因為另一台電腦的白名單 `.claspignore` 不認得新檔名，它下次推送會把新檔從線上刪掉，所以本次新功能都寫進既有檔案。
+
+### 1. 刪除到貨明細死碼（`6_Tools.js`）
+- 9/24 另一個 session 已把「新批到港」改回只認保留單 `入倉日期1/2`，`getIncomingContainerListForCode_` 及 4 個輔助函式/常數（`CONTAINER_SS_ID` 等）從此沒人呼叫，整段刪除。
+
+### 2. 管理機器人 Token 移出原始碼（`0_Core.js`）
+- `manualSetupAnalysisTriggers()` 原本把 `ADMIN_BOT_TOKEN` 明碼寫在程式裡再存進屬性。改成只檢查 Script Properties 有沒有設定，沒設定就在彈窗提醒。
+- **待使用者處理**：舊 Token 已外流（明碼存在 Drive 檔案與衝突複本中），需到 LINE Developers → Messaging API → Channel access token 按 Reissue，再到 GAS「專案設定 → 指令碼屬性」更新 `ADMIN_BOT_TOKEN`，並刪除含舊 Token 的 `0_Core 2.js`、`0_Core 3.js`。
+
+### 3. 查無結果改給「您是不是要找」（`1_Search.js`、`2_Business.js`）
+- 新增 `editDistance_`（編輯距離）與 `buildNotFoundSuggestionFlex_`：編號錯 1~2 碼、數字少/多打 1 碼、系列名錯 1 字，列出最接近的最多 4 筆，按鈕點了直接重查（保留原本的數量）。
+- 只在私訊出現，群組維持安靜；找不到夠接近的就回 `""`，照原本流程交給 AI 對話。
+- 查無時會先查今友利短編號（如 D124），避免被「您是不是要找」蓋掉。
+- **順手修 bug**：`handleInventorySearch` 的 `cleanKW` 原本用 `const` 宣告在 `if` 區塊內、卻在區塊外使用，選型搜尋（例如「白 60x120 50坪」）會丟 `ReferenceError` 而沒有回覆。改成在函式開頭宣告。
+
+### 4. 到貨通知訂閱（`3_Notify.js`、`6_Tools.js`、`5_Order.js`、`0_Core.js`）
+- **不用 LINE 推播**（推播吃官方帳號免費則數），採 A+B 零成本方案：
+  - A. 客戶下次傳任何訊息時，回覆裡順便附上通知（回覆訊息不算則數）
+  - B. 同時 Telegram 通知負責業務，由業務主動聯絡
+- **流程**：私訊查詢「庫存不足」→ 快捷按鈕最前面出現「🔔 到貨通知我」（postback `t=sub&c=編號&q=數量`）→ 寫入新分頁「到貨通知訂閱」→ 每小時排程 `checkArrivalSubscriptions` 檢查可用量（庫存表 − 保留單，精準比對編號）≥ 需求 95% 就標「待告知」並發 Telegram → 客戶下次互動時附上通知，回覆成功（HTTP 200）才標「已告知」。
+- **觸發時機選可用量而非 `入倉日期`**：用日期判斷的話，客戶在回覆裡早就看過「新批 9/7」會被重複告知；日期被清掉也會漏通知。可用量判斷跟「庫存不足才訂閱」對稱，也不依賴人工維護日期。
+- 狀態：等待中 → 待告知 → 已告知；60 天沒到貨標「已過期」。同一客戶同一編號重複訂閱會提示已在追蹤。
+- 排程由第一次訂閱時自動建立（`ensureArrivalSubTrigger_`），不在 `registerAnalysisTriggers()` 裡，因為試算表選單跑的可能是另一份容器腳本，排程會建錯專案。
+- 回覆夾帶的掛鉤在 `lineApiFetch`（只處理 `reply`、且不帶自訂 Token 的呼叫），`doPost` 設定 `_ARRIVAL_REPLY_CTX` 告知是哪位客戶；LINE 單次回覆上限 5 則，已滿就留到下次。
+- **已知限制**：按鈕只加在文字回覆（`sendReply`），庫存不足但回覆是圖卡時不會出現；一次查多個編號時只帶最後一個編號。
+
+---
+
 ## 2026-09-10 進度更新：圖片全面搬到 R2、離職同事權限風險處理、欄位淘汰、「我的保留單」LIFF 自助功能
 
 本次涉及兩個獨立 GAS 專案：**客戶版機器人**（本專案，v803→v818）、**圖片抓取工具**（`@75`→`@85`）。全程遵照安全部署流程，沒有裸 `clasp deploy`、沒有新增部署 ID。

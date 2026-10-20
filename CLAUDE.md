@@ -47,6 +47,7 @@
 **A. 回覆給「客戶本人」**（用客戶自己的 `userId`，函式 `sendPush`/`lineApiFetch('reply',...)`）：
    - 新用戶審核通過（「🎉 您的 AI 權限已核准開通」）— `5_Order.js` `processUserApproval`
    - 點「系列介紹/實景圖/模面變化圖/原廠目錄」按鈕，成功或查無資料 — `5_Order.js` `handleFlexImagePostback`
+   - （2026-10-06 新增）到貨通知：客戶在「庫存不足」回覆按「🔔 到貨通知我」→ 回覆訂閱確認；有貨後**不推播**，等客戶下次傳任何訊息時，在那次回覆裡夾帶「🔔 到貨通知」一則（回覆訊息不吃免費則數）— `3_Notify.js` `handleArrivalSubscribe_`（訂閱）、`attachPendingArrivalNotices_`（夾帶，掛在 `6_Tools.js` `lineApiFetch` 的 reply 路徑）
 
 **B. 操作按鈕的管理員自己收到的回饋**（`5_Order.js` `handlePostback`，走 legacy LINE postback 路徑，正常情況下已經不會再被觸發，因為對應的 Flex 審核卡片都已經改成 Telegram 通知，只有還握著極舊的 LINE 卡片時才會用到）：
    - 「⛔ 權限不足」、找不到工作表、核准單筆/整筆品項、拒絕整筆保留單、核准新用戶
@@ -75,6 +76,7 @@
 
 **業務個人私人 Telegram**（`resolveBusinessTelegramChatId`，查無則 fallback 公佈欄）：
    - 客戶查詢後判定「有問題」需通知（free/class 等級 + 查數量 + 回覆含不足/❌/🟠）— `3_Notify.js` `handleSalesPush`，依「業務分區表」（客戶名稱 → 負責業務）查出對應業務
+   - （2026-10-06 新增）到貨通知：客戶訂閱的編號可用量夠了，同一業務的客戶合併成一則「客戶在等的貨有了」— `3_Notify.js` `checkArrivalSubscriptions`（業務欄位取自訂閱當下的 `auth.salesID`）
    - 保留追蹤通知（30/45/60 天分級：一/四=30天、二/五=45天、三=60天，只問「第一次滿期」，狀態記錄在「保留通知紀錄」表）— `3_Notify.js` `sendReservationExpiryAlerts`，含「✅ 繼續保留／❌ 取消保留」按鈕（doGet `ac=renewReserve`/`renewReserveWeb`/`renewReserveSubmit`/`cancelReserve`，45/60 天續保需網頁填原因，寫入「業務回報記錄」表）
 
 **⚠️ 目前 `2_Business.js` `handleInventorySearch` 的「查無此品號」「庫存不足」通知已經不是走 `2_Business.js` 直接發送**，改成統一交給 `handleSalesPush`（`3_Notify.js`）判斷後發送，避免同一個查詢重複通知兩次。
@@ -98,6 +100,8 @@
 | `sendProductStockAlerts` | 週六 08:00 | Telegram 公佈欄 |
 | `dailyPerformanceAutoPush` | 每日 18:00 | Telegram 公佈欄 |
 | `sendReservationExpiryAlerts` | 週一~五 19:00（各自帶當天門檻） | Telegram 業務私人（fallback 公佈欄） |
+
+**例外（不在 `registerAnalysisTriggers()` 裡）**：`checkArrivalSubscriptions`（到貨通知，每小時，Telegram 業務私人）由第一位客戶訂閱時，在 webhook 裡用 `ensureArrivalSubTrigger_()` 自動建立在本專案。原因是試算表選單可能跑的是另一份容器腳本，從選單建立排程會建到錯的專案。
 
 `registerAnalysisTriggers()` 每次執行都會**先清掉這 4 個 handler 名稱的舊觸發器，再重建**，同時也會主動清掉 5 個舊函式名稱的殘留觸發器（`sendDailyQuerySummary`、`sendBossDailyReport`、`sendWeeklyQueryAnalysis`、`sendMonthlyQueryAnalysis`、`sendOutofStockEmailSummary`）避免孤兒觸發器——**先前發現的 `sendOutofStockEmailSummary` 孤兒觸發器（76% 錯誤率）已經被這個清理機制解決**。
 

@@ -23,7 +23,7 @@
 const GY_CONFIG = {
   SS_ID: "1M-Ewy58fQs-QmqzO5nERoXDCm7lm6S_mrrAIR1mUOtA", // 鈦傳速主要資料庫 ID
   WHITELIST_SHEET: "經銷商白名單",
-  CHANNEL_ACCESS_TOKEN: "hzlR1hr0qkVqcoIo60dqdxomaloGS8dyL3lpENhMLZYLvcNNi1KbM+lhsABoOIO2leCOFrpxFhP1Gq2qxPY2NtmHm+KNlsSAYoES4jqKIpZUSHbbwgFvcrv0kF4LJb7TJ4lMiRHOz+0JNta0zXfwdgdB04t89/1O/w1cDnyilFU=",
+  CHANNEL_ACCESS_TOKEN: PropertiesService.getScriptProperties().getProperty('LINE_CHANNEL_ACCESS_TOKEN') || "", // 由 Script Properties 讀取，不寫死在程式碼
   LIFF_ID: "2007666611-285rZBFA" // 鈦傳速 LIFF ID
 };
 
