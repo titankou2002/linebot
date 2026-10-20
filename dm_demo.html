@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Ebook · 產品型錄與 DM 產生器</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C1917'/%3E%3Crect x='10' y='12' width='20' height='22' rx='4' fill='%238C5A32'/%3E%3Crect x='34' y='12' width='20' height='22' rx='4' fill='%23C5A059'/%3E%3Crect x='10' y='38' width='20' height='14' rx='3' fill='%23ECE7DF'/%3E%3Crect x='34' y='38' width='20' height='14' rx='3' fill='%238C5A32'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="alternate icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Noto+Sans+TC:wght@400;500;600;700;800&family=Noto+Serif+TC:wght@600;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
@@ -167,6 +169,23 @@
     align-items: center;
     gap: 10px;
   }
+  .brand-logo-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #1C1917;
+    color: #E6C29F;
+    border-radius: 7px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    flex-shrink: 0;
+  }
+  .brand-logo-ico svg {
+    display: block;
+    width: 17px;
+    height: 17px;
+  }
   .brand-title {
     font-family: 'Cormorant Garamond', 'Plus Jakarta Sans', serif;
     font-size: 22px;
@@ -255,12 +274,12 @@
 
   /* ── 主工作區 ── */
   .workspace {
-    max-width: 1360px;
-    margin: 14px auto 0;
-    padding: 0 14px;
+    max-width: 1560px;
+    margin: 16px auto 0;
+    padding: 0 20px 80px;
     display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 18px;
+    grid-template-columns: 370px 1fr;
+    gap: 24px;
     align-items: start;
   }
   body.client-view .workspace {
@@ -271,8 +290,8 @@
   body.client-view .staff-only {
     display: none !important;
   }
-  @media (max-width: 960px) {
-    .workspace { grid-template-columns: 1fr; gap: 12px; }
+  @media (max-width: 1040px) {
+    .workspace { grid-template-columns: 1fr; gap: 14px; padding: 0 12px 80px; }
     .ctrl-panel { display: none; }
     .ctrl-panel.mob-open { display: flex; }
   }
@@ -282,11 +301,51 @@
     background: var(--surface);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-card);
-    padding: 15px;
+    padding: 16px;
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    gap: 13px;
+    gap: 15px;
+    position: sticky;
+    top: 66px;
+    max-height: calc(100vh - 82px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .ctrl-sec {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ctrl-sub-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .toggle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .toggle-grid .price-toggle {
+    width: 100%;
+    margin: 0;
+    font-size: 12px;
+    padding: 6px 8px;
+    justify-content: flex-start;
+  }
+
+  /* 細部微調效果樣式 */
+  .dm-sheet.hide-reserve-btns .card-btn[href*="reservation_form"] {
+    display: none !important;
+  }
+  .dm-sheet.hide-origin-flags .origin-flag-badge {
+    display: none !important;
+  }
+  .dm-sheet.card-style-square .tile-card,
+  .dm-sheet.card-style-square .tile-stage {
+    border-radius: 0 !important;
   }
   .sec-title {
     font-size: 12px;
@@ -1400,21 +1459,14 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand-wrap">
+      <span class="brand-logo-ico" id="topbarBrandIcon"></span>
       <div class="brand-title">Ebook</div>
-      <span class="brand-sub-pill">直式雜誌 DM · 雙頁電子型錄</span>
+      <span class="brand-sub-pill hide-on-mob">直式雜誌 DM · 雙頁電子型錄</span>
     </div>
 
     <div class="top-controls">
-      <label class="price-toggle staff-only">
-        <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
-        <span>顯示單價</span>
-      </label>
-      <label class="price-toggle staff-only">
-        <input type="checkbox" id="chkShowPing" checked onchange="renderDM()">
-        <span>顯示坪數</span>
-      </label>
       <button type="button" class="mob-filter-toggle staff-only" onclick="toggleMobileFilter()">
-        <span id="mobFilterBtnTxt">篩選條件</span>
+        <span id="mobFilterBtnTxt">功能與版型</span>
         <span id="mobFilterIcon"></span>
       </button>
 
@@ -1466,100 +1518,96 @@
 </div>
 
 <main class="workspace">
-  <!-- 左側篩選控制欄 -->
+  <!-- 左側控制面板（電腦版完整功能列） -->
   <aside class="ctrl-panel" id="ctrlPanel">
-    <div>
+    <!-- 1. 選擇生成方式與磁磚 -->
+    <div class="ctrl-sec">
       <div class="sec-title">
-        <span>1. 選擇生成方式</span>
+        <span>1. 挑選系列與尺寸</span>
         <span class="sec-badge" id="poolCountBadge">載入中...</span>
       </div>
       <div class="mode-tabs">
         <button type="button" class="mode-tab active" id="tabSeries" onclick="switchMode('series')">單一系列</button>
         <button type="button" class="mode-tab" id="tabTheme" onclick="switchMode('theme')">尺寸 × 風格</button>
       </div>
-    </div>
 
-    <!-- 模式 A：單一系列 -->
-    <div id="seriesFilterBox" style="display:flex;flex-direction:column;gap:8px;">
-      <input type="text" id="seriesSearchInput" class="input" placeholder="搜尋系列（如：沙丘、波特蘭）或編號..." oninput="filterSeriesSelect()">
-      <select id="selSeries" class="select" onchange="pickBySeries()"></select>
-    </div>
+      <!-- 模式 A：單一系列 -->
+      <div id="seriesFilterBox" style="display:flex;flex-direction:column;gap:8px;">
+        <input type="text" id="seriesSearchInput" class="input" placeholder="搜尋系列（如：沙丘、波特蘭）或編號..." oninput="filterSeriesSelect()">
+        <select id="selSeries" class="select" onchange="pickBySeries()"></select>
+      </div>
 
-    <!-- 模式 B：尺寸（±1cm）× 風格 -->
-    <div id="themeFilterBox" style="display:none;flex-direction:column;gap:10px;">
-      <div>
-        <div class="sec-title"><span>標準尺寸（±1cm 自動歸類）</span></div>
-        <div class="chip-group" id="sizeChips">
-          <button type="button" class="chip active" data-sz="60x120" onclick="selectSizeChip('60x120')">60×120</button>
-          <button type="button" class="chip" data-sz="45x90" onclick="selectSizeChip('45x90')">45×90</button>
-          <button type="button" class="chip" data-sz="30x60" onclick="selectSizeChip('30x60')">30×60</button>
-          <button type="button" class="chip" data-sz="120x120" onclick="selectSizeChip('120x120')">120×120</button>
-          <button type="button" class="chip" data-sz="20x120" onclick="selectSizeChip('20x120')">20×120</button>
-          <button type="button" class="chip" data-sz="" onclick="selectSizeChip('')">不限</button>
+      <!-- 模式 B：尺寸（±1cm）× 風格 -->
+      <div id="themeFilterBox" style="display:none;flex-direction:column;gap:10px;">
+        <div>
+          <div class="sec-title" style="margin-top:2px;"><span>磁磚尺寸 (cm)</span></div>
+          <div class="chip-group" id="sizeChips">
+            <button type="button" class="chip active" data-sz="60x120" onclick="selectSizeChip('60x120')">60×120</button>
+            <button type="button" class="chip" data-sz="45x90" onclick="selectSizeChip('45x90')">45×90</button>
+            <button type="button" class="chip" data-sz="30x60" onclick="selectSizeChip('30x60')">30×60</button>
+            <button type="button" class="chip" data-sz="120x120" onclick="selectSizeChip('120x120')">120×120</button>
+            <button type="button" class="chip" data-sz="20x120" onclick="selectSizeChip('20x120')">20×120</button>
+            <button type="button" class="chip" data-sz="" onclick="selectSizeChip('')">不限</button>
+          </div>
+          <input type="text" id="customSizeInput" class="input" style="margin-top:6px;" placeholder="或手打尺寸 (例: 7.5x25、20x20)" oninput="onCustomSizeInput()">
         </div>
-        <input type="text" id="customSizeInput" class="input" style="margin-top:6px;" placeholder="或手打尺寸 (例: 7.5x25、20x20)" oninput="onCustomSizeInput()">
-      </div>
 
-      <div>
-        <div class="sec-title"><span>磚種風格</span></div>
-        <div class="chip-group" id="styleChips">
-          <button type="button" class="chip active" data-st="" onclick="selectStyleChip('')">全部</button>
-          <button type="button" class="chip" data-st="石紋" onclick="selectStyleChip('石紋')">石紋/理石</button>
-          <button type="button" class="chip" data-st="木紋" onclick="selectStyleChip('木紋')">木紋磚</button>
-          <button type="button" class="chip" data-st="大版" onclick="selectStyleChip('大版')">大板磚</button>
-          <button type="button" class="chip" data-st="花磚" onclick="selectStyleChip('花磚')">花磚</button>
-          <button type="button" class="chip" data-st="六角" onclick="selectStyleChip('六角')">六角磚</button>
-          <button type="button" class="chip" data-st="地鐵" onclick="selectStyleChip('地鐵')">地鐵磚</button>
+        <div>
+          <div class="sec-title"><span>磚種風格</span></div>
+          <div class="chip-group" id="styleChips">
+            <button type="button" class="chip active" data-st="" onclick="selectStyleChip('')">全部</button>
+            <button type="button" class="chip" data-st="石紋" onclick="selectStyleChip('石紋')">石紋/理石</button>
+            <button type="button" class="chip" data-st="木紋" onclick="selectStyleChip('木紋')">木紋磚</button>
+            <button type="button" class="chip" data-st="大版" onclick="selectStyleChip('大版')">大板磚</button>
+            <button type="button" class="chip" data-st="花磚" onclick="selectStyleChip('花磚')">花磚</button>
+            <button type="button" class="chip" data-st="六角" onclick="selectStyleChip('六角')">六角磚</button>
+            <button type="button" class="chip" data-st="地鐵" onclick="selectStyleChip('地鐵')">地鐵磚</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="divider"></div>
-
-    <div>
-      <div class="sec-title"><span>2. 產品分類與現貨</span></div>
-      <div class="chip-group" id="levelChips">
-        <button type="button" class="chip active" data-lv="all" onclick="setLevel('all')">全部</button>
-        <button type="button" class="chip" data-lv="level1" onclick="setLevel('level1')">睡美人</button>
-        <button type="button" class="chip" data-lv="normal" onclick="setLevel('normal')">正常品</button>
-        <button type="button" class="chip" data-lv="level2" onclick="setLevel('level2')">不續辦</button>
-      </div>
-      <label class="price-toggle" style="margin-top:8px;width:100%;justify-content:flex-start;">
-        <input type="checkbox" id="chkOnlyInStock" onchange="applyAndPick()">
-        <span>只顯示有現貨（庫存 &gt; 0）</span>
-      </label>
-    </div>
-
-    <div>
-      <div class="sec-title"><span>3. 單頁排列上限</span></div>
-      <select id="selCount" class="select" onchange="applyAndPick()">
-        <option value="8" selected>單頁 8 款（雜誌推薦）</option>
-        <option value="12">單頁 12 款</option>
-        <option value="16">單頁 16 款</option>
-        <option value="6">單頁 6 款（大圖精緻）</option>
-      </select>
-    </div>
-
-    <button type="button" class="btn-random" onclick="randomizePick()" id="btnRandomMain">
-      <span id="btnRandomIcon"></span>
-      <span id="btnRandomTxt">隨機換一個系列</span>
-    </button>
-  </aside>
-
-  <!-- 右側直式預覽區 -->
-  <section class="preview-col">
-    <!-- 雜誌版型結構 ＋ 色彩風格 ＋ 字體主題 ＋ 圖片排版控制列 -->
-    <div class="style-preview-bar staff-only">
-      <div class="bar-row">
-        <span class="bar-lbl">雜誌版型：</span>
-        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">1. 經典標準畫報</button>
-        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">2. 封面大圖疊字</button>
-        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">3. 左右分欄畫廊</button>
-        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">4. 上磚下景顛倒版</button>
+      <div style="margin-top:4px;">
+        <div class="sec-title"><span>產品等級</span></div>
+        <div class="chip-group" id="levelChips">
+          <button type="button" class="chip active" data-lv="all" onclick="setLevel('all')">全部</button>
+          <button type="button" class="chip" data-lv="level1" onclick="setLevel('level1')">睡美人</button>
+          <button type="button" class="chip" data-lv="normal" onclick="setLevel('normal')">正常品</button>
+          <button type="button" class="chip" data-lv="level2" onclick="setLevel('level2')">不續辦</button>
+        </div>
       </div>
 
-      <div class="bar-row">
-        <span class="bar-lbl">色彩風格：</span>
+      <div style="margin-top:4px;">
+        <div class="sec-title"><span>單頁排列上限</span></div>
+        <select id="selCount" class="select" onchange="applyAndPick()">
+          <option value="8" selected>單頁 8 款（雜誌推薦）</option>
+          <option value="12">單頁 12 款</option>
+          <option value="16">單頁 16 款</option>
+          <option value="6">單頁 6 款（大圖精緻）</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn-random" onclick="randomizePick()" id="btnRandomMain" style="margin-top:6px;">
+        <span id="btnRandomIcon"></span>
+        <span id="btnRandomTxt">隨機換一個系列</span>
+      </button>
+    </div>
+
+    <div class="divider staff-only"></div>
+
+    <!-- 2. 雜誌版型與風格設計 -->
+    <div class="ctrl-sec staff-only">
+      <div class="sec-title"><span>2. 雜誌版型與風格</span></div>
+
+      <div class="ctrl-sub-label">雜誌排版風格：</div>
+      <div class="chip-group">
+        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">1. 經典標準</button>
+        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">2. 封面大圖</button>
+        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">3. 左右分欄</button>
+        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">4. 上磚下景</button>
+      </div>
+
+      <div class="ctrl-sub-label" style="margin-top:4px;">色彩主題風格：</div>
+      <div class="chip-group">
         <button type="button" class="style-pill active" data-st="warm" onclick="setDmStyle('warm')">
           <i class="swatch-dot" style="background:#8C5A32"></i>現代暖米
         </button>
@@ -1574,58 +1622,98 @@
         </button>
       </div>
 
-      <div class="bar-row">
-        <span class="bar-lbl">字體風格：</span>
+      <div class="ctrl-sub-label" style="margin-top:4px;">字體風格：</div>
+      <div class="chip-group">
         <button type="button" class="style-pill active" data-fn="serif" onclick="setDmFont('serif')">經典宋體</button>
         <button type="button" class="style-pill" data-fn="sans" onclick="setDmFont('sans')">現代黑體</button>
         <button type="button" class="style-pill" data-fn="cormorant" onclick="setDmFont('cormorant')">奢華襯線</button>
       </div>
+    </div>
 
-      <div class="bar-row">
-        <span class="bar-lbl">圖片排版：</span>
+    <div class="divider staff-only"></div>
+
+    <!-- 3. 實景情境圖排版 -->
+    <div class="ctrl-sec staff-only">
+      <div class="sec-title"><span>3. 實景情境圖排版</span></div>
+      <div class="chip-group">
         <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動張數</button>
         <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">1張大圖</button>
         <button type="button" class="style-pill" data-sc="2" onclick="setSceneLayout('2')">2張雙併</button>
         <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌</button>
         <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張錯落</button>
         <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏圖片</button>
-        <button type="button" class="style-pill" onclick="openScenePickerModal(-1)" style="border-style:dashed;" id="btnOpenScenePicker">
-          <span class="scene-plus-icon"></span>新增/上傳圖片
-        </button>
+      </div>
+      <button type="button" class="btn-act btn-with-svg" onclick="openScenePickerModal(-1)" style="margin-top:4px;width:100%;justify-content:center;" id="btnOpenScenePicker">
+        <span class="scene-plus-icon"></span>新增 / 更換實景情境圖
+      </button>
+    </div>
+
+    <div class="divider staff-only"></div>
+
+    <!-- 4. 細部自訂微調 -->
+    <div class="ctrl-sec staff-only">
+      <div class="sec-title"><span>4. 細部自訂微調</span></div>
+      <div class="toggle-grid">
+        <label class="price-toggle">
+          <input type="checkbox" id="chkOnlyInStock" onchange="applyAndPick()">
+          <span>只顯示現貨</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkShowPing" checked onchange="renderDM()">
+          <span>顯示坪數</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
+          <span>顯示單價</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkShowReserveBtn" checked onchange="toggleReserveBtns(this.checked)">
+          <span>下保留按鈕</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkShowFlags" checked onchange="toggleOriginFlags(this.checked)">
+          <span>原產國旗</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkCardSquare" onchange="toggleCardCorner(this.checked)">
+          <span>極簡直角</span>
+        </label>
       </div>
     </div>
 
-    <!-- 操作列 -->
-    <div class="action-bar">
-      <div class="stat-pill">
-        <span>本頁：<strong id="showingCountTxt">0</strong> 款</span>
-        <span style="color:var(--muted);font-size:11.5px;">(圖片 <strong id="sceneCountTxt">0</strong> 張 · 標題文字選取即浮現顏色/字型編輯器)</span>
-      </div>
-      <div class="action-btns">
-        <button type="button" class="btn-act staff-only btn-with-svg" onclick="cycleTagline()" id="btnCycleTagline">
-          <span class="btn-ico-holder"></span>換一句短語
-        </button>
-        <button type="button" class="btn-act staff-only btn-with-svg" onclick="copyShareLink()" id="btnCopyShare">
-          <span class="btn-ico-holder"></span>分享連結
+    <div class="divider staff-only"></div>
+
+    <!-- 5. 輸出與型錄動作 -->
+    <div class="ctrl-sec staff-only">
+      <div class="sec-title"><span>5. 文案與型錄輸出</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" class="btn-act btn-with-svg" onclick="cycleTagline()" id="btnCycleTagline">
+          <span class="btn-ico-holder"></span>換一句形容短語
         </button>
         <button type="button" class="btn-act primary btn-with-svg" onclick="exportFullPosterJPG()" id="btnDownloadJpg">
-          <span class="btn-ico-holder"></span>下載直式 JPG
+          <span class="btn-ico-holder"></span>下載直式單頁 JPG
+        </button>
+        <button type="button" class="btn-act gold btn-with-svg" id="btnExportAllSizePages" onclick="exportAllPagesToPdf()">
+          <span class="btn-ico-holder"></span><span id="btnExportAllTxt">一鍵打包本尺寸全型錄 PDF</span>
+        </button>
+        <button type="button" class="btn-act btn-with-svg" onclick="copyShareLink()" id="btnCopyShare">
+          <span class="btn-ico-holder"></span>複製型錄分享連結
         </button>
       </div>
     </div>
+  </aside>
 
-    <!-- 多頁分頁切換列 ＆ 一鍵打包全尺寸型錄 PDF -->
+  <!-- 右側直式預覽區（電腦版視覺全開） -->
+  <section class="preview-col">
+    <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-stat-info">
-        <span>此條件符合 <strong id="totalPoolCountTxt">0</strong> 款 · 共 <strong id="totalPagesTxt">1</strong> 頁</span>
+        <span>本頁：<strong id="showingCountTxt">0</strong> 款 · 此條件符合 <strong id="totalPoolCountTxt">0</strong> 款 · 共 <strong id="totalPagesTxt">1</strong> 頁</span>
       </div>
       <div class="page-nav-btns">
         <button type="button" class="btn-act" id="btnPrevPage" onclick="goToPrevPage()">◀ 上一頁</button>
         <span class="page-indicator" id="pageIndicatorTxt">第 1 / 1 頁</span>
         <button type="button" class="btn-act" id="btnNextPage" onclick="goToNextPage()">下一頁 ▶</button>
-        <button type="button" class="btn-act gold btn-with-svg staff-only" id="btnExportAllSizePages" onclick="exportAllPagesToPdf()">
-          <span class="btn-ico-holder"></span><span id="btnExportAllTxt">一鍵打包本尺寸全型錄 PDF</span>
-        </button>
       </div>
     </div>
 
@@ -1754,6 +1842,7 @@ function setupStaticSvgIcons() {
   const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
   setHtml("mobFilterIcon", SVG.chevronDown);
   setHtml("btnRandomIcon", SVG.dice);
+  setHtml("topbarBrandIcon", SVG.book);
   const qBtn = (id, svg) => {
     const el = document.getElementById(id);
     if (el) {
@@ -2116,6 +2205,30 @@ function setSceneLayout(sc) {
   document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
   rebuildActiveScenesFromPool();
   renderDM();
+}
+
+function toggleReserveBtns(show) {
+  const sheet = document.getElementById("dmSheet");
+  if (sheet) {
+    if (show) sheet.classList.remove("hide-reserve-btns");
+    else sheet.classList.add("hide-reserve-btns");
+  }
+}
+
+function toggleOriginFlags(show) {
+  const sheet = document.getElementById("dmSheet");
+  if (sheet) {
+    if (show) sheet.classList.remove("hide-origin-flags");
+    else sheet.classList.add("hide-origin-flags");
+  }
+}
+
+function toggleCardCorner(square) {
+  const sheet = document.getElementById("dmSheet");
+  if (sheet) {
+    if (square) sheet.classList.add("card-style-square");
+    else sheet.classList.remove("card-style-square");
+  }
 }
 
 function switchMode(mode) {
