@@ -43,6 +43,10 @@
     --dm-ink-2: #44403C;
     --dm-muted: #78716C;
     --dm-stock: #1F5E3B;
+
+    /* 字型主題變數 */
+    --font-title-family: 'Noto Serif TC', serif;
+    --font-body-family: 'Noto Sans TC', sans-serif;
   }
 
   /* 配色 2：奢石黑金 */
@@ -96,6 +100,17 @@
     --dm-stock: #1F5E3B;
   }
 
+  /* 字體預設切換 */
+  .dm-sheet[data-font="sans"] {
+    --font-title-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+  }
+  .dm-sheet[data-font="cormorant"] {
+    --font-title-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
+  }
+  .dm-sheet[data-font="serif"] {
+    --font-title-family: 'Noto Serif TC', serif;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -107,7 +122,6 @@
   }
   button, input, select { font-family: inherit; }
 
-  /* SVG 圖標基礎類別 */
   .svg-ico {
     display: inline-block;
     vertical-align: middle;
@@ -134,11 +148,9 @@
     pointer-events: none;
     background: #fff;
   }
-  .origin-flag-badge svg {
-    display: block;
-  }
+  .origin-flag-badge svg { display: block; }
 
-  /* ── 頂部導覽列（無品牌 Logo，僅顯示 Ebook） ── */
+  /* ── 頂部導覽列（無品牌 Logo） ── */
   .topbar {
     position: sticky;
     top: 0;
@@ -218,6 +230,36 @@
   @media (max-width: 960px) {
     .mob-filter-toggle { display: inline-flex; }
     .hide-on-mob { display: none !important; }
+  }
+
+  /* 客戶預覽模式頂部橫幅（永久可點擊返回） */
+  .client-preview-banner {
+    display: none;
+    background: #1C1917;
+    color: #FFFFFF;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: sticky;
+    top: 54px;
+    z-index: 195;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  }
+  body.client-view .client-preview-banner {
+    display: flex;
+  }
+
+  .view-mode-btn {
+    font-weight: 800;
+    transition: all 0.2s;
+  }
+  body.client-view .view-mode-btn {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
   }
 
   /* ── 主工作區 ── */
@@ -460,6 +502,93 @@
   }
 
   /* ════════════════════════════════════════════════════════════════
+     浮動文字選取編輯器 (Floating Text Toolbar)
+     ════════════════════════════════════════════════════════════════ */
+  .floating-text-toolbar {
+    position: absolute;
+    z-index: 2500;
+    background: #1C1917;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 5px 8px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 12px;
+    user-select: none;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+  }
+  .floating-text-toolbar.show {
+    display: flex;
+  }
+  .floating-text-toolbar::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0;
+    border-style: solid;
+    border-color: #1C1917 transparent transparent;
+  }
+  .ft-select {
+    height: 25px;
+    padding: 0 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: #2C2825;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+  }
+  .ft-colors {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ft-color-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .ft-color-dot:hover { transform: scale(1.2); }
+  .ft-color-custom {
+    position: relative;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+  }
+  .ft-btn {
+    height: 25px;
+    padding: 0 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ft-btn:hover { background: rgba(255,255,255,0.15); }
+  .ft-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
      直式雜誌型錄單頁畫布 (Portrait Editorial Sheet)
      ════════════════════════════════════════════════════════════════ */
   .dm-sheet {
@@ -533,7 +662,7 @@
     display: inline-block;
   }
   .mag-title {
-    font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
+    font-family: var(--font-title-family);
     font-size: clamp(24px, 3.2vw, 34px);
     font-weight: 900;
     line-height: 1.18;
@@ -560,7 +689,7 @@
     .mag-tagline-wrap { align-items: flex-start; }
   }
   .mag-tagline {
-    font-family: 'Noto Serif TC', serif;
+    font-family: var(--font-title-family);
     font-size: 13.5px;
     font-weight: 600;
     line-height: 1.55;
@@ -570,25 +699,8 @@
   @media (max-width: 600px) {
     .mag-tagline { text-align: left; }
   }
-  .tiny-tool-btn {
-    border: 1px solid var(--dm-card-border);
-    background: var(--dm-card-bg);
-    color: var(--dm-ink-2);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .tiny-tool-btn:hover {
-    border-color: var(--dm-accent);
-    color: var(--dm-accent);
-  }
 
-  /* ── 實景圖單張容器 ── */
+  /* ── 實景/圖片單張容器（只秀圖片＋淡編號） ── */
   .sc-item {
     position: relative;
     width: 100%;
@@ -607,17 +719,19 @@
     transition: transform 0.35s ease;
   }
   .sc-item:hover img { transform: scale(1.03); }
-  .sc-tag {
+  .sc-tag-num {
     position: absolute;
     bottom: 8px;
     left: 8px;
-    background: rgba(20, 18, 16, 0.72);
-    backdrop-filter: blur(4px);
-    color: #fff;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 10.5px;
-    font-weight: 600;
+    background: rgba(20, 18, 16, 0.45);
+    backdrop-filter: blur(3px);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-family: 'Plus Jakarta Sans', monospace;
     pointer-events: none;
   }
   .sc-ctrl-bar {
@@ -836,7 +950,7 @@
     }
   }
 
-  /* ── 單片磁磚卡片 ── */
+  /* ── 精簡兩行版單片磁磚卡片（系列右側直接秀坪數，無「可用」） ── */
   .tile-card {
     background: var(--dm-card-bg);
     border: 1px solid var(--dm-card-border);
@@ -897,12 +1011,13 @@
     min-width: 0;
   }
   .tile-info {
-    padding: 9px 10px;
+    padding: 8px 10px 9px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     flex: 1;
   }
+  /* 第一行：編號 + 尺寸 */
   .tile-head {
     display: flex;
     align-items: baseline;
@@ -910,7 +1025,7 @@
     gap: 4px;
   }
   .tile-code {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 800;
     color: var(--dm-ink);
   }
@@ -919,6 +1034,13 @@
     font-weight: 700;
     color: var(--dm-accent);
   }
+  /* 第二行：系列 + 坪數（直接放右邊，無「可用」） */
+  .tile-row-2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+  }
   .tile-series {
     font-size: 12px;
     font-weight: 700;
@@ -926,19 +1048,13 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
   }
-  .tile-stock-line {
-    margin-top: 4px;
-    padding-top: 5px;
-    border-top: 1px dashed var(--dm-card-border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11.5px;
-  }
-  .stock-val {
+  .tile-ping {
+    font-size: 12px;
     font-weight: 800;
     color: var(--dm-stock);
+    white-space: nowrap;
   }
   .price-line {
     display: flex;
@@ -947,6 +1063,7 @@
     font-size: 11.5px;
     font-weight: 800;
     color: var(--dm-accent);
+    margin-top: 2px;
   }
   .card-actions {
     display: grid;
@@ -1097,7 +1214,7 @@
     font-weight: 800;
   }
 
-  /* ── 讀取動畫 (Loading Animation & Skeleton) ── */
+  /* ── 讀取動畫 (Loading Animation) ── */
   .loader-box {
     padding: 70px 20px;
     display: flex;
@@ -1247,21 +1364,69 @@
       <span class="brand-sub-pill">直式雜誌 DM · 雙頁電子型錄</span>
     </div>
 
-    <div class="top-controls staff-only">
-      <label class="price-toggle">
+    <!-- 頂部控制項（視角按鈕獨立，不受 staff-only 隱藏影響） -->
+    <div class="top-controls">
+      <label class="price-toggle staff-only">
         <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
         <span>顯示單價</span>
       </label>
-      <button type="button" class="mob-filter-toggle" onclick="toggleMobileFilter()">
+      <label class="price-toggle staff-only">
+        <input type="checkbox" id="chkShowPing" checked onchange="renderDM()">
+        <span>顯示坪數</span>
+      </label>
+      <button type="button" class="mob-filter-toggle staff-only" onclick="toggleMobileFilter()">
         <span id="mobFilterBtnTxt">篩選條件</span>
         <span id="mobFilterIcon"></span>
       </button>
-      <button type="button" class="btn-act hide-on-mob" onclick="toggleClientPreview()">
+
+      <!-- 視角切換按鈕（在客戶模式下仍保持可見，供隨時返回） -->
+      <button type="button" class="btn-act view-mode-btn" id="btnClientPreview" onclick="toggleClientPreview()">
+        <span id="btnClientPreviewIcon"></span>
         <span id="btnClientPreviewTxt">預覽客戶視角</span>
       </button>
     </div>
   </div>
 </header>
+
+<!-- 客戶預覽視角橫幅（提供明顯返回按鈕） -->
+<div class="client-preview-banner" id="clientBanner">
+  <span>目前為「客戶視角預覽」（已自動隱藏業務按鈕與所有編輯框）</span>
+  <button type="button" class="btn-act primary" onclick="toggleClientPreview()" style="background:#FFFFFF;color:#1C1917;">返回業務編輯模式</button>
+</div>
+
+<!-- 浮動文字選取編輯器（當選取標題或短語文字時自動浮現） -->
+<div class="floating-text-toolbar" id="floatingTextToolbar">
+  <select class="ft-select" id="ftFontFamily" onchange="applyTextFont(this.value)">
+    <option value="">選擇字體</option>
+    <option value="'Noto Serif TC', serif">宋體 / 明體</option>
+    <option value="'Noto Sans TC', sans-serif">黑體 / 現代</option>
+    <option value="'Cormorant Garamond', serif">歐風古典襯線</option>
+    <option value="'Plus Jakarta Sans', sans-serif">現代極簡幾何</option>
+  </select>
+
+  <div class="ft-colors">
+    <button type="button" class="ft-color-dot" style="background:#1C1917;" title="深黑" onclick="applyTextColor('#1C1917')"></button>
+    <button type="button" class="ft-color-dot" style="background:#C59B27;" title="暖金" onclick="applyTextColor('#C59B27')"></button>
+    <button type="button" class="ft-color-dot" style="background:#9E582F;" title="赤陶磚紅" onclick="applyTextColor('#9E582F')"></button>
+    <button type="button" class="ft-color-dot" style="background:#1F4D3A;" title="墨綠" onclick="applyTextColor('#1F4D3A')"></button>
+    <button type="button" class="ft-color-dot" style="background:#8C5A32;" title="深褐" onclick="applyTextColor('#8C5A32')"></button>
+    <label class="ft-color-custom" title="自訂色彩">
+      <input type="color" onchange="applyTextColor(this.value)" style="opacity:0;position:absolute;width:0;height:0;">
+      <span style="font-size:11px;padding:2px 4px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;">自訂</span>
+    </label>
+  </div>
+
+  <div class="ft-divider"></div>
+
+  <button type="button" class="ft-btn" onclick="applyTextStyle('bold')" title="粗體"><b>B</b></button>
+  <button type="button" class="ft-btn" onclick="applyTextStyle('italic')" title="斜體"><i>I</i></button>
+  <button type="button" class="ft-btn" onclick="applyTextStyle('underline')" title="底線"><u>U</u></button>
+
+  <div class="ft-divider"></div>
+
+  <button type="button" class="ft-btn" onclick="applyTextSize('up')" title="放大字級">A⁺</button>
+  <button type="button" class="ft-btn" onclick="applyTextSize('down')" title="縮小字級">A⁻</button>
+</div>
 
 <main class="workspace">
   <!-- 左側篩選控制欄 -->
@@ -1342,7 +1507,7 @@
 
   <!-- 右側直式預覽區 -->
   <section class="preview-col">
-    <!-- 雜誌版型結構 ＋ 色彩風格 ＋ 實景張數控制列 -->
+    <!-- 雜誌版型結構 ＋ 色彩風格 ＋ 字體主題 ＋ 圖片排版控制列 -->
     <div class="style-preview-bar staff-only">
       <div class="bar-row">
         <span class="bar-lbl">雜誌版型：</span>
@@ -1369,15 +1534,22 @@
       </div>
 
       <div class="bar-row">
-        <span class="bar-lbl">實景張數：</span>
-        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動依該系列</button>
+        <span class="bar-lbl">字體風格：</span>
+        <button type="button" class="style-pill active" data-fn="serif" onclick="setDmFont('serif')">經典宋體</button>
+        <button type="button" class="style-pill" data-fn="sans" onclick="setDmFont('sans')">現代黑體</button>
+        <button type="button" class="style-pill" data-fn="cormorant" onclick="setDmFont('cormorant')">奢華襯線</button>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl">圖片排版：</span>
+        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動張數</button>
         <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">1張大圖</button>
         <button type="button" class="style-pill" data-sc="2" onclick="setSceneLayout('2')">2張雙併</button>
-        <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌(1大2小)</button>
+        <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌</button>
         <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張錯落</button>
-        <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏實景</button>
+        <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏圖片</button>
         <button type="button" class="style-pill" onclick="openScenePickerModal(-1)" style="border-style:dashed;" id="btnOpenScenePicker">
-          <span class="scene-plus-icon"></span>新增/上傳實景
+          <span class="scene-plus-icon"></span>新增/上傳圖片
         </button>
       </div>
     </div>
@@ -1386,7 +1558,7 @@
     <div class="action-bar">
       <div class="stat-pill">
         <span>本頁：<strong id="showingCountTxt">0</strong> 款</span>
-        <span style="color:var(--muted);font-size:11.5px;">(實景 <strong id="sceneCountTxt">0</strong> 張 · 標題與短語可點擊修改)</span>
+        <span style="color:var(--muted);font-size:11.5px;">(圖片 <strong id="sceneCountTxt">0</strong> 張 · 標題文字選取即浮現顏色/字型編輯器)</span>
       </div>
       <div class="action-btns">
         <button type="button" class="btn-act staff-only btn-with-svg" onclick="cycleTagline()" id="btnCycleTagline">
@@ -1402,7 +1574,7 @@
     </div>
 
     <!-- 直式雜誌 DM 畫布本體 -->
-    <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento">
+    <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento" data-font="serif">
       <div id="dmDynamicMount">
         <div class="loader-box">
           <div class="tile-spinner"><span></span><span></span><span></span><span></span></div>
@@ -1420,7 +1592,7 @@
           <img id="dmQrImg" alt="QR Code" src="">
           <div class="dm-qr-txt">
             <div>掃描開互動頁</div>
-            <div style="color:#78716C;font-weight:500;">看實景 · 下保留</div>
+            <div style="color:#78716C;font-weight:500;">看大圖 · 下保留</div>
           </div>
         </div>
       </div>
@@ -1461,22 +1633,22 @@
   </div>
 </div>
 
-<!-- 更換 / 新增實景圖 Modal -->
+<!-- 更換 / 新增圖片 Modal -->
 <div class="modal-backdrop" id="scenePickerModal" onclick="if(event.target===this)closeScenePickerModal()">
   <div class="modal-card">
     <div class="modal-head">
-      <div class="modal-title" id="scenePickerTitle">更換或新增空間實景圖</div>
+      <div class="modal-title" id="scenePickerTitle">更換或新增圖片</div>
       <button type="button" class="modal-close" onclick="closeScenePickerModal()" id="btnSceneModalClose"></button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <label class="btn-act primary btn-with-svg" style="cursor:pointer;" id="btnUploadSceneLabel">
-        <span class="btn-ico-holder"></span>從手機/電腦上傳實景照片
+        <span class="btn-ico-holder"></span>從手機/電腦上傳照片
         <input type="file" accept="image/*" style="display:none;" onchange="handleSceneFileUpload(event)">
       </label>
-      <input type="text" id="customSceneUrlInput" class="input" style="flex:1;min-width:180px;" placeholder="或貼上實景圖片網址 URL...">
+      <input type="text" id="customSceneUrlInput" class="input" style="flex:1;min-width:180px;" placeholder="或貼上圖片網址 URL...">
       <button type="button" class="btn-act" onclick="applyCustomSceneUrl()">套用網址</button>
     </div>
-    <div style="font-size:12px;font-weight:800;color:var(--ink-2);margin-top:4px;" id="scenePoolSubTitle">本系列與可用實景圖庫（點擊即可換上）：</div>
+    <div style="font-size:12px;font-weight:800;color:var(--ink-2);margin-top:4px;" id="scenePoolSubTitle">本系列與可用圖庫（點擊即可換上）：</div>
     <div class="scene-picker-grid" id="scenePickerGrid"></div>
   </div>
 </div>
@@ -1485,7 +1657,7 @@
 
 <script>
 // ════════════════════════════════════════════════════════════════
-// 100% SVG 圖標庫（零 Emoji，全向量無鋸齒）
+// 100% SVG 圖標庫（零 Emoji）
 // ════════════════════════════════════════════════════════════════
 const SVG = {
   dice: `<svg class="svg-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/></svg>`,
@@ -1501,7 +1673,6 @@ const SVG = {
   chevronUp: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`
 };
 
-// 向量 SVG 國旗庫（精緻呈現於單片卡片）
 const SVG_FLAGS = {
   "義大利": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#ffffff"/><rect x="20" width="10" height="20" fill="#ce2b37"/></svg>`,
   "西班牙": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="5" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/><rect y="15" width="30" height="5" fill="#AA151B"/><circle cx="8" cy="10" r="2.2" fill="#AA151B"/></svg>`,
@@ -1522,7 +1693,6 @@ function getOriginFlagSvg(origin) {
   return "";
 }
 
-// 初始化將所有靜態按鈕裝配向量 SVG
 function setupStaticSvgIcons() {
   const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
   setHtml("mobFilterIcon", SVG.chevronDown);
@@ -1603,6 +1773,7 @@ let currentLevel = "all";
 let selectedSize = "60x120";
 let selectedStyle = "";
 let currentDmStyle = "warm";
+let currentDmFont = "serif";
 let currentMagLayout = "bento";
 let currentSceneLayout = "auto";
 
@@ -1735,12 +1906,12 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 高速雙層載入引擎（秒開 LocalStorage 快取 + 背景無阻礙更新）
+// 高速雙層載入引擎
 // ════════════════════════════════════════════════════════════════
 async function initData() {
   setupStaticSvgIcons();
+  setupFloatingToolbarListener();
 
-  // 1. 本地快取秒開（若有快取，0.05 秒立刻呈現畫面）
   let hasRenderedFromCache = false;
   try {
     const cachedProducts = localStorage.getItem("ebook_products_cache_v2");
@@ -1757,7 +1928,6 @@ async function initData() {
     console.warn("Cache parse error", e);
   }
 
-  // 2. 平行發送 Supabase 請求（不被 GAS 拖慢）
   const cachedStockStr = localStorage.getItem("ebook_stock_cache_v2");
   const cachedStock = cachedStockStr ? JSON.parse(cachedStockStr) : {};
 
@@ -1771,12 +1941,10 @@ async function initData() {
     return null;
   });
 
-  // 3. GAS 庫存改為背景請求，絕對不阻礙 UI
   const gasPromise = fetch(`${GAS_API}?action=getAllProductCodes`)
     .then(r => r.ok ? r.json() : { catalog: {} })
     .catch(() => ({ catalog: {} }));
 
-  // 當 Supabase 回傳後立即更新並寫入快取
   sbPromise.then(sbRows => {
     if (sbRows && sbRows.length > 0) {
       allProducts = processRawProducts(sbRows, cachedStock);
@@ -1792,7 +1960,6 @@ async function initData() {
     }
   });
 
-  // 當 GAS 庫存回傳後，即時補正庫存數值
   gasPromise.then(gasData => {
     if (gasData && gasData.catalog && Object.keys(gasData.catalog).length > 0) {
       try {
@@ -1853,7 +2020,7 @@ function renderSeriesOptions(kw) {
   });
 
   selSeries.innerHTML = entries.map(([ser, info]) =>
-    `<option value="${ser}">${ser}${info.en ? " " + info.en : ""}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.sceneCount ? " · 實景" + info.sceneCount + "張" : " · 無實景"}）</option>`
+    `<option value="${ser}">${ser}${info.en ? " " + info.en : ""}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.sceneCount ? " · 圖片" + info.sceneCount + "張" : " · 無圖片"}）</option>`
   ).join("");
 }
 
@@ -1873,6 +2040,12 @@ function setDmStyle(st) {
   currentDmStyle = st;
   document.getElementById("dmSheet").setAttribute("data-style", st);
   document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === st));
+}
+
+function setDmFont(fn) {
+  currentDmFont = fn;
+  document.getElementById("dmSheet").setAttribute("data-font", fn);
+  document.querySelectorAll('.style-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === fn));
 }
 
 function setSceneLayout(sc) {
@@ -1966,12 +2139,12 @@ function cycleTagline() {
   customHeaderText.tagline = pickAutoTagline();
   const el = document.getElementById("dmTagline");
   if (el) el.textContent = customHeaderText.tagline;
-  showToast("已更換系列形容短語（亦可直接點擊文字修改）");
+  showToast("已更換系列形容短語（可點擊文字編輯修改）");
 }
 
 function onHeaderTextEdited(field, el) {
   if (!el) return;
-  customHeaderText[field] = el.innerText.trim();
+  customHeaderText[field] = el.innerHTML.trim();
 }
 
 function collectSeriesScenes() {
@@ -2006,14 +2179,14 @@ function removeSceneAtIndex(idx, ev) {
   if (ev) ev.stopPropagation();
   activeScenes.splice(idx, 1);
   renderDM();
-  showToast("已移除該張實景圖");
+  showToast("已移除該張圖片");
 }
 
 function openScenePickerModal(targetIdx, ev) {
   if (ev) ev.stopPropagation();
   editingSceneIdx = targetIdx;
   document.getElementById("scenePickerTitle").textContent =
-    targetIdx >= 0 ? `更換第 ${targetIdx + 1} 張空間實景圖` : "新增空間實景圖";
+    targetIdx >= 0 ? `更換第 ${targetIdx + 1} 張圖片` : "新增圖片";
   document.getElementById("customSceneUrlInput").value = "";
 
   const seen = new Set();
@@ -2059,7 +2232,7 @@ function selectSceneCandidate(candIdx) {
 function applyCustomSceneUrl() {
   const raw = document.getElementById("customSceneUrlInput").value.trim();
   if (!raw) return showToast("請先輸入圖片網址");
-  applySceneItem({ url: normalizeImgUrl(raw, false), code: "自訂實景", series: customHeaderText.title });
+  applySceneItem({ url: normalizeImgUrl(raw, false), code: "自訂圖片", series: customHeaderText.title });
 }
 
 function handleSceneFileUpload(ev) {
@@ -2067,7 +2240,7 @@ function handleSceneFileUpload(ev) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    applySceneItem({ url: e.target.result, code: "上傳實景", series: customHeaderText.title });
+    applySceneItem({ url: e.target.result, code: "上傳圖片", series: customHeaderText.title });
   };
   reader.readAsDataURL(file);
 }
@@ -2075,12 +2248,12 @@ function handleSceneFileUpload(ev) {
 function applySceneItem(newItem) {
   if (editingSceneIdx >= 0 && editingSceneIdx < activeScenes.length) {
     activeScenes[editingSceneIdx] = newItem;
-    showToast(`已更換第 ${editingSceneIdx + 1} 張實景圖`);
+    showToast(`已更換第 ${editingSceneIdx + 1} 張圖片`);
   } else {
     if (activeScenes.length >= 4) activeScenes[3] = newItem;
     else activeScenes.push(newItem);
     if (currentSceneLayout === "0") currentSceneLayout = "auto";
-    showToast("已新增實景圖至版面");
+    showToast("已新增圖片至版面");
   }
   closeScenePickerModal();
   renderDM();
@@ -2135,7 +2308,7 @@ function randomizePick() {
     if (sel.options.length > 0) {
       const richIndices = [];
       for (let i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].text.includes("實景")) richIndices.push(i);
+        if (sel.options[i].text.includes("圖片")) richIndices.push(i);
       }
       const pool = richIndices.length > 0 ? richIndices : Array.from({ length: sel.options.length }, (_, i) => i);
       sel.selectedIndex = pool[Math.floor(Math.random() * pool.length)];
@@ -2152,13 +2325,14 @@ function removePickedCard(code) {
   renderDM();
 }
 
+// 實景拼貼：只秀圖片＋淡編號（無「空間實景」字樣）
 function buildSceneCollageHtml() {
   if (activeScenes.length === 0) {
     return `
       <div class="empty-scene-bar staff-only">
-        <span>此系列目前未顯示實景圖（無實景或已隱藏）</span>
+        <span>此系列目前未顯示圖片（已隱藏或無圖片）</span>
         <button type="button" class="tiny-tool-btn" onclick="openScenePickerModal(-1)">
-          ${SVG.plus} 點此選擇或上傳實景圖
+          ${SVG.plus} 選擇或上傳圖片
         </button>
       </div>
     `;
@@ -2167,18 +2341,20 @@ function buildSceneCollageHtml() {
   const itemsHtml = activeScenes.slice(0, 4).map((sc, idx) => `
     <div class="sc-item">
       <div class="sc-ctrl-bar staff-only">
-        <button type="button" class="sc-btn" onclick="openScenePickerModal(${idx}, event)" title="更換此張實景圖">${SVG.refresh} 換圖</button>
-        <button type="button" class="sc-btn del" onclick="removeSceneAtIndex(${idx}, event)" title="刪除此張實景圖">${SVG.close}</button>
+        <button type="button" class="sc-btn" onclick="openScenePickerModal(${idx}, event)" title="更換此張圖片">${SVG.refresh} 換圖</button>
+        <button type="button" class="sc-btn del" onclick="removeSceneAtIndex(${idx}, event)" title="刪除此張圖片">${SVG.close}</button>
       </div>
-      <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series} (${sc.code}) 空間實景圖 ${idx + 1}')">
-      <span class="sc-tag">空間實景 ${idx + 1} · ${sc.code}</span>
+      <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series}')">
+      <span class="sc-tag-num">${String(idx + 1).padStart(2, "0")}</span>
     </div>
   `).join("");
   return `<div class="scene-collage count-${cnt}">${itemsHtml}</div>`;
 }
 
+// 單片磁磚卡片：排成兩行（第一行：編號＋尺寸，第二行：系列＋坪數在右側，無「可用」）
 function buildPiecesGridHtml() {
-  const showPrice = document.getElementById("chkShowPrice").checked;
+  const showPrice = document.getElementById("chkShowPrice") && document.getElementById("chkShowPrice").checked;
+  const showPing = document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true;
   const pCountClass = currentPicked.length >= 9 ? "pcount-many" : `pcount-${currentPicked.length}`;
 
   const cardsHtml = currentPicked.map(p => {
@@ -2189,6 +2365,8 @@ function buildPiecesGridHtml() {
            <span>${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""}${p.pricePing > 0 ? " · $" + p.pricePing.toLocaleString() + "/坪" : ""}</span>
          </div>`
       : "";
+
+    const pingHtml = showPing && p.pingStr ? `<span class="tile-ping">${p.pingStr}坪</span>` : "";
 
     const reserveHref = `reservation_form.html?code=${encodeURIComponent(p.code)}`;
     const webHref = `https://bigt.cc/web/product.html?code=${encodeURIComponent(p.code)}`;
@@ -2202,14 +2380,15 @@ function buildPiecesGridHtml() {
         </div>
         <div class="tile-body-col">
           <div class="tile-info">
+            <!-- 第 1 行：編號 + 尺寸 -->
             <div class="tile-head">
               <span class="tile-code">${p.code}</span>
               <span class="tile-size">${(p.size || "").replace(/x/gi, "×")}</span>
             </div>
-            <div class="tile-series">${p.series}</div>
-            <div class="tile-stock-line">
-              <span style="color:var(--dm-muted);font-weight:600;">可用</span>
-              <span class="stock-val">${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪</span>
+            <!-- 第 2 行：系列 + 坪數直接放右邊（無「可用」） -->
+            <div class="tile-row-2">
+              <span class="tile-series">${p.series}</span>
+              ${pingHtml}
             </div>
             ${priceHtml}
           </div>
@@ -2311,9 +2490,14 @@ function renderDM() {
   }
 }
 
+// ════════════════════════════════════════════════════════════════
+// 視角切換（修復返回功能：永久可見、隨時一鍵返回）
+// ════════════════════════════════════════════════════════════════
 function toggleClientPreview() {
   const isClient = document.body.classList.toggle("client-view");
-  document.getElementById("btnClientPreviewTxt").textContent = isClient ? "返回業務編輯" : "預覽客戶視角";
+  const txt = document.getElementById("btnClientPreviewTxt");
+  if (txt) txt.textContent = isClient ? "返回業務編輯" : "預覽客戶視角";
+  showToast(isClient ? "已切換至「客戶視角預覽」（再次點擊即可返回編輯）" : "已返回「業務編輯模式」");
 }
 
 function getShareUrl() {
@@ -2322,9 +2506,11 @@ function getShareUrl() {
   u.search = "";
   if (codes) u.searchParams.set("codes", codes);
   u.searchParams.set("style", currentDmStyle);
+  u.searchParams.set("fn", currentDmFont);
   u.searchParams.set("ly", currentMagLayout);
   u.searchParams.set("sc", currentSceneLayout);
   if (document.getElementById("chkShowPrice").checked) u.searchParams.set("price", "1");
+  if (!document.getElementById("chkShowPing").checked) u.searchParams.set("ping", "0");
   u.searchParams.set("view", "client");
   return u.toString();
 }
@@ -2332,7 +2518,7 @@ function getShareUrl() {
 function copyShareLink() {
   const url = getShareUrl();
   navigator.clipboard.writeText(url).then(() => {
-    showToast("已複製專屬連結！客戶點開即呈現相同雜誌版型。");
+    showToast("已複製專屬連結！客戶點開即呈現相同排版與設定。");
   }).catch(() => {
     showToast("連結：" + url);
   });
@@ -2341,7 +2527,9 @@ function copyShareLink() {
 function restoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("price") === "1") document.getElementById("chkShowPrice").checked = true;
+  if (params.get("ping") === "0") document.getElementById("chkShowPing").checked = false;
   if (params.get("style") && STYLE_PALETTES[params.get("style")]) setDmStyle(params.get("style"));
+  if (params.get("fn")) setDmFont(params.get("fn"));
   if (params.get("ly")) setMagLayout(params.get("ly"));
   if (params.get("sc")) currentSceneLayout = params.get("sc");
   if (params.get("view") === "client") document.body.classList.add("client-view");
@@ -2402,7 +2590,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x + w, y, x + w, y + h, r);
   ctx.arcTo(x + w, y + h, x, y + h, r);
   ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
+  ctx.arcTo(x, y + x, y, r);
   ctx.closePath();
 }
 
@@ -2418,7 +2606,7 @@ function drawCoverImage(ctx, img, x, y, w, h, radius = 8) {
 }
 
 function wrapTextLines(ctx, text, maxW) {
-  const chars = Array.from(String(text || ""));
+  const chars = Array.from(String(text || "").replace(/<[^>]*>/g, ""));
   const lines = [];
   let cur = "";
   for (const ch of chars) {
@@ -2434,7 +2622,6 @@ function wrapTextLines(ctx, text, maxW) {
   return lines;
 }
 
-// 在 Canvas 繪製清晰的向量國旗幾何形狀（零 Emoji）
 function drawVectorFlagOnCanvas(ctx, origin, x, y, w = 24, h = 16) {
   const s = String(origin || "").trim();
   ctx.save();
@@ -2477,10 +2664,83 @@ function drawVectorFlagOnCanvas(ctx, origin, x, y, w = 24, h = 16) {
 }
 
 // ════════════════════════════════════════════════════════════════
+// 浮動文字選取富文本編輯器事件監聽與格式套用
+// ════════════════════════════════════════════════════════════════
+function setupFloatingToolbarListener() {
+  const toolbar = document.getElementById("floatingTextToolbar");
+
+  document.addEventListener("mouseup", () => {
+    setTimeout(checkSelectionAndPosition, 20);
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Shift"].includes(e.key)) {
+      setTimeout(checkSelectionAndPosition, 20);
+    }
+  });
+
+  document.addEventListener("mousedown", (e) => {
+    if (toolbar.contains(e.target)) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      toolbar.classList.remove("show");
+    }
+  });
+
+  function checkSelectionAndPosition() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+      toolbar.classList.remove("show");
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const editableParent = container.nodeType === 1 ? container.closest('[contenteditable="true"]') : container.parentElement.closest('[contenteditable="true"]');
+    if (!editableParent || document.body.classList.contains("client-view")) {
+      toolbar.classList.remove("show");
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0) {
+      toolbar.classList.remove("show");
+      return;
+    }
+    toolbar.style.top = `${rect.top + window.scrollY}px`;
+    toolbar.style.left = `${rect.left + window.scrollX + rect.width / 2}px`;
+    toolbar.classList.add("show");
+  }
+}
+
+function applyTextColor(color) {
+  document.execCommand("styleWithCSS", false, true);
+  document.execCommand("foreColor", false, color);
+}
+
+function applyTextFont(font) {
+  if (!font) return;
+  document.execCommand("styleWithCSS", false, true);
+  document.execCommand("fontName", false, font);
+}
+
+function applyTextStyle(style) {
+  document.execCommand(style, false, null);
+}
+
+function applyTextSize(dir) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement("span");
+  span.style.fontSize = dir === "up" ? "1.2em" : "0.85em";
+  span.appendChild(range.extractContents());
+  range.insertNode(span);
+}
+
+// ════════════════════════════════════════════════════════════════
 // 直式雜誌單頁 Canvas 渲染 (1080 x 1528)
 // ════════════════════════════════════════════════════════════════
 async function renderPortraitPageToCanvas(pageState) {
-  const { items, scenes, headerText, dmStyle, magLayout, showPrice, shareUrl } = pageState;
+  const { items, scenes, headerText, dmStyle, magLayout, showPrice, showPing, shareUrl } = pageState;
   const pal = STYLE_PALETTES[dmStyle] || STYLE_PALETTES.warm;
   const scCount = Math.min(4, scenes.length);
 
@@ -2572,24 +2832,30 @@ async function renderPortraitPageToCanvas(pageState) {
         ctx.fillStyle = pal.ink;
         ctx.font = "800 24px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
         ctx.fillText(p.code, tx, y + 48);
+
         ctx.fillStyle = pal.accent;
         ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
         ctx.fillText((p.size || "").replace(/x/gi, "×") + " cm", tx, y + 80);
+
         ctx.fillStyle = pal.ink2;
         ctx.font = "700 19px 'Noto Sans TC', sans-serif";
-        ctx.fillText(p.series, tx, y + 112);
-        ctx.fillStyle = pal.stock;
-        ctx.font = "800 19px 'Noto Sans TC', sans-serif";
-        ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, tx, y + 148);
+        ctx.fillText(p.series, tx, y + 114);
+
+        if (showPing && p.pingStr) {
+          ctx.fillStyle = pal.stock;
+          ctx.font = "800 19px 'Noto Sans TC', sans-serif";
+          ctx.fillText(`${p.pingStr}坪`, tx + cardW - stW - 100, y + 114);
+        }
+
         if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
           ctx.fillStyle = pal.accent;
           ctx.font = "800 18px 'Noto Sans TC', sans-serif";
-          ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), tx, y + 180);
+          ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), tx, y + 152);
         }
         return;
       }
 
-      const stH = Math.max(110, Math.round(cardH * 0.56));
+      const stH = Math.max(110, Math.round(cardH * 0.58));
       ctx.fillStyle = pal.stageBg;
       roundRect(ctx, x + 1.5, y + 1.5, cardW - 3, stH, 9);
       ctx.fill();
@@ -2610,6 +2876,7 @@ async function renderPortraitPageToCanvas(pageState) {
 
       if (p.origin) drawVectorFlagOnCanvas(ctx, p.origin, x + 8, y + stH - 22, 22, 14);
 
+      // 第 1 行：編號 + 尺寸
       ctx.fillStyle = pal.ink;
       ctx.font = "800 19px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
       ctx.fillText(p.code, x + 12, y + stH + 28);
@@ -2619,18 +2886,22 @@ async function renderPortraitPageToCanvas(pageState) {
       ctx.fillStyle = pal.accent;
       ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 12, y + stH + 27);
 
+      // 第 2 行：系列 + 坪數直接放右側（無「可用」）
       ctx.fillStyle = pal.ink2;
       ctx.font = "700 15px 'Noto Sans TC', sans-serif";
-      ctx.fillText(p.series, x + 12, y + stH + 52);
+      ctx.fillText(p.series, x + 12, y + stH + 54);
 
-      ctx.fillStyle = pal.stock;
-      ctx.font = "800 15.5px 'Noto Sans TC', sans-serif";
-      ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, x + 12, y + stH + 80);
+      if (showPing && p.pingStr) {
+        ctx.fillStyle = pal.stock;
+        ctx.font = "800 15px 'Noto Sans TC', sans-serif";
+        const pingTxt = `${p.pingStr}坪`;
+        ctx.fillText(pingTxt, x + cardW - ctx.measureText(pingTxt).width - 12, y + stH + 54);
+      }
 
       if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
         ctx.fillStyle = pal.accent;
-        ctx.font = "800 14.5px 'Noto Sans TC', sans-serif";
-        ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 12, y + stH + 104);
+        ctx.font = "800 14px 'Noto Sans TC', sans-serif";
+        ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 12, y + stH + 78);
       }
     });
   }
@@ -2638,15 +2909,15 @@ async function renderPortraitPageToCanvas(pageState) {
   function paintSplitHeader(topY) {
     ctx.fillStyle = pal.eyebrow;
     ctx.font = "700 16px 'Cormorant Garamond', 'Plus Jakarta Sans', serif";
-    ctx.fillText(headerText.eyebrow || "", pad, topY + 28);
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, topY + 28);
 
     ctx.fillStyle = pal.ink;
     ctx.font = "900 40px 'Noto Serif TC', 'Noto Sans TC', serif";
-    ctx.fillText(headerText.title || "", pad, topY + 78);
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, topY + 78);
 
     ctx.fillStyle = pal.accent;
     ctx.font = "700 18px 'Noto Sans TC', sans-serif";
-    ctx.fillText(headerText.subtitle || "", pad, topY + 110);
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), pad, topY + 110);
 
     ctx.font = "600 17px 'Noto Serif TC', serif";
     ctx.fillStyle = pal.ink2;
@@ -2679,19 +2950,19 @@ async function renderPortraitPageToCanvas(pageState) {
 
     ctx.fillStyle = "#E6C29F";
     ctx.font = "700 16px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText(headerText.eyebrow || "", pad + 30, 36 + heroH - 135);
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad + 30, 36 + heroH - 135);
 
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "900 44px 'Noto Serif TC', serif";
-    ctx.fillText(headerText.title || "", pad + 30, 36 + heroH - 82);
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad + 30, 36 + heroH - 82);
 
     ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.font = "600 18px 'Noto Serif TC', serif";
-    ctx.fillText((headerText.tagline || "").slice(0, 36), pad + 30, 36 + heroH - 48);
+    ctx.fillText((headerText.tagline || "").replace(/<[^>]*>/g, "").slice(0, 36), pad + 30, 36 + heroH - 48);
 
     ctx.fillStyle = "#E6C29F";
     ctx.font = "700 17px 'Noto Sans TC', sans-serif";
-    ctx.fillText(headerText.subtitle || "", pad + 30, 36 + heroH - 18);
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), pad + 30, 36 + heroH - 18);
 
     paintPiecesArea(pad, 36 + heroH + 24, W - pad * 2, contentBottom - (36 + heroH + 24));
   } else if (magLayout === "sidebar") {
@@ -2701,15 +2972,15 @@ async function renderPortraitPageToCanvas(pageState) {
 
     ctx.fillStyle = pal.eyebrow;
     ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText(headerText.eyebrow || "", pad, 66);
+    ctx.fillText((headerText.eyebrow || "").replace(/<[^>]*>/g, ""), pad, 66);
 
     ctx.fillStyle = pal.ink;
     ctx.font = "900 38px 'Noto Serif TC', serif";
-    ctx.fillText(headerText.title || "", pad, 114);
+    ctx.fillText((headerText.title || "").replace(/<[^>]*>/g, ""), pad, 114);
 
     ctx.fillStyle = pal.accent;
     ctx.font = "700 18px 'Noto Sans TC', sans-serif";
-    ctx.fillText(headerText.subtitle || "", pad, 146);
+    ctx.fillText((headerText.subtitle || "").replace(/<[^>]*>/g, ""), pad, 146);
 
     ctx.font = "600 17px 'Noto Serif TC', serif";
     ctx.fillStyle = pal.ink2;
@@ -2754,7 +3025,7 @@ async function renderPortraitPageToCanvas(pageState) {
 
   ctx.fillStyle = pal.muted;
   ctx.font = "600 15px 'Noto Sans TC', sans-serif";
-  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看實景大圖或直接下保留單", pad, footY + 70);
+  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看大圖或直接下保留單", pad, footY + 70);
 
   if (qrImg) {
     ctx.fillStyle = "#FFFFFF";
@@ -2772,8 +3043,10 @@ function getCurrentPageStateSnapshot() {
     scenes: activeScenes.map(s => ({ ...s })),
     headerText: { ...customHeaderText },
     dmStyle: currentDmStyle,
+    dmFont: currentDmFont,
     magLayout: currentMagLayout,
     showPrice: document.getElementById("chkShowPrice").checked,
+    showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
     shareUrl: getShareUrl()
   };
 }
@@ -2784,7 +3057,7 @@ async function exportFullPosterJPG() {
   showToast("正在合成直式雜誌 DM 海報 JPG...");
   const state = getCurrentPageStateSnapshot();
   const cv = await renderPortraitPageToCanvas(state);
-  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `Ebook_${state.headerText.title}`);
+  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `Ebook_${state.headerText.title.replace(/<[^>]*>/g, "")}`);
 }
 
 function addCurrentPageToPdfQueue() {
@@ -2792,7 +3065,7 @@ function addCurrentPageToPdfQueue() {
   const snap = getCurrentPageStateSnapshot();
   pdfPagesQueue.push(snap);
   renderPdfQueueBar();
-  showToast(`已將「${snap.headerText.title}」加入 PDF 第 ${pdfPagesQueue.length} 頁！`);
+  showToast(`已將「${snap.headerText.title.replace(/<[^>]*>/g, "")}」加入 PDF 第 ${pdfPagesQueue.length} 頁！`);
 }
 
 function removePdfQueuePage(idx) {
@@ -2811,7 +3084,7 @@ function renderPdfQueueBar() {
   }
   const chips = pdfPagesQueue.map((p, i) => `
     <span class="pdf-page-chip">
-      <span>P${i + 1}. ${p.headerText.title} (${p.items.length}款)</span>
+      <span>P${i + 1}. ${p.headerText.title.replace(/<[^>]*>/g, "")} (${p.items.length}款)</span>
       <button type="button" onclick="removePdfQueuePage(${i})" title="移除此頁">${SVG.close}</button>
     </span>
   `).join("");
@@ -2826,7 +3099,7 @@ function buildAutoTwoPagesFromSingle(snap) {
     items: snap.items.slice(0, half),
     headerText: {
       ...snap.headerText,
-      subtitle: `${snap.headerText.subtitle} · 空間實景與主打色`
+      subtitle: `${snap.headerText.subtitle} · 精選主打色`
     }
   };
   const rightPage = {
@@ -2836,7 +3109,7 @@ function buildAutoTwoPagesFromSingle(snap) {
     items: snap.items,
     headerText: {
       ...snap.headerText,
-      subtitle: `${snap.headerText.subtitle} · 全系列規格一覽`
+      subtitle: `${snap.headerText.subtitle} · 全系列規格明細`
     }
   };
   return [leftPage, rightPage];
@@ -2880,7 +3153,8 @@ async function generateSpreadPDF() {
     pdf.line(210, 0, 210, 297);
   }
 
-  const fileName = `Ebook_雙頁型錄_${pages[0].headerText.title}.pdf`;
+  const cleanTitle = pages[0].headerText.title.replace(/<[^>]*>/g, "");
+  const fileName = `Ebook_雙頁型錄_${cleanTitle}.pdf`;
   pdf.save(fileName);
   showToast(`已下載雙頁排版 PDF：${fileName}`);
 }
@@ -2891,6 +3165,7 @@ async function exportSingleTileJPG(code) {
   showToast(`正在產生 ${p.code} 直式單片卡 JPG...`);
 
   const pal = STYLE_PALETTES[currentDmStyle] || STYLE_PALETTES.warm;
+  const showPing = document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true;
   const W = 1080, H = 1440;
   const cv = document.createElement("canvas");
   cv.width = W;
@@ -2907,7 +3182,7 @@ async function exportSingleTileJPG(code) {
 
   ctx.fillStyle = pal.eyebrow;
   ctx.font = "700 17px 'Cormorant Garamond', 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(customHeaderText.eyebrow || `${p.seriesEn || ""} ${p.brand || ""}`.trim() || "PORCELAIN SURFACE", 44, 52);
+  ctx.fillText((customHeaderText.eyebrow || `${p.seriesEn || ""} ${p.brand || ""}`.trim() || "PORCELAIN SURFACE").replace(/<[^>]*>/g, ""), 44, 52);
 
   ctx.fillStyle = pal.headerText;
   ctx.font = "800 42px 'Noto Serif TC', 'Noto Sans TC', sans-serif";
@@ -2969,9 +3244,11 @@ async function exportSingleTileJPG(code) {
   ctx.font = "800 34px 'Noto Sans TC', sans-serif";
   ctx.fillText(`${p.code} · ${p.series}（${(p.size || "").replace(/x/gi, "×")} cm）`, 76, curY + 68);
 
-  ctx.fillStyle = pal.stock;
-  ctx.font = "800 30px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`可用庫存：${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, 76, curY + 128);
+  if (showPing) {
+    ctx.fillStyle = pal.stock;
+    ctx.font = "800 30px 'Noto Sans TC', sans-serif";
+    ctx.fillText(`${p.pingStr}坪`, 76, curY + 128);
+  }
 
   const showPrice = document.getElementById("chkShowPrice").checked;
   if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
@@ -2980,7 +3257,7 @@ async function exportSingleTileJPG(code) {
     ctx.fillText(
       `單價：${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "($" + p.pricePing.toLocaleString() + "/坪)" : ""}`,
       76,
-      curY + 182
+      curY + (showPing ? 182 : 128)
     );
   }
 
