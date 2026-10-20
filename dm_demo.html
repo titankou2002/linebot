@@ -29,7 +29,7 @@
     --shadow-sm: 0 2px 6px rgba(28, 25, 23, 0.05);
     --shadow-md: 0 14px 36px rgba(28, 25, 23, 0.11);
 
-    /* DM 畫布專屬主題變數 */
+    /* DM 畫布主題變數 */
     --dm-bg: #FAF8F5;
     --dm-header-bg: #1C1917;
     --dm-header-text: #FFFFFF;
@@ -107,7 +107,38 @@
   }
   button, input, select { font-family: inherit; }
 
-  /* ── 頂部極簡導覽列（無品牌 Logo，僅顯示 Ebook） ── */
+  /* SVG 圖標基礎類別 */
+  .svg-ico {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+  .btn-with-svg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* 國旗 SVG 徽章 */
+  .origin-flag-badge {
+    position: absolute;
+    bottom: 6px;
+    left: 7px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    border: 1px solid rgba(0,0,0,0.18);
+    line-height: 0;
+    pointer-events: none;
+    background: #fff;
+  }
+  .origin-flag-badge svg {
+    display: block;
+  }
+
+  /* ── 頂部導覽列（無品牌 Logo，僅顯示 Ebook） ── */
   .topbar {
     position: sticky;
     top: 0;
@@ -181,7 +212,7 @@
     font-size: 12.5px;
     font-weight: 700;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     cursor: pointer;
   }
   @media (max-width: 960px) {
@@ -317,8 +348,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 7px;
+    transition: background 0.15s;
   }
+  .btn-random:hover { background: var(--accent-hover); }
 
   /* ── 右側預覽與版型控制列 ── */
   .preview-col {
@@ -428,7 +461,6 @@
 
   /* ════════════════════════════════════════════════════════════════
      直式雜誌型錄單頁畫布 (Portrait Editorial Sheet)
-     固定最大寬度 780px，呈現直式雜誌視覺，支援 4 種雜誌結構版型
      ════════════════════════════════════════════════════════════════ */
   .dm-sheet {
     width: 100%;
@@ -452,7 +484,6 @@
     }
   }
 
-  /* 可編輯文字區塊提示樣式 */
   [contenteditable="true"] {
     outline: none;
     border-radius: 4px;
@@ -468,7 +499,7 @@
     box-shadow: 0 0 0 2px var(--dm-accent);
   }
 
-  /* ── 雜誌版頭（隨版型變化文字位置與排版） ── */
+  /* ── 雜誌版頭 ── */
   .mag-header {
     padding: 26px 28px 18px;
     position: relative;
@@ -477,7 +508,6 @@
     .mag-header { padding: 18px 16px 12px; }
   }
 
-  /* 版型 1 (bento) & 版型 4 (museum)：現代雙欄雜誌社論標頭 */
   .mag-header.header-split {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -492,7 +522,6 @@
     }
   }
 
-  /* 版型 3 (sidebar) 標頭嵌在左欄頂部 */
   .mag-eyebrow {
     font-family: 'Cormorant Garamond', 'Plus Jakarta Sans', serif;
     font-size: 13px;
@@ -528,9 +557,7 @@
     padding-left: 14px;
   }
   @media (max-width: 600px) {
-    .mag-tagline-wrap {
-      align-items: flex-start;
-    }
+    .mag-tagline-wrap { align-items: flex-start; }
   }
   .mag-tagline {
     font-family: 'Noto Serif TC', serif;
@@ -561,7 +588,7 @@
     color: var(--dm-accent);
   }
 
-  /* ── 實景圖單張容器（支援更換、上傳、刪除） ── */
+  /* ── 實景圖單張容器 ── */
   .sc-item {
     position: relative;
     width: 100%;
@@ -617,7 +644,7 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
   }
   .sc-btn:hover { background: var(--accent); }
   .sc-btn.del:hover { background: #B91C1C; }
@@ -634,9 +661,7 @@
     color: var(--dm-muted);
   }
 
-  /* ════════════════════════════════════════════════════════════════
-     4 種雜誌排版結構 (Editorial Layout Architectures)
-     ════════════════════════════════════════════════════════════════ */
+  /* ── 4 種雜誌排版結構 ── */
   .mag-content {
     flex: 1;
     padding: 20px 28px 24px;
@@ -648,38 +673,25 @@
     .mag-content { padding: 14px 14px 18px; gap: 14px; }
   }
 
-  /* ── 實景拼貼網格（支援 1~4 張錯落比例） ── */
   .scene-collage {
     display: grid;
     gap: 10px;
   }
-  .scene-collage.count-1 {
-    grid-template-columns: 1fr;
-    height: 340px;
-  }
-  .scene-collage.count-2 {
-    grid-template-columns: 1.25fr 0.95fr;
-    height: 310px;
-  }
+  .scene-collage.count-1 { grid-template-columns: 1fr; height: 340px; }
+  .scene-collage.count-2 { grid-template-columns: 1.25fr 0.95fr; height: 310px; }
   .scene-collage.count-3 {
     grid-template-columns: 1.35fr 1fr;
     grid-template-rows: 1fr 1fr;
     height: 360px;
   }
-  .scene-collage.count-3 .sc-item:first-child {
-    grid-row: 1 / span 2;
-  }
+  .scene-collage.count-3 .sc-item:first-child { grid-row: 1 / span 2; }
   .scene-collage.count-4 {
     grid-template-columns: 1.25fr 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     height: 360px;
   }
-  .scene-collage.count-4 .sc-item:first-child {
-    grid-row: 1 / span 2;
-  }
-  .scene-collage.count-4 .sc-item:nth-child(2) {
-    grid-column: 2 / span 2;
-  }
+  .scene-collage.count-4 .sc-item:first-child { grid-row: 1 / span 2; }
+  .scene-collage.count-4 .sc-item:nth-child(2) { grid-column: 2 / span 2; }
   @media (max-width: 560px) {
     .scene-collage.count-1 { height: 230px; }
     .scene-collage.count-2 { height: 210px; gap: 7px; }
@@ -687,39 +699,19 @@
     .scene-collage.count-4 { height: 260px; gap: 7px; }
   }
 
-  /* ── 版型 1：Bento 跨欄大小片交錯網格 ── */
+  /* Bento 網格 */
   .pieces-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     align-items: stretch;
   }
-  /* 當只有 1~2 片時：直接大圖雙欄或全寬橫卡 */
-  .pieces-grid.pcount-1 {
-    grid-template-columns: 1fr;
-  }
-  .pieces-grid.pcount-2 {
-    grid-template-columns: 1fr 1fr;
-  }
-  .pieces-grid.pcount-2 .tile-card .tile-stage {
-    height: 210px;
-  }
-  /* 當有 3 片且為 Bento 模式時：第 1 片跨 2 欄放大展示，或底部三等分高挑卡 */
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 {
-    grid-template-columns: 1.35fr 1fr;
-  }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child {
-    grid-row: 1 / span 2;
-  }
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child .tile-stage {
-    height: 270px;
-  }
-  /* 當有 4~7 片且為 Bento 模式時：第 1 片跨 2 欄做為主打大磚（橫跨兩欄） */
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4,
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5,
-  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  .pieces-grid.pcount-1 { grid-template-columns: 1fr; }
+  .pieces-grid.pcount-2 { grid-template-columns: 1fr 1fr; }
+  .pieces-grid.pcount-2 .tile-card .tile-stage { height: 210px; }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 { grid-template-columns: 1.35fr 1fr; }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child { grid-row: 1 / span 2; }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child .tile-stage { height: 270px; }
   .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4 .tile-card:first-child,
   .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5 .tile-card:first-child,
   .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 .tile-card:first-child {
@@ -735,13 +727,12 @@
     border-bottom: none;
     border-right: 1px solid var(--dm-card-border);
   }
-  /* 多片模式 (9片以上) 自動四欄緊湊 */
   .pieces-grid.pcount-many {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
   }
 
-  /* ── 版型 2：封面故事（Cover Story：上方大圖疊字 + 下方橫列單片） ── */
+  /* 封面故事 */
   .cover-hero-wrap {
     position: relative;
     border-radius: 10px;
@@ -776,7 +767,7 @@
   }
   .cover-overlay .mag-subtitle { color: #E6C29F; margin-top: 6px; }
 
-  /* ── 版型 3：左右分欄畫廊（Sidebar Editorial：左文景、右單片） ── */
+  /* 左右分欄 */
   .sidebar-editorial {
     display: grid;
     grid-template-columns: 0.95fr 1.15fr;
@@ -860,19 +851,18 @@
     top: 5px;
     right: 5px;
     z-index: 5;
-    width: 21px;
-    height: 21px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     border: none;
     background: rgba(28, 25, 23, 0.72);
     color: #fff;
-    font-size: 10px;
-    font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
+    transition: opacity 0.15s;
   }
   .tile-card:hover .remove-item-btn { opacity: 1; }
   @media (hover: none) { .remove-item-btn { opacity: 0.88; } }
@@ -898,15 +888,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
     border-radius: 2px;
     cursor: pointer;
-  }
-  .origin-flag {
-    position: absolute;
-    bottom: 5px;
-    left: 7px;
-    font-size: 14px;
-    line-height: 1;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-    pointer-events: none;
   }
   .tile-body-col {
     display: flex;
@@ -995,7 +976,7 @@
     color: #fff;
   }
 
-  /* DM 底部（有效時間 + QR，完全無品牌字樣） */
+  /* DM 底部（無品牌 Logo） */
   .dm-footer {
     padding: 12px 24px;
     background: var(--dm-card-bg);
@@ -1028,7 +1009,7 @@
   .dm-qr-box img { width: 38px; height: 38px; display: block; }
   .dm-qr-txt { font-size: 10px; color: #1C1917; font-weight: 700; line-height: 1.25; }
 
-  /* ── 底部懸浮：雙頁跨頁 PDF 電子目錄工作台 ── */
+  /* ── 底部懸浮：雙頁跨頁 PDF 工作台 ── */
   .bottom-dock {
     position: fixed;
     bottom: 0;
@@ -1083,9 +1064,10 @@
     border: none;
     background: transparent;
     color: #FCA5A5;
-    font-weight: 800;
     cursor: pointer;
-    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .dock-btns {
     display: flex;
@@ -1106,7 +1088,7 @@
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
   }
   .dock-btn.gold {
     background: #C59B27;
@@ -1115,7 +1097,48 @@
     font-weight: 800;
   }
 
-  /* ── 實景圖更換選擇器 Modal ── */
+  /* ── 讀取動畫 (Loading Animation & Skeleton) ── */
+  .loader-box {
+    padding: 70px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+  }
+  .tile-spinner {
+    display: grid;
+    grid-template-columns: repeat(2, 16px);
+    grid-template-rows: repeat(2, 16px);
+    gap: 6px;
+  }
+  .tile-spinner span {
+    background: var(--dm-accent);
+    border-radius: 3px;
+    animation: tileBounce 1.2s infinite ease-in-out both;
+  }
+  .tile-spinner span:nth-child(1) { animation-delay: -0.36s; }
+  .tile-spinner span:nth-child(2) { animation-delay: -0.24s; }
+  .tile-spinner span:nth-child(3) { animation-delay: -0.12s; }
+  .tile-spinner span:nth-child(4) { animation-delay: 0s; }
+  @keyframes tileBounce {
+    0%, 70%, 100% { transform: scale(0.65); opacity: 0.35; }
+    35% { transform: scale(1.15); opacity: 1; }
+  }
+  .loader-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--dm-ink);
+    letter-spacing: 0.03em;
+  }
+  .loader-sub {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dm-muted);
+  }
+
+  /* Modal */
   .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1149,7 +1172,10 @@
     height: 28px;
     border-radius: 6px;
     cursor: pointer;
-    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
   }
   .modal-preview-img {
     width: 100%;
@@ -1192,13 +1218,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  .state-box {
-    padding: 44px 16px;
-    text-align: center;
-    color: var(--dm-muted);
-    font-size: 13.5px;
-  }
   .toast {
     position: fixed;
     bottom: 76px;
@@ -1234,7 +1253,8 @@
         <span>顯示單價</span>
       </label>
       <button type="button" class="mob-filter-toggle" onclick="toggleMobileFilter()">
-        <span id="mobFilterBtnTxt">篩選條件 ▾</span>
+        <span id="mobFilterBtnTxt">篩選條件</span>
+        <span id="mobFilterIcon"></span>
       </button>
       <button type="button" class="btn-act hide-on-mob" onclick="toggleClientPreview()">
         <span id="btnClientPreviewTxt">預覽客戶視角</span>
@@ -1314,8 +1334,9 @@
       </select>
     </div>
 
-    <button type="button" class="btn-random" onclick="randomizePick()">
-      <span id="btnRandomTxt">🎲 隨機換一個系列</span>
+    <button type="button" class="btn-random" onclick="randomizePick()" id="btnRandomMain">
+      <span id="btnRandomIcon"></span>
+      <span id="btnRandomTxt">隨機換一個系列</span>
     </button>
   </aside>
 
@@ -1325,10 +1346,10 @@
     <div class="style-preview-bar staff-only">
       <div class="bar-row">
         <span class="bar-lbl">雜誌版型：</span>
-        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">① 跨欄大小片(Bento)</button>
-        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">② 封面大圖疊字</button>
-        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">③ 左右分欄畫廊</button>
-        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">④ 上磚下景顛倒版</button>
+        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">1. 跨欄大小片(Bento)</button>
+        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">2. 封面大圖疊字</button>
+        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">3. 左右分欄畫廊</button>
+        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">4. 上磚下景顛倒版</button>
       </div>
 
       <div class="bar-row">
@@ -1355,7 +1376,9 @@
         <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌(1大2小)</button>
         <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張錯落</button>
         <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏實景</button>
-        <button type="button" class="style-pill" onclick="openScenePickerModal(-1)" style="border-style:dashed;">➕ 新增/上傳實景</button>
+        <button type="button" class="style-pill" onclick="openScenePickerModal(-1)" style="border-style:dashed;" id="btnOpenScenePicker">
+          <span class="scene-plus-icon"></span>新增/上傳實景
+        </button>
       </div>
     </div>
 
@@ -1363,19 +1386,29 @@
     <div class="action-bar">
       <div class="stat-pill">
         <span>本頁：<strong id="showingCountTxt">0</strong> 款</span>
-        <span style="color:var(--muted);font-size:11.5px;">(實景 <strong id="sceneCountTxt">0</strong> 張 · 標題與短語可直接點擊修改)</span>
+        <span style="color:var(--muted);font-size:11.5px;">(實景 <strong id="sceneCountTxt">0</strong> 張 · 標題與短語可點擊修改)</span>
       </div>
       <div class="action-btns">
-        <button type="button" class="btn-act staff-only" onclick="cycleTagline()">✍️ 換一句短語</button>
-        <button type="button" class="btn-act staff-only" onclick="copyShareLink()">🔗 分享連結</button>
-        <button type="button" class="btn-act primary" onclick="exportFullPosterJPG()">📥 下載直式 JPG</button>
+        <button type="button" class="btn-act staff-only btn-with-svg" onclick="cycleTagline()" id="btnCycleTagline">
+          <span class="btn-ico-holder"></span>換一句短語
+        </button>
+        <button type="button" class="btn-act staff-only btn-with-svg" onclick="copyShareLink()" id="btnCopyShare">
+          <span class="btn-ico-holder"></span>分享連結
+        </button>
+        <button type="button" class="btn-act primary btn-with-svg" onclick="exportFullPosterJPG()" id="btnDownloadJpg">
+          <span class="btn-ico-holder"></span>下載直式 JPG
+        </button>
       </div>
     </div>
 
     <!-- 直式雜誌 DM 畫布本體 -->
     <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento">
       <div id="dmDynamicMount">
-        <div class="state-box">正在載入產品與庫存資料...</div>
+        <div class="loader-box">
+          <div class="tile-spinner"><span></span><span></span><span></span><span></span></div>
+          <div class="loader-title">正在載入產品型錄與即時庫存...</div>
+          <div class="loader-sub">同步雲端資料庫中，請稍候</div>
+        </div>
       </div>
 
       <div class="dm-footer">
@@ -1403,8 +1436,12 @@
       <span style="font-size:12px;color:#D6D3CD;">生成 PDF 自動採用「一左一右雙頁跨頁」排版（單頁亦可自動拆為左景右磚雙頁）</span>
     </div>
     <div class="dock-btns">
-      <button type="button" class="dock-btn" onclick="addCurrentPageToPdfQueue()">➕ 加入此頁至 PDF</button>
-      <button type="button" class="dock-btn gold" onclick="generateSpreadPDF()">📖 生成左右雙頁 PDF 目錄</button>
+      <button type="button" class="dock-btn btn-with-svg" onclick="addCurrentPageToPdfQueue()" id="btnAddToPdf">
+        <span class="btn-ico-holder"></span>加入此頁至 PDF
+      </button>
+      <button type="button" class="dock-btn gold btn-with-svg" onclick="generateSpreadPDF()" id="btnGeneratePdf">
+        <span class="btn-ico-holder"></span>生成左右雙頁 PDF 目錄
+      </button>
     </div>
   </div>
 </div>
@@ -1414,7 +1451,7 @@
   <div class="modal-card">
     <div class="modal-head">
       <div class="modal-title" id="modalTitle">預覽</div>
-      <button type="button" class="modal-close" onclick="closeModal()">✕</button>
+      <button type="button" class="modal-close" onclick="closeModal()" id="btnModalClose"></button>
     </div>
     <img id="modalImg" class="modal-preview-img" alt="預覽圖">
     <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -1429,17 +1466,17 @@
   <div class="modal-card">
     <div class="modal-head">
       <div class="modal-title" id="scenePickerTitle">更換或新增空間實景圖</div>
-      <button type="button" class="modal-close" onclick="closeScenePickerModal()">✕</button>
+      <button type="button" class="modal-close" onclick="closeScenePickerModal()" id="btnSceneModalClose"></button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <label class="btn-act primary" style="cursor:pointer;">
-        <span>📁 從手機/電腦上傳實景照片</span>
+      <label class="btn-act primary btn-with-svg" style="cursor:pointer;" id="btnUploadSceneLabel">
+        <span class="btn-ico-holder"></span>從手機/電腦上傳實景照片
         <input type="file" accept="image/*" style="display:none;" onchange="handleSceneFileUpload(event)">
       </label>
       <input type="text" id="customSceneUrlInput" class="input" style="flex:1;min-width:180px;" placeholder="或貼上實景圖片網址 URL...">
       <button type="button" class="btn-act" onclick="applyCustomSceneUrl()">套用網址</button>
     </div>
-    <div style="font-size:12px;font-weight:800;color:var(--ink-2);margin-top:4px;" id="scenePoolSubTitle">本系列與同風格可用實景圖庫（點擊即可換上）：</div>
+    <div style="font-size:12px;font-weight:800;color:var(--ink-2);margin-top:4px;" id="scenePoolSubTitle">本系列與可用實景圖庫（點擊即可換上）：</div>
     <div class="scene-picker-grid" id="scenePickerGrid"></div>
   </div>
 </div>
@@ -1447,6 +1484,67 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════════════════════════
+// 100% SVG 圖標庫（零 Emoji，全向量無鋸齒）
+// ════════════════════════════════════════════════════════════════
+const SVG = {
+  dice: `<svg class="svg-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/></svg>`,
+  pencil: `<svg class="svg-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
+  link: `<svg class="svg-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  download: `<svg class="svg-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+  plus: `<svg class="svg-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  book: `<svg class="svg-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+  close: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  folder: `<svg class="svg-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+  refresh: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`,
+  chevronDown: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`,
+  chevronUp: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`
+};
+
+// 向量 SVG 國旗庫（精緻呈現於單片卡片）
+const SVG_FLAGS = {
+  "義大利": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#ffffff"/><rect x="20" width="10" height="20" fill="#ce2b37"/></svg>`,
+  "西班牙": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="5" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/><rect y="15" width="30" height="5" fill="#AA151B"/><circle cx="8" cy="10" r="2.2" fill="#AA151B"/></svg>`,
+  "葡萄牙": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="12" height="20" fill="#046A38"/><rect x="12" width="18" height="20" fill="#DA291C"/><circle cx="12" cy="10" r="3" fill="#FFDD00"/></svg>`,
+  "台灣": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="20" fill="#FE0000"/><rect width="15" height="10" fill="#000095"/><circle cx="7.5" cy="5" r="2.5" fill="#FFFFFF"/></svg>`,
+  "馬來西亞": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="20" fill="#CC0000"/><line x1="0" y1="2.5" x2="30" y2="2.5" stroke="#FFFFFF" stroke-width="2.5"/><line x1="0" y1="7.5" x2="30" y2="7.5" stroke="#FFFFFF" stroke-width="2.5"/><line x1="0" y1="12.5" x2="30" y2="12.5" stroke="#FFFFFF" stroke-width="2.5"/><line x1="0" y1="17.5" x2="30" y2="17.5" stroke="#FFFFFF" stroke-width="2.5"/><rect width="15" height="10" fill="#000066"/><circle cx="7.5" cy="5" r="2.5" fill="#FFCC00"/></svg>`,
+  "印度": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="6.6" fill="#FF9933"/><rect y="6.6" width="30" height="6.6" fill="#FFFFFF"/><rect y="13.2" width="30" height="6.8" fill="#128807"/><circle cx="15" cy="10" r="2" fill="#000088"/></svg>`,
+  "越南": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="20" fill="#DA251D"/><polygon points="15,4 17,9.5 22.5,9.5 18,13 19.8,18 15,15 10.2,18 12,13 7.5,9.5 13,9.5" fill="#FFFF00"/></svg>`,
+  "土耳其": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="20" fill="#E30A17"/><circle cx="12" cy="10" r="4.5" fill="#FFFFFF"/><circle cx="13.5" cy="10" r="3.6" fill="#E30A17"/><polygon points="18,10 16.2,9.2 16.8,11.2 15.2,9.8 17.2,10.2" fill="#FFFFFF"/></svg>`,
+  "巴西": `<svg viewBox="0 0 30 20" width="20" height="13.3"><rect width="30" height="20" fill="#009739"/><polygon points="15,2 27,10 15,18 3,10" fill="#FEDD00"/><circle cx="15" cy="10" r="4" fill="#012169"/></svg>`
+};
+
+function getOriginFlagSvg(origin) {
+  const s = String(origin || "").trim();
+  for (const [k, svg] of Object.entries(SVG_FLAGS)) {
+    if (s.includes(k)) return `<span class="origin-flag-badge" title="${s}">${svg}</span>`;
+  }
+  return "";
+}
+
+// 初始化將所有靜態按鈕裝配向量 SVG
+function setupStaticSvgIcons() {
+  const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  setHtml("mobFilterIcon", SVG.chevronDown);
+  setHtml("btnRandomIcon", SVG.dice);
+  const qBtn = (id, svg) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const h = el.querySelector(".btn-ico-holder, .scene-plus-icon");
+      if (h) h.innerHTML = svg;
+    }
+  };
+  qBtn("btnOpenScenePicker", SVG.plus);
+  qBtn("btnCycleTagline", SVG.pencil);
+  qBtn("btnCopyShare", SVG.link);
+  qBtn("btnDownloadJpg", SVG.download);
+  qBtn("btnAddToPdf", SVG.plus);
+  qBtn("btnGeneratePdf", SVG.book);
+  qBtn("btnUploadSceneLabel", SVG.folder);
+  setHtml("btnModalClose", SVG.close);
+  setHtml("btnSceneModalClose", SVG.close);
+}
+
 const SB_URL = "https://vzpizjhlwxsfzbiguvfo.supabase.co";
 const SB_KEY = "sb_publishable_wXvQ3jLB3tXGdkp-8Vgl7w_8A3Vn4gT";
 const GAS_API = "https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7NvkB2oNGVMfXwJRJvMZcCR0GYhpNlIbTtEwqy_G4pVJ5N-x/exec";
@@ -1474,7 +1572,6 @@ const STYLE_PALETTES = {
   }
 };
 
-// 零 Token 智慧系列形容短語庫（依風格自動匹配並支援隨機切換與手動編輯）
 const TAGLINE_LIBRARY = {
   marble: [
     "溫潤細膩的天然石材肌理，在光影交錯間勾勒沉穩大器的當代空間。",
@@ -1506,16 +1603,13 @@ let currentLevel = "all";
 let selectedSize = "60x120";
 let selectedStyle = "";
 let currentDmStyle = "warm";
-let currentMagLayout = "bento"; // 'bento' | 'cover' | 'sidebar' | 'museum'
-let currentSceneLayout = "auto"; // 'auto' | '1' | '2' | '3' | '4' | '0'
+let currentMagLayout = "bento";
+let currentSceneLayout = "auto";
 
-// 當前畫布上顯示的實景圖陣列（可獨立更換、刪除、新增）
 let activeScenes = [];
-// 屬於目前系列的全部可用實景圖池
 let seriesScenePool = [];
 let editingSceneIdx = -1;
 
-// 可編輯文字狀態（使用者點擊編輯後即保留在狀態中，同步至 JPG / PDF）
 let customHeaderText = {
   eyebrow: "",
   title: "",
@@ -1525,19 +1619,6 @@ let customHeaderText = {
 let taglineCursor = 0;
 let snapshotTimeStr = "";
 let pdfPagesQueue = [];
-
-const ORIGIN_FLAG_MAP = {
-  "義大利": "🇮🇹", "西班牙": "🇪🇸", "葡萄牙": "🇵🇹", "台灣": "🇹🇼",
-  "馬來西亞": "🇲🇾", "印度": "🇮🇳", "越南": "🇻🇳", "土耳其": "🇹🇷", "巴西": "🇧🇷"
-};
-
-function getOriginFlag(origin) {
-  const s = String(origin || "").trim();
-  for (const [k, flag] of Object.entries(ORIGIN_FLAG_MAP)) {
-    if (s.includes(k)) return flag;
-  }
-  return "";
-}
 
 function formatFloorPing(rawPing) {
   const n = Number(rawPing) || 0;
@@ -1583,7 +1664,8 @@ function showToast(msg) {
 function toggleMobileFilter() {
   const panel = document.getElementById("ctrlPanel");
   const isOpen = panel.classList.toggle("mob-open");
-  document.getElementById("mobFilterBtnTxt").textContent = isOpen ? "收起篩選 ▴" : "篩選條件 ▾";
+  document.getElementById("mobFilterBtnTxt").textContent = isOpen ? "收起篩選" : "篩選條件";
+  document.getElementById("mobFilterIcon").innerHTML = isOpen ? SVG.chevronUp : SVG.chevronDown;
 }
 
 function normalizeImgUrl(raw, forCanvas = false) {
@@ -1616,61 +1698,132 @@ function extractProductMedia(p, stockSnap) {
   return { mainImg, scenes, pieces };
 }
 
+function processRawProducts(sbRows, stockCatalog = {}) {
+  snapshotTimeStr = formatNowTime();
+  return (sbRows || []).map(p => {
+    const code = String(p.code || "").toUpperCase().trim();
+    const snap = stockCatalog[code] || null;
+    const ratio = Number(p.ratio) || (snap && Number(snap.ratio)) || 36;
+    const availPcs = snap && snap.availPcs !== undefined
+      ? Number(snap.availPcs)
+      : (p.stock_status === "in_stock" ? Math.round(ratio * 15) : 0);
+    const rawPing = ratio > 0 ? availPcs / ratio : 0;
+    const media = extractProductMedia(p, snap);
+    const sizeClean = String(p.size || (snap && snap.size) || "").replace(/\s*cm$/i, "").replace(/[×*＊Ｘ]/g, "x").trim();
+
+    return {
+      code,
+      series: String(p.title_zh || (snap && snap.series) || code).trim(),
+      seriesEn: String(p.title_en || "").trim(),
+      brand: String(p.brand || "").trim(),
+      origin: String(p.origin || "").trim(),
+      size: sizeClean,
+      color: String(p.color || (snap && snap.color) || "").trim(),
+      style: String(p.style || "").trim(),
+      area: String(p.area || "").trim(),
+      level: p.level || "normal",
+      pricePcs: Number(p.price_num) || 0,
+      pricePing: Number(p.price_per_pyeong) || (Number(p.price_num) && ratio ? Math.round(Number(p.price_num) * ratio) : 0),
+      ratio,
+      availPcs,
+      rawPing,
+      pingStr: formatFloorPing(rawPing),
+      mainImg: media.mainImg,
+      scenes: media.scenes
+    };
+  }).filter(p => p.mainImg && p.availPcs > 0);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 高速雙層載入引擎（秒開 LocalStorage 快取 + 背景無阻礙更新）
+// ════════════════════════════════════════════════════════════════
 async function initData() {
+  setupStaticSvgIcons();
+
+  // 1. 本地快取秒開（若有快取，0.05 秒立刻呈現畫面）
+  let hasRenderedFromCache = false;
   try {
-    const sbPromise = fetch(
-      `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
-      { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } }
-    ).then(r => r.ok ? r.json() : []);
-
-    const gasPromise = fetch(`${GAS_API}?action=getAllProductCodes`)
-      .then(r => r.ok ? r.json() : { catalog: {} })
-      .catch(() => ({ catalog: {} }));
-
-    const [sbRows, gasData] = await Promise.all([sbPromise, gasPromise]);
-    const stockCatalog = (gasData && gasData.catalog) || {};
-    snapshotTimeStr = formatNowTime();
-
-    allProducts = (sbRows || []).map(p => {
-      const code = String(p.code || "").toUpperCase().trim();
-      const snap = stockCatalog[code] || null;
-      const ratio = Number(p.ratio) || (snap && Number(snap.ratio)) || 36;
-      const availPcs = snap && snap.availPcs !== undefined
-        ? Number(snap.availPcs)
-        : (p.stock_status === "in_stock" ? Math.round(ratio * 15) : 0);
-      const rawPing = ratio > 0 ? availPcs / ratio : 0;
-      const media = extractProductMedia(p, snap);
-      const sizeClean = String(p.size || (snap && snap.size) || "").replace(/\s*cm$/i, "").replace(/[×*＊Ｘ]/g, "x").trim();
-
-      return {
-        code,
-        series: String(p.title_zh || (snap && snap.series) || code).trim(),
-        seriesEn: String(p.title_en || "").trim(),
-        brand: String(p.brand || "").trim(),
-        origin: String(p.origin || "").trim(),
-        flag: getOriginFlag(p.origin),
-        size: sizeClean,
-        color: String(p.color || (snap && snap.color) || "").trim(),
-        style: String(p.style || "").trim(),
-        area: String(p.area || "").trim(),
-        level: p.level || "normal",
-        pricePcs: Number(p.price_num) || 0,
-        pricePing: Number(p.price_per_pyeong) || (Number(p.price_num) && ratio ? Math.round(Number(p.price_num) * ratio) : 0),
-        ratio,
-        availPcs,
-        rawPing,
-        pingStr: formatFloorPing(rawPing),
-        mainImg: media.mainImg,
-        scenes: media.scenes
-      };
-    }).filter(p => p.mainImg && p.availPcs > 0);
-
-    renderSeriesOptions("");
-    restoreFromUrl();
-  } catch (err) {
-    console.error(err);
-    document.getElementById("dmDynamicMount").innerHTML = `<div class="state-box">載入資料時發生錯誤，請重新整理。</div>`;
+    const cachedProducts = localStorage.getItem("ebook_products_cache_v2");
+    if (cachedProducts) {
+      const parsed = JSON.parse(cachedProducts);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        allProducts = parsed;
+        renderSeriesOptions("");
+        restoreFromUrl();
+        hasRenderedFromCache = true;
+      }
+    }
+  } catch (e) {
+    console.warn("Cache parse error", e);
   }
+
+  // 2. 平行發送 Supabase 請求（不被 GAS 拖慢）
+  const cachedStockStr = localStorage.getItem("ebook_stock_cache_v2");
+  const cachedStock = cachedStockStr ? JSON.parse(cachedStockStr) : {};
+
+  const sbPromise = fetch(
+    `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
+    { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } }
+  )
+  .then(r => r.ok ? r.json() : [])
+  .catch(err => {
+    console.error("Supabase error:", err);
+    return null;
+  });
+
+  // 3. GAS 庫存改為背景請求，絕對不阻礙 UI
+  const gasPromise = fetch(`${GAS_API}?action=getAllProductCodes`)
+    .then(r => r.ok ? r.json() : { catalog: {} })
+    .catch(() => ({ catalog: {} }));
+
+  // 當 Supabase 回傳後立即更新並寫入快取
+  sbPromise.then(sbRows => {
+    if (sbRows && sbRows.length > 0) {
+      allProducts = processRawProducts(sbRows, cachedStock);
+      try {
+        localStorage.setItem("ebook_products_cache_v2", JSON.stringify(allProducts));
+      } catch(e) {}
+      renderSeriesOptions(document.getElementById("seriesSearchInput").value);
+      if (!hasRenderedFromCache) {
+        restoreFromUrl();
+      } else {
+        renderDM();
+      }
+    }
+  });
+
+  // 當 GAS 庫存回傳後，即時補正庫存數值
+  gasPromise.then(gasData => {
+    if (gasData && gasData.catalog && Object.keys(gasData.catalog).length > 0) {
+      try {
+        localStorage.setItem("ebook_stock_cache_v2", JSON.stringify(gasData.catalog));
+      } catch(e) {}
+      const cat = gasData.catalog;
+      let hasChange = false;
+      allProducts.forEach(p => {
+        const snap = cat[p.code];
+        if (snap && snap.availPcs !== undefined) {
+          const freshPcs = Number(snap.availPcs);
+          if (freshPcs !== p.availPcs) {
+            p.availPcs = freshPcs;
+            p.rawPing = p.ratio > 0 ? freshPcs / p.ratio : 0;
+            p.pingStr = formatFloorPing(p.rawPing);
+            hasChange = true;
+          }
+        }
+      });
+      if (hasChange) {
+        currentPicked.forEach(p => {
+          const matched = allProducts.find(x => x.code === p.code);
+          if (matched) {
+            p.availPcs = matched.availPcs;
+            p.pingStr = matched.pingStr;
+          }
+        });
+        renderDM();
+      }
+    }
+  });
 }
 
 function renderSeriesOptions(kw) {
@@ -1735,7 +1888,7 @@ function switchMode(mode) {
   document.getElementById("tabTheme").classList.toggle("active", mode === "theme");
   document.getElementById("seriesFilterBox").style.display = mode === "series" ? "flex" : "none";
   document.getElementById("themeFilterBox").style.display = mode === "theme" ? "flex" : "none";
-  document.getElementById("btnRandomTxt").textContent = mode === "series" ? "🎲 隨機換一個系列" : "🎲 隨機換一批產品";
+  document.getElementById("btnRandomTxt").textContent = mode === "series" ? "隨機換一個系列" : "隨機換一批產品";
 
   if (mode === "series") {
     renderSeriesOptions(document.getElementById("seriesSearchInput").value);
@@ -1775,7 +1928,6 @@ function setLevel(lv) {
   }
 }
 
-// 自動依據目前系列/產品產生預設計畫文字（英文名/品牌、主標、形容短語、副標）
 function initEditableHeaderForSelection() {
   const first = currentPicked[0];
   if (currentMode === "series") {
@@ -1822,11 +1974,9 @@ function onHeaderTextEdited(field, el) {
   customHeaderText[field] = el.innerText.trim();
 }
 
-// 讀取屬於該系列自己的實景圖（不跨系列亂抓、不重複塞圖）
 function collectSeriesScenes() {
   const seen = new Set();
   seriesScenePool = [];
-  // 先收錄目前選中系列的全部產品實景圖
   const targetSeriesSet = new Set(currentPicked.map(p => p.series));
   allProducts.forEach(p => {
     if (currentMode === "series" && !targetSeriesSet.has(p.series)) return;
@@ -1852,7 +2002,6 @@ function rebuildActiveScenesFromPool() {
   activeScenes = seriesScenePool.slice(0, maxN).map(s => ({ ...s }));
 }
 
-// 刪除單張實景圖（像卡片一樣支援刪除）
 function removeSceneAtIndex(idx, ev) {
   if (ev) ev.stopPropagation();
   activeScenes.splice(idx, 1);
@@ -1860,15 +2009,13 @@ function removeSceneAtIndex(idx, ev) {
   showToast("已移除該張實景圖");
 }
 
-// 開啟「更換 / 新增實景圖」選擇器 Modal
 function openScenePickerModal(targetIdx, ev) {
   if (ev) ev.stopPropagation();
-  editingSceneIdx = targetIdx; // -1 表示新增一張，>=0 表示替換指定位置的實景圖
+  editingSceneIdx = targetIdx;
   document.getElementById("scenePickerTitle").textContent =
     targetIdx >= 0 ? `更換第 ${targetIdx + 1} 張空間實景圖` : "新增空間實景圖";
   document.getElementById("customSceneUrlInput").value = "";
 
-  // 整理候選清單：本系列實景圖優先，若本系列實景圖較少，附上其他有實景圖的系列供挑選
   const seen = new Set();
   const candidates = [];
   seriesScenePool.forEach(s => {
@@ -1940,7 +2087,9 @@ function applySceneItem(newItem) {
 }
 
 function pickBySeries() {
-  const ser = document.getElementById("selSeries").value;
+  const sel = document.getElementById("selSeries");
+  if (!sel || !sel.value) return;
+  const ser = sel.value;
   const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 8;
   filteredPool = allProducts.filter(p => p.series === ser && (currentLevel === "all" || p.level === currentLevel));
   document.getElementById("poolCountBadge").textContent = `共 ${filteredPool.length} 款`;
@@ -2003,13 +2152,14 @@ function removePickedCard(code) {
   renderDM();
 }
 
-// 建立實景圖拼貼 HTML（支援更換與刪除）
 function buildSceneCollageHtml() {
   if (activeScenes.length === 0) {
     return `
       <div class="empty-scene-bar staff-only">
         <span>此系列目前未顯示實景圖（無實景或已隱藏）</span>
-        <button type="button" class="tiny-tool-btn" onclick="openScenePickerModal(-1)">➕ 點此選擇或上傳實景圖</button>
+        <button type="button" class="tiny-tool-btn" onclick="openScenePickerModal(-1)">
+          ${SVG.plus} 點此選擇或上傳實景圖
+        </button>
       </div>
     `;
   }
@@ -2017,8 +2167,8 @@ function buildSceneCollageHtml() {
   const itemsHtml = activeScenes.slice(0, 4).map((sc, idx) => `
     <div class="sc-item">
       <div class="sc-ctrl-bar staff-only">
-        <button type="button" class="sc-btn" onclick="openScenePickerModal(${idx}, event)" title="更換此張實景圖">🔄 換圖</button>
-        <button type="button" class="sc-btn del" onclick="removeSceneAtIndex(${idx}, event)" title="刪除此張實景圖">✕</button>
+        <button type="button" class="sc-btn" onclick="openScenePickerModal(${idx}, event)" title="更換此張實景圖">${SVG.refresh} 換圖</button>
+        <button type="button" class="sc-btn del" onclick="removeSceneAtIndex(${idx}, event)" title="刪除此張實景圖">${SVG.close}</button>
       </div>
       <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series} (${sc.code}) 空間實景圖 ${idx + 1}')">
       <span class="sc-tag">空間實景 ${idx + 1} · ${sc.code}</span>
@@ -2027,12 +2177,12 @@ function buildSceneCollageHtml() {
   return `<div class="scene-collage count-${cnt}">${itemsHtml}</div>`;
 }
 
-// 建立單片磁磚網格 HTML（依單片數量自動套用跨欄與大小片）
 function buildPiecesGridHtml() {
   const showPrice = document.getElementById("chkShowPrice").checked;
   const pCountClass = currentPicked.length >= 9 ? "pcount-many" : `pcount-${currentPicked.length}`;
 
   const cardsHtml = currentPicked.map(p => {
+    const flagSvg = getOriginFlagSvg(p.origin);
     const priceHtml = showPrice && (p.pricePcs > 0 || p.pricePing > 0)
       ? `<div class="price-line">
            <span>單價</span>
@@ -2045,10 +2195,10 @@ function buildPiecesGridHtml() {
 
     return `
       <article class="tile-card">
-        <button type="button" class="remove-item-btn staff-only" title="移除此款" onclick="removePickedCard('${p.code}')">✕</button>
+        <button type="button" class="remove-item-btn staff-only" title="移除此款" onclick="removePickedCard('${p.code}')">${SVG.close}</button>
         <div class="tile-stage">
           <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}')">
-          ${p.flag ? `<span class="origin-flag" title="${p.origin}">${p.flag}</span>` : ""}
+          ${flagSvg}
         </div>
         <div class="tile-body-col">
           <div class="tile-info">
@@ -2076,7 +2226,6 @@ function buildPiecesGridHtml() {
   return `<div class="pieces-grid ${pCountClass}">${cardsHtml}</div>`;
 }
 
-// 建立可編輯標頭 HTML
 function buildEditableHeaderHtml(extraClass = "header-split") {
   return `
     <div class="mag-header ${extraClass}">
@@ -2109,9 +2258,7 @@ function renderDM() {
   const sceneHtml = buildSceneCollageHtml();
   const piecesHtml = buildPiecesGridHtml();
 
-  // 依據 4 種雜誌結構版型渲染完全不同的版面與文字位置
   if (currentMagLayout === "cover" && activeScenes.length > 0) {
-    // 版型 ②：封面故事（上方大實景疊加標題與短語 + 下方橫列單片）
     mount.innerHTML = `
       <div class="mag-content">
         <div class="cover-hero-wrap">
@@ -2127,7 +2274,6 @@ function renderDM() {
       </div>
     `;
   } else if (currentMagLayout === "sidebar") {
-    // 版型 ③：左右分欄畫廊（左欄：標題＋短語＋直向實景；右欄：單片磚大小交錯）
     mount.innerHTML = `
       <div class="mag-content">
         <div class="sidebar-editorial">
@@ -2147,7 +2293,6 @@ function renderDM() {
       </div>
     `;
   } else if (currentMagLayout === "museum") {
-    // 版型 ④：上磚下景顛倒版（標頭 → 單片磚放上半部主打 → 實景圖排在最底部）
     mount.innerHTML = `
       ${buildEditableHeaderHtml("header-split")}
       <div class="mag-content">
@@ -2156,7 +2301,6 @@ function renderDM() {
       </div>
     `;
   } else {
-    // 版型 ① (預設 bento)：雙欄雜誌標頭 → 錯落實景拼貼 → 跨欄大小片 Bento 單片網格
     mount.innerHTML = `
       ${buildEditableHeaderHtml("header-split")}
       <div class="mag-content">
@@ -2290,9 +2434,50 @@ function wrapTextLines(ctx, text, maxW) {
   return lines;
 }
 
+// 在 Canvas 繪製清晰的向量國旗幾何形狀（零 Emoji）
+function drawVectorFlagOnCanvas(ctx, origin, x, y, w = 24, h = 16) {
+  const s = String(origin || "").trim();
+  ctx.save();
+  roundRect(ctx, x, y, w, h, 2);
+  ctx.clip();
+
+  if (s.includes("義大利")) {
+    ctx.fillStyle = "#009246"; ctx.fillRect(x, y, w / 3, h);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(x + w / 3, y, w / 3, h);
+    ctx.fillStyle = "#ce2b37"; ctx.fillRect(x + (2 * w) / 3, y, w / 3, h);
+  } else if (s.includes("西班牙")) {
+    ctx.fillStyle = "#AA151B"; ctx.fillRect(x, y, w, h * 0.25);
+    ctx.fillStyle = "#F1BF00"; ctx.fillRect(x, y + h * 0.25, w, h * 0.5);
+    ctx.fillStyle = "#AA151B"; ctx.fillRect(x, y + h * 0.75, w, h * 0.25);
+  } else if (s.includes("葡萄牙")) {
+    ctx.fillStyle = "#046A38"; ctx.fillRect(x, y, w * 0.4, h);
+    ctx.fillStyle = "#DA291C"; ctx.fillRect(x + w * 0.4, y, w * 0.6, h);
+  } else if (s.includes("台灣")) {
+    ctx.fillStyle = "#FE0000"; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "#000095"; ctx.fillRect(x, y, w * 0.5, h * 0.5);
+  } else if (s.includes("印度")) {
+    ctx.fillStyle = "#FF9933"; ctx.fillRect(x, y, w, h / 3);
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(x, y + h / 3, w, h / 3);
+    ctx.fillStyle = "#128807"; ctx.fillRect(x, y + (2 * h) / 3, w, h / 3);
+  } else if (s.includes("越南")) {
+    ctx.fillStyle = "#DA251D"; ctx.fillRect(x, y, w, h);
+  } else if (s.includes("土耳其")) {
+    ctx.fillStyle = "#E30A17"; ctx.fillRect(x, y, w, h);
+  } else if (s.includes("巴西")) {
+    ctx.fillStyle = "#009739"; ctx.fillRect(x, y, w, h);
+  } else {
+    ctx.fillStyle = "#555555"; ctx.fillRect(x, y, w, h);
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(0,0,0,0.25)";
+  ctx.lineWidth = 1;
+  roundRect(ctx, x, y, w, h, 2);
+  ctx.stroke();
+}
+
 // ════════════════════════════════════════════════════════════════
-// 將指定頁面渲染成標準直式雜誌單頁 Canvas (1080 x 1528，A4 直式比例)
-// 完整保留可編輯的英文名、主標、形容短語與 4 種雜誌版型結構
+// 直式雜誌單頁 Canvas 渲染 (1080 x 1528)
 // ════════════════════════════════════════════════════════════════
 async function renderPortraitPageToCanvas(pageState) {
   const { items, scenes, headerText, dmStyle, magLayout, showPrice, shareUrl } = pageState;
@@ -2300,7 +2485,7 @@ async function renderPortraitPageToCanvas(pageState) {
   const scCount = Math.min(4, scenes.length);
 
   const W = 1080;
-  const H = 1528; // 直式 A4 雜誌比例 (1 : 1.414)
+  const H = 1528;
   const pad = 42;
   const footerH = 100;
 
@@ -2318,7 +2503,6 @@ async function renderPortraitPageToCanvas(pageState) {
     loadImageForCanvas(`https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=3&data=${encodeURIComponent(shareUrl)}`)
   ]);
 
-  // 繪製實景拼貼的共用函式
   function paintCollageBox(bx, by, bw, bh) {
     if (scCount === 0 || bh <= 0) return;
     const g = 12;
@@ -2348,7 +2532,6 @@ async function renderPortraitPageToCanvas(pageState) {
     }
   }
 
-  // 繪製單片磁磚區域的共用函式
   function paintPiecesArea(bx, by, bw, bh) {
     if (items.length === 0 || bh <= 0) return;
     const gap = 14;
@@ -2383,10 +2566,12 @@ async function renderPortraitPageToCanvas(pageState) {
           const dw = pImg.width * ratio, dh = pImg.height * ratio;
           ctx.drawImage(pImg, x + (stW - dw) / 2, y + (cardH - dh) / 2, dw, dh);
         }
+        if (p.origin) drawVectorFlagOnCanvas(ctx, p.origin, x + 8, y + cardH - 24, 22, 14);
+
         const tx = x + stW + 20;
         ctx.fillStyle = pal.ink;
         ctx.font = "800 24px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
-        ctx.fillText(`${p.flag ? p.flag + " " : ""}${p.code}`, tx, y + 48);
+        ctx.fillText(p.code, tx, y + 48);
         ctx.fillStyle = pal.accent;
         ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
         ctx.fillText((p.size || "").replace(/x/gi, "×") + " cm", tx, y + 80);
@@ -2423,10 +2608,7 @@ async function renderPortraitPageToCanvas(pageState) {
         ctx.restore();
       }
 
-      if (p.flag) {
-        ctx.font = "18px sans-serif";
-        ctx.fillText(p.flag, x + 8, y + stH - 8);
-      }
+      if (p.origin) drawVectorFlagOnCanvas(ctx, p.origin, x + 8, y + stH - 22, 22, 14);
 
       ctx.fillStyle = pal.ink;
       ctx.font = "800 19px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
@@ -2453,7 +2635,6 @@ async function renderPortraitPageToCanvas(pageState) {
     });
   }
 
-  // 繪製雙欄雜誌標頭的共用函式
   function paintSplitHeader(topY) {
     ctx.fillStyle = pal.eyebrow;
     ctx.font = "700 16px 'Cormorant Garamond', 'Plus Jakarta Sans', serif";
@@ -2467,7 +2648,6 @@ async function renderPortraitPageToCanvas(pageState) {
     ctx.font = "700 18px 'Noto Sans TC', sans-serif";
     ctx.fillText(headerText.subtitle || "", pad, topY + 110);
 
-    // 右側形容短語
     ctx.font = "600 17px 'Noto Serif TC', serif";
     ctx.fillStyle = pal.ink2;
     const tagLines = wrapTextLines(ctx, headerText.tagline || "", 390);
@@ -2489,7 +2669,7 @@ async function renderPortraitPageToCanvas(pageState) {
   if (magLayout === "cover" && scCount > 0) {
     const heroH = 540;
     paintCollageBox(pad, 36, W - pad * 2, heroH);
-    // 漸層遮罩疊字
+
     const grad = ctx.createLinearGradient(0, 36 + heroH - 250, 0, 36 + heroH);
     grad.addColorStop(0, "rgba(15,13,12,0)");
     grad.addColorStop(1, "rgba(15,13,12,0.9)");
@@ -2553,7 +2733,6 @@ async function renderPortraitPageToCanvas(pageState) {
       paintCollageBox(pad, startY + piecesH + 22, W - pad * 2, scH);
     }
   } else {
-    // 預設 Bento 雜誌版
     const startY = paintSplitHeader(24);
     const scH = scCount > 0 ? 430 : 0;
     if (scH > 0) {
@@ -2563,7 +2742,6 @@ async function renderPortraitPageToCanvas(pageState) {
     paintPiecesArea(pad, pStartY, W - pad * 2, contentBottom - pStartY);
   }
 
-  // Footer（無品牌 Logo，僅顯示有效時間與 QR）
   const footY = H - footerH;
   ctx.fillStyle = pal.cardBg;
   ctx.fillRect(0, footY, W, footerH);
@@ -2609,9 +2787,6 @@ async function exportFullPosterJPG() {
   openImageZoom(cv.toDataURL("image/jpeg", 0.92), `Ebook_${state.headerText.title}`);
 }
 
-// ════════════════════════════════════════════════════════════════
-// 一左一右「雙頁跨頁（2-Up Spread）」PDF 電子目錄生成引擎
-// ════════════════════════════════════════════════════════════════
 function addCurrentPageToPdfQueue() {
   if (currentPicked.length === 0) return showToast("目前畫面沒有產品可加入");
   const snap = getCurrentPageStateSnapshot();
@@ -2637,13 +2812,12 @@ function renderPdfQueueBar() {
   const chips = pdfPagesQueue.map((p, i) => `
     <span class="pdf-page-chip">
       <span>P${i + 1}. ${p.headerText.title} (${p.items.length}款)</span>
-      <button type="button" onclick="removePdfQueuePage(${i})" title="移除此頁">✕</button>
+      <button type="button" onclick="removePdfQueuePage(${i})" title="移除此頁">${SVG.close}</button>
     </span>
   `).join("");
   info.innerHTML = `<span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：${pdfPagesQueue.length} 頁</span>` + chips;
 }
 
-// 當使用者只選了 1 個系列直接點「生成左右雙頁 PDF」時，自動將該系列拆成「左頁：封面實景畫報＋主打磚」與「右頁：完整色號明細」雙頁！
 function buildAutoTwoPagesFromSingle(snap) {
   const half = Math.max(1, Math.min(2, Math.ceil(snap.items.length / 3)));
   const leftPage = {
@@ -2681,7 +2855,6 @@ async function generateSpreadPDF() {
   showToast(`正在合成 ${spreadCount} 張「一左一右雙頁跨頁」PDF 電子目錄...`);
 
   const { jsPDF } = window.jspdf;
-  // A4 橫式雙頁並排跨頁 (寬 420mm x 高 297mm，即兩張直式 A4 210x297 一左一右並排)
   const spreadW = 420;
   const spreadH = 297;
   const pdf = new jsPDF({ orientation: "l", unit: "mm", format: [spreadW, spreadH] });
@@ -2698,12 +2871,10 @@ async function generateSpreadPDF() {
       const rightCv = await renderPortraitPageToCanvas(rightSnap);
       pdf.addImage(rightCv.toDataURL("image/jpeg", 0.9), "JPEG", 210, 0, 210, 297, undefined, "FAST");
     } else {
-      // 若奇數頁最後一頁無右頁，填充同色系極簡封底
       pdf.setFillColor(245, 242, 235);
       pdf.rect(210, 0, 210, 297, "F");
     }
 
-    // 繪製中央書本裝訂中縫線
     pdf.setDrawColor(190, 182, 170);
     pdf.setLineWidth(0.35);
     pdf.line(210, 0, 210, 297);
@@ -2714,7 +2885,6 @@ async function generateSpreadPDF() {
   showToast(`已下載雙頁排版 PDF：${fileName}`);
 }
 
-// ── 匯出單片專屬直式規格卡 JPG (1080 x 1440，無品牌 Logo) ──
 async function exportSingleTileJPG(code) {
   const p = allProducts.find(x => x.code === code);
   if (!p) return;
@@ -2741,7 +2911,7 @@ async function exportSingleTileJPG(code) {
 
   ctx.fillStyle = pal.headerText;
   ctx.font = "800 42px 'Noto Serif TC', 'Noto Sans TC', sans-serif";
-  ctx.fillText(`${p.flag ? p.flag + " " : ""}${p.series}  ${p.code}`, 44, 110);
+  ctx.fillText(`${p.series}  ${p.code}`, 44, 110);
 
   const szTxt = `${(p.size || "").replace(/x/gi, "×")} cm`;
   ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
@@ -2785,6 +2955,7 @@ async function exportSingleTileJPG(code) {
     ctx.drawImage(pieceImg, 44 + (W - 88 - dw) / 2, curY + (stageH - dh) / 2, dw, dh);
     ctx.restore();
   }
+  if (p.origin) drawVectorFlagOnCanvas(ctx, p.origin, 60, curY + stageH - 34, 28, 18);
   curY += stageH + 22;
 
   const infoH = H - curY - 38;
