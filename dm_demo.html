@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>高雅瓷 · 產品文宣 DM 與多頁 PDF 電子目錄產生器</title>
+<title>Ebook · 產品型錄與 DM 產生器</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Noto+Serif+TC:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Noto+Sans+TC:wght@400;500;600;700;800&family=Noto+Serif+TC:wght@600;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
   :root {
-    --bg: #F5F2EB;
+    --bg: #F3EFEA;
     --surface: #FFFFFF;
     --surface-soft: #FAF8F5;
-    --surface-muted: #EFECE4;
+    --surface-muted: #ECE7DF;
     --ink: #1C1917;
     --ink-2: #44403C;
     --muted: #78716C;
-    --line: #E5E0D5;
-    --line-strong: #D0C9B8;
+    --line: #E4DECFE6;
+    --line-strong: #CFC7B8;
     --accent: #8C5A32;
     --accent-hover: #724725;
     --accent-soft: #F7EFE8;
@@ -27,25 +27,25 @@
     --radius-card: 10px;
     --radius-ctrl: 8px;
     --shadow-sm: 0 2px 6px rgba(28, 25, 23, 0.05);
-    --shadow-md: 0 10px 28px rgba(28, 25, 23, 0.09);
+    --shadow-md: 0 14px 36px rgba(28, 25, 23, 0.11);
 
-    /* DM 畫布專屬主題變數（隨「DM風格預覽」動態切換） */
+    /* DM 畫布專屬主題變數 */
     --dm-bg: #FAF8F5;
     --dm-header-bg: #1C1917;
     --dm-header-text: #FFFFFF;
     --dm-header-sub: #D6D3CD;
-    --dm-eyebrow: #D6B392;
+    --dm-eyebrow: #C89D74;
     --dm-accent: #8C5A32;
     --dm-card-bg: #FFFFFF;
     --dm-card-border: #E5E0D5;
-    --dm-stage-bg: #EFECE4;
+    --dm-stage-bg: #F0ECE3;
     --dm-ink: #1C1917;
     --dm-ink-2: #44403C;
     --dm-muted: #78716C;
     --dm-stock: #1F5E3B;
   }
 
-  /* 風格 2：奢石黑金風 */
+  /* 配色 2：奢石黑金 */
   .dm-sheet[data-style="luxury"] {
     --dm-bg: #141312;
     --dm-header-bg: #0B0A09;
@@ -62,34 +62,34 @@
     --dm-stock: #5CE096;
   }
 
-  /* 風格 3：北歐極簡畫廊風 */
+  /* 配色 3：北歐極簡 */
   .dm-sheet[data-style="minimal"] {
     --dm-bg: #FFFFFF;
     --dm-header-bg: #1F4D3A;
     --dm-header-text: #FFFFFF;
     --dm-header-sub: #D5E6DF;
-    --dm-eyebrow: #A8D5C2;
+    --dm-eyebrow: #5A8F76;
     --dm-accent: #1F4D3A;
     --dm-card-bg: #FFFFFF;
     --dm-card-border: #E2E8F0;
-    --dm-stage-bg: #F8FAFC;
+    --dm-stage-bg: #F4F6F8;
     --dm-ink: #0F172A;
     --dm-ink-2: #334155;
     --dm-muted: #64748B;
     --dm-stock: #15803D;
   }
 
-  /* 風格 4：義式雜誌畫報風 */
+  /* 配色 4：義式畫報大地 */
   .dm-sheet[data-style="editorial"] {
-    --dm-bg: #EFECE6;
+    --dm-bg: #EFEAE2;
     --dm-header-bg: #2C2520;
     --dm-header-text: #FAF6F0;
     --dm-header-sub: #C9BFB5;
-    --dm-eyebrow: #E0A96D;
+    --dm-eyebrow: #B56E3B;
     --dm-accent: #9E582F;
     --dm-card-bg: #FAF8F5;
-    --dm-card-border: #DCD6CA;
-    --dm-stage-bg: #E5E0D5;
+    --dm-card-border: #DCD4C6;
+    --dm-stage-bg: #E5DFD3;
     --dm-ink: #241E1A;
     --dm-ink-2: #4A4039;
     --dm-muted: #7A7067;
@@ -103,22 +103,22 @@
     color: var(--ink);
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
-    padding-bottom: 84px;
+    padding-bottom: 92px;
   }
   button, input, select { font-family: inherit; }
 
-  /* ── 頂部導覽列 ── */
+  /* ── 頂部極簡導覽列（無品牌 Logo，僅顯示 Ebook） ── */
   .topbar {
     position: sticky;
     top: 0;
     z-index: 200;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line-strong);
     padding: 10px 16px;
   }
   .topbar-inner {
-    max-width: 1420px;
+    max-width: 1360px;
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -128,29 +128,22 @@
   .brand-wrap {
     display: flex;
     align-items: center;
-    gap: 9px;
-    min-width: 0;
-  }
-  .brand-mark {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    background: var(--ink);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 12.5px;
-    flex-shrink: 0;
+    gap: 10px;
   }
   .brand-title {
-    font-size: 14.5px;
-    font-weight: 800;
+    font-family: 'Cormorant Garamond', 'Plus Jakarta Sans', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+  .brand-sub-pill {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--surface-muted);
+    padding: 2px 8px;
+    border-radius: 99px;
   }
   .top-controls {
     display: flex;
@@ -168,7 +161,7 @@
     background: var(--surface-muted);
     padding: 5px 10px;
     border-radius: var(--radius-ctrl);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
     cursor: pointer;
     user-select: none;
   }
@@ -198,17 +191,17 @@
 
   /* ── 主工作區 ── */
   .workspace {
-    max-width: 1420px;
+    max-width: 1360px;
     margin: 14px auto 0;
     padding: 0 14px;
     display: grid;
-    grid-template-columns: 330px 1fr;
+    grid-template-columns: 320px 1fr;
     gap: 18px;
     align-items: start;
   }
   body.client-view .workspace {
     grid-template-columns: 1fr;
-    max-width: 1120px;
+    max-width: 820px;
   }
   body.client-view .ctrl-panel,
   body.client-view .staff-only {
@@ -219,27 +212,20 @@
       grid-template-columns: 1fr;
       gap: 12px;
     }
-    .ctrl-panel {
-      display: none;
-    }
-    .ctrl-panel.mob-open {
-      display: flex;
-    }
+    .ctrl-panel { display: none; }
+    .ctrl-panel.mob-open { display: flex; }
   }
 
   /* ── 左側控制面板 ── */
   .ctrl-panel {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-card);
     padding: 15px;
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     gap: 13px;
-  }
-  @media (max-width: 960px) {
-    .ctrl-panel { display: none; }
   }
   .sec-title {
     font-size: 12px;
@@ -258,14 +244,13 @@
     background: var(--accent-soft);
     color: var(--accent);
   }
-
   .mode-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
     background: var(--surface-muted);
     padding: 3px;
     border-radius: var(--radius-ctrl);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
   }
   .mode-tab {
     border: none;
@@ -282,7 +267,6 @@
     color: var(--ink);
     box-shadow: var(--shadow-sm);
   }
-
   .chip-group {
     display: flex;
     flex-wrap: wrap;
@@ -300,13 +284,11 @@
     transition: all 0.12s;
   }
   .chip:hover { border-color: var(--accent); color: var(--accent); }
-  .chip:active { transform: scale(0.98); }
   .chip.active {
     background: var(--ink);
     border-color: var(--ink);
     color: #FFFFFF;
   }
-
   .input, .select {
     width: 100%;
     height: 36px;
@@ -320,7 +302,7 @@
     outline: none;
   }
   .input:focus, .select:focus { border-color: var(--accent); }
-  .divider { height: 1px; background: var(--line); }
+  .divider { height: 1px; background: var(--line-strong); opacity: 0.6; }
 
   .btn-random {
     width: 100%;
@@ -337,30 +319,35 @@
     justify-content: center;
     gap: 6px;
   }
-  .btn-random:active { transform: scale(0.98); }
 
-  /* ── 右側預覽與風格快速切換列 ── */
+  /* ── 右側預覽與版型控制列 ── */
   .preview-col {
     display: flex;
     flex-direction: column;
     gap: 10px;
     min-width: 0;
+    align-items: center;
   }
-
-  /* 手機與桌面共用的「DM 風格 & 實景排版」預覽選擇條 */
-  .style-preview-bar {
+  .style-preview-bar,
+  .action-bar {
+    width: 100%;
+    max-width: 780px;
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-card);
     padding: 10px 14px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
     box-shadow: var(--shadow-sm);
   }
-  .bar-group {
+  .action-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .bar-row {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -368,13 +355,13 @@
     max-width: 100%;
     scrollbar-width: none;
   }
-  .bar-group::-webkit-scrollbar { display: none; }
+  .bar-row::-webkit-scrollbar { display: none; }
   .bar-lbl {
     font-size: 12px;
     font-weight: 800;
     color: var(--muted);
     white-space: nowrap;
-    margin-right: 2px;
+    min-width: 64px;
   }
   .style-pill {
     border: 1px solid var(--line-strong);
@@ -402,37 +389,27 @@
     display: inline-block;
     border: 1px solid rgba(255,255,255,0.4);
   }
-
-  .action-bar {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-card);
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    box-shadow: var(--shadow-sm);
-  }
   .stat-pill {
     font-size: 12.5px;
     font-weight: 600;
     color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
   .stat-pill strong { color: var(--ink); font-weight: 800; }
-
   .action-btns {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     flex-wrap: wrap;
   }
   .btn-act {
-    height: 34px;
-    padding: 0 12px;
+    height: 33px;
+    padding: 0 11px;
     border-radius: var(--radius-ctrl);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
@@ -443,117 +420,156 @@
     color: var(--ink);
     white-space: nowrap;
   }
-  .btn-act:active { transform: scale(0.98); }
   .btn-act.primary {
     background: var(--ink);
     border-color: var(--ink);
     color: #FFFFFF;
   }
-  .btn-act.accent {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #FFFFFF;
-  }
 
-  /* ── DM 海報主畫布（支援 4 種風格主題變數） ── */
+  /* ════════════════════════════════════════════════════════════════
+     直式雜誌型錄單頁畫布 (Portrait Editorial Sheet)
+     固定最大寬度 780px，呈現直式雜誌視覺，支援 4 種雜誌結構版型
+     ════════════════════════════════════════════════════════════════ */
   .dm-sheet {
+    width: 100%;
+    max-width: 780px;
+    min-height: 1060px;
     background: var(--dm-bg);
     border: 1px solid var(--dm-card-border);
-    border-radius: var(--radius-card);
+    border-radius: 12px;
     box-shadow: var(--shadow-md);
     overflow: hidden;
-    transition: background 0.2s ease, color 0.2s ease;
-  }
-  .dm-header {
-    padding: 18px 22px 14px;
-    background: var(--dm-header-bg);
-    color: var(--dm-header-text);
     display: flex;
-    align-items: flex-end;
+    flex-direction: column;
     justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    border-bottom: 3px solid var(--dm-accent);
-  }
-  .dm-eyebrow {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    color: var(--dm-eyebrow);
-    margin-bottom: 2px;
-  }
-  .dm-main-title {
-    font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
-    font-size: clamp(19px, 2.4vw, 25px);
-    font-weight: 700;
-    line-height: 1.25;
-    color: var(--dm-header-text);
-  }
-  .dm-subtitle {
-    margin-top: 3px;
-    font-size: 12.5px;
-    color: var(--dm-header-sub);
-  }
-
-  /* ── 多張實景圖（1~4張）自動拼貼畫廊 ── */
-  .dm-scene-gallery {
-    padding: 14px 18px 4px;
-    background: var(--dm-bg);
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
   }
   @media (max-width: 560px) {
-    .dm-scene-gallery { padding: 10px 10px 2px; }
+    .dm-sheet {
+      min-height: auto;
+      border-radius: 10px;
+    }
   }
-  .scene-collage {
+
+  /* 可編輯文字區塊提示樣式 */
+  [contenteditable="true"] {
+    outline: none;
+    border-radius: 4px;
+    transition: background 0.15s, box-shadow 0.15s;
+    cursor: text;
+  }
+  body:not(.client-view) [contenteditable="true"]:hover {
+    background: rgba(140, 90, 50, 0.08);
+    box-shadow: 0 0 0 1px dashed rgba(140, 90, 50, 0.45);
+  }
+  body:not(.client-view) [contenteditable="true"]:focus {
+    background: rgba(140, 90, 50, 0.12);
+    box-shadow: 0 0 0 2px var(--dm-accent);
+  }
+
+  /* ── 雜誌版頭（隨版型變化文字位置與排版） ── */
+  .mag-header {
+    padding: 26px 28px 18px;
+    position: relative;
+  }
+  @media (max-width: 560px) {
+    .mag-header { padding: 18px 16px 12px; }
+  }
+
+  /* 版型 1 (bento) & 版型 4 (museum)：現代雙欄雜誌社論標頭 */
+  .mag-header.header-split {
     display: grid;
-    gap: 8px;
-    border-radius: 8px;
-    overflow: hidden;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 18px;
+    align-items: end;
+    border-bottom: 1.5px solid var(--dm-card-border);
   }
-  /* 1 張實景 */
-  .scene-collage.count-1 {
-    grid-template-columns: 1fr;
-    height: 280px;
-  }
-  /* 2 張實景：左右雙併（手機版亦維持精緻雙圖或上下） */
-  .scene-collage.count-2 {
-    grid-template-columns: 1fr 1fr;
-    height: 260px;
-  }
-  /* 3 張實景：左 1 大圖 + 右 2 小圖（雜誌 Bento 排版） */
-  .scene-collage.count-3 {
-    grid-template-columns: 1.35fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    height: 310px;
-  }
-  .scene-collage.count-3 .sc-item:first-child {
-    grid-row: 1 / span 2;
-  }
-  /* 4 張實景：2x2 四宮格空間應用 */
-  .scene-collage.count-4 {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    height: 320px;
-  }
-  /* 義式畫報風時放大實景區高度 */
-  .dm-sheet[data-style="editorial"] .scene-collage.count-1 { height: 350px; }
-  .dm-sheet[data-style="editorial"] .scene-collage.count-2 { height: 320px; }
-  .dm-sheet[data-style="editorial"] .scene-collage.count-3,
-  .dm-sheet[data-style="editorial"] .scene-collage.count-4 { height: 380px; }
-
-  @media (max-width: 560px) {
-    .scene-collage.count-1 { height: 200px; }
-    .scene-collage.count-2 { height: 175px; gap: 6px; }
-    .scene-collage.count-3 { height: 220px; gap: 6px; }
-    .scene-collage.count-4 { height: 230px; gap: 6px; }
+  @media (max-width: 600px) {
+    .mag-header.header-split {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
   }
 
+  /* 版型 3 (sidebar) 標頭嵌在左欄頂部 */
+  .mag-eyebrow {
+    font-family: 'Cormorant Garamond', 'Plus Jakarta Sans', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dm-eyebrow);
+    margin-bottom: 4px;
+    display: inline-block;
+  }
+  .mag-title {
+    font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
+    font-size: clamp(24px, 3.2vw, 34px);
+    font-weight: 900;
+    line-height: 1.18;
+    color: var(--dm-ink);
+    letter-spacing: 0.02em;
+  }
+  .mag-subtitle {
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--dm-accent);
+    letter-spacing: 0.04em;
+  }
+  .mag-tagline-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 6px;
+    border-left: 2px solid var(--dm-accent);
+    padding-left: 14px;
+  }
+  @media (max-width: 600px) {
+    .mag-tagline-wrap {
+      align-items: flex-start;
+    }
+  }
+  .mag-tagline {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--dm-ink-2);
+    text-align: right;
+  }
+  @media (max-width: 600px) {
+    .mag-tagline { text-align: left; }
+  }
+  .tiny-tool-btn {
+    border: 1px solid var(--dm-card-border);
+    background: var(--dm-card-bg);
+    color: var(--dm-ink-2);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tiny-tool-btn:hover {
+    border-color: var(--dm-accent);
+    color: var(--dm-accent);
+  }
+
+  /* ── 實景圖單張容器（支援更換、上傳、刪除） ── */
   .sc-item {
     position: relative;
     width: 100%;
     height: 100%;
+    min-height: 150px;
     overflow: hidden;
     background: #262320;
-    border-radius: 6px;
+    border-radius: 8px;
   }
   .sc-item img {
     width: 100%;
@@ -561,41 +577,275 @@
     object-fit: cover;
     display: block;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: transform 0.35s ease;
   }
   .sc-item:hover img { transform: scale(1.03); }
   .sc-tag {
     position: absolute;
-    bottom: 6px;
-    left: 6px;
-    background: rgba(20, 18, 16, 0.76);
+    bottom: 8px;
+    left: 8px;
+    background: rgba(20, 18, 16, 0.72);
+    backdrop-filter: blur(4px);
     color: #fff;
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: 4px;
     font-size: 10.5px;
     font-weight: 600;
     pointer-events: none;
   }
-
-  /* ── 單片磁磚高密度網格 ── */
-  .dm-body {
-    padding: 14px 18px 18px;
-    background: var(--dm-bg);
+  .sc-ctrl-bar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 6;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.15s;
   }
-  .dm-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
-    gap: 10px;
+  .sc-item:hover .sc-ctrl-bar { opacity: 1; }
+  @media (hover: none) { .sc-ctrl-bar { opacity: 0.92; } }
+  .sc-btn {
+    border: none;
+    background: rgba(20, 18, 16, 0.8);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .sc-btn:hover { background: var(--accent); }
+  .sc-btn.del:hover { background: #B91C1C; }
+
+  .empty-scene-bar {
+    margin: 10px 28px 0;
+    padding: 9px 14px;
+    border: 1px dashed var(--dm-card-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--dm-muted);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     4 種雜誌排版結構 (Editorial Layout Architectures)
+     ════════════════════════════════════════════════════════════════ */
+  .mag-content {
+    flex: 1;
+    padding: 20px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
   @media (max-width: 560px) {
-    .dm-body { padding: 10px; }
-    .dm-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .mag-content { padding: 14px 14px 18px; gap: 14px; }
+  }
+
+  /* ── 實景拼貼網格（支援 1~4 張錯落比例） ── */
+  .scene-collage {
+    display: grid;
+    gap: 10px;
+  }
+  .scene-collage.count-1 {
+    grid-template-columns: 1fr;
+    height: 340px;
+  }
+  .scene-collage.count-2 {
+    grid-template-columns: 1.25fr 0.95fr;
+    height: 310px;
+  }
+  .scene-collage.count-3 {
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 360px;
+  }
+  .scene-collage.count-3 .sc-item:first-child {
+    grid-row: 1 / span 2;
+  }
+  .scene-collage.count-4 {
+    grid-template-columns: 1.25fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 360px;
+  }
+  .scene-collage.count-4 .sc-item:first-child {
+    grid-row: 1 / span 2;
+  }
+  .scene-collage.count-4 .sc-item:nth-child(2) {
+    grid-column: 2 / span 2;
+  }
+  @media (max-width: 560px) {
+    .scene-collage.count-1 { height: 230px; }
+    .scene-collage.count-2 { height: 210px; gap: 7px; }
+    .scene-collage.count-3 { height: 250px; gap: 7px; }
+    .scene-collage.count-4 { height: 260px; gap: 7px; }
+  }
+
+  /* ── 版型 1：Bento 跨欄大小片交錯網格 ── */
+  .pieces-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    align-items: stretch;
+  }
+  /* 當只有 1~2 片時：直接大圖雙欄或全寬橫卡 */
+  .pieces-grid.pcount-1 {
+    grid-template-columns: 1fr;
+  }
+  .pieces-grid.pcount-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pieces-grid.pcount-2 .tile-card .tile-stage {
+    height: 210px;
+  }
+  /* 當有 3 片且為 Bento 模式時：第 1 片跨 2 欄放大展示，或底部三等分高挑卡 */
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 {
+    grid-template-columns: 1.35fr 1fr;
+  }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child {
+    grid-row: 1 / span 2;
+  }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-3 .tile-card:first-child .tile-stage {
+    height: 270px;
+  }
+  /* 當有 4~7 片且為 Bento 模式時：第 1 片跨 2 欄做為主打大磚（橫跨兩欄） */
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4,
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5,
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4 .tile-card:first-child,
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5 .tile-card:first-child,
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 .tile-card:first-child {
+    grid-column: span 2;
+    flex-direction: row;
+  }
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-4 .tile-card:first-child .tile-stage,
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-5 .tile-card:first-child .tile-stage,
+  .dm-sheet[data-layout="bento"] .pieces-grid.pcount-7 .tile-card:first-child .tile-stage {
+    width: 56%;
+    height: auto;
+    min-height: 185px;
+    border-bottom: none;
+    border-right: 1px solid var(--dm-card-border);
+  }
+  /* 多片模式 (9片以上) 自動四欄緊湊 */
+  .pieces-grid.pcount-many {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  /* ── 版型 2：封面故事（Cover Story：上方大圖疊字 + 下方橫列單片） ── */
+  .cover-hero-wrap {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 430px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background: #1C1917;
+  }
+  .cover-hero-wrap .scene-collage {
+    position: absolute;
+    inset: 0;
+    height: 100% !important;
+    gap: 4px;
+  }
+  .cover-hero-wrap .sc-item { border-radius: 0; }
+  .cover-overlay {
+    position: relative;
+    z-index: 4;
+    background: linear-gradient(to top, rgba(15, 13, 12, 0.92) 0%, rgba(15, 13, 12, 0.55) 60%, transparent 100%);
+    padding: 56px 26px 22px;
+    color: #FFFFFF;
+  }
+  .cover-overlay .mag-eyebrow { color: #E6C29F; }
+  .cover-overlay .mag-title { color: #FFFFFF; font-size: clamp(26px, 3.6vw, 38px); }
+  .cover-overlay .mag-tagline {
+    color: rgba(255, 255, 255, 0.88);
+    text-align: left;
+    margin-top: 8px;
+    max-width: 540px;
+  }
+  .cover-overlay .mag-subtitle { color: #E6C29F; margin-top: 6px; }
+
+  /* ── 版型 3：左右分欄畫廊（Sidebar Editorial：左文景、右單片） ── */
+  .sidebar-editorial {
+    display: grid;
+    grid-template-columns: 0.95fr 1.15fr;
+    gap: 20px;
+    align-items: start;
+    flex: 1;
+  }
+  .sidebar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .sidebar-left .scene-collage {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+  }
+  .sidebar-left .sc-item {
+    grid-row: auto !important;
+    grid-column: auto !important;
+    height: 200px;
+  }
+  .sidebar-left .scene-collage.count-1 .sc-item { height: 420px; }
+  .sidebar-left .scene-collage.count-2 .sc-item { height: 220px; }
+  .sidebar-right .pieces-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .sidebar-right .pieces-grid.pcount-1,
+  .sidebar-right .pieces-grid.pcount-2,
+  .sidebar-right .pieces-grid.pcount-3 {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-right .pieces-grid.pcount-1 .tile-card,
+  .sidebar-right .pieces-grid.pcount-2 .tile-card,
+  .sidebar-right .pieces-grid.pcount-3 .tile-card {
+    flex-direction: row;
+  }
+  .sidebar-right .pieces-grid.pcount-1 .tile-stage,
+  .sidebar-right .pieces-grid.pcount-2 .tile-stage,
+  .sidebar-right .pieces-grid.pcount-3 .tile-stage {
+    width: 48%;
+    height: auto;
+    min-height: 150px;
+    border-bottom: none;
+    border-right: 1px solid var(--dm-card-border);
+  }
+
+  @media (max-width: 640px) {
+    .sidebar-editorial { grid-template-columns: 1fr; }
+    .dm-sheet[data-layout="bento"] .pieces-grid .tile-card:first-child {
+      grid-column: auto !important;
+      grid-row: auto !important;
+      flex-direction: column !important;
+    }
+    .dm-sheet[data-layout="bento"] .pieces-grid .tile-card:first-child .tile-stage {
+      width: 100% !important;
+      height: 135px !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--dm-card-border) !important;
+    }
+    .pieces-grid,
+    .pieces-grid.pcount-many {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       gap: 8px;
     }
   }
 
-  /* 精簡版磁磚卡片 */
+  /* ── 單片磁磚卡片 ── */
   .tile-card {
     background: var(--dm-card-bg);
     border: 1px solid var(--dm-card-border);
@@ -610,11 +860,11 @@
     top: 5px;
     right: 5px;
     z-index: 5;
-    width: 20px;
-    height: 20px;
+    width: 21px;
+    height: 21px;
     border-radius: 50%;
     border: none;
-    background: rgba(28, 25, 23, 0.65);
+    background: rgba(28, 25, 23, 0.72);
     color: #fff;
     font-size: 10px;
     font-weight: 800;
@@ -625,10 +875,10 @@
     opacity: 0;
   }
   .tile-card:hover .remove-item-btn { opacity: 1; }
-  @media (hover: none) { .remove-item-btn { opacity: 0.85; } }
+  @media (hover: none) { .remove-item-btn { opacity: 0.88; } }
 
   .tile-stage {
-    height: 136px;
+    height: 146px;
     background: var(--dm-stage-bg);
     padding: 10px;
     display: flex;
@@ -636,9 +886,7 @@
     justify-content: center;
     position: relative;
     border-bottom: 1px solid var(--dm-card-border);
-  }
-  @media (max-width: 560px) {
-    .tile-stage { height: 112px; padding: 8px; }
+    flex-shrink: 0;
   }
   .tile-stage img.piece-img {
     max-width: 100%;
@@ -647,7 +895,7 @@
     height: auto;
     object-fit: contain;
     display: block;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
     border-radius: 2px;
     cursor: pointer;
   }
@@ -660,22 +908,15 @@
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
     pointer-events: none;
   }
-  .scene-dot-btn {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(20, 18, 16, 0.78);
-    color: #fff;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
+  .tile-body-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0;
   }
-
   .tile-info {
-    padding: 8px 10px;
+    padding: 9px 10px;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -706,7 +947,7 @@
     text-overflow: ellipsis;
   }
   .tile-stock-line {
-    margin-top: 3px;
+    margin-top: 4px;
     padding-top: 5px;
     border-top: 1px dashed var(--dm-card-border);
     display: flex;
@@ -726,7 +967,6 @@
     font-weight: 800;
     color: var(--dm-accent);
   }
-
   .card-actions {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -736,7 +976,7 @@
     border-top: 1px solid var(--dm-card-border);
   }
   .card-btn {
-    height: 25px;
+    height: 24px;
     border-radius: 4px;
     border: 1px solid var(--dm-card-border);
     background: transparent;
@@ -755,9 +995,9 @@
     color: #fff;
   }
 
-  /* DM 底部（有效時間 + QR） */
+  /* DM 底部（有效時間 + QR，完全無品牌字樣） */
   .dm-footer {
-    padding: 12px 18px;
+    padding: 12px 24px;
     background: var(--dm-card-bg);
     border-top: 1px solid var(--dm-card-border);
     display: flex;
@@ -783,12 +1023,12 @@
     background: #FFFFFF;
     padding: 4px 8px;
     border-radius: 6px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
   }
-  .dm-qr-box img { width: 40px; height: 40px; display: block; }
+  .dm-qr-box img { width: 38px; height: 38px; display: block; }
   .dm-qr-txt { font-size: 10px; color: #1C1917; font-weight: 700; line-height: 1.25; }
 
-  /* ── 底部懸浮「多頁 PDF 電子目錄工作台」與手機快捷列 ── */
+  /* ── 底部懸浮：雙頁跨頁 PDF 電子目錄工作台 ── */
   .bottom-dock {
     position: fixed;
     bottom: 0;
@@ -803,7 +1043,7 @@
     box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
   }
   .dock-inner {
-    max-width: 1420px;
+    max-width: 1360px;
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -875,13 +1115,90 @@
     font-weight: 800;
   }
 
+  /* ── 實景圖更換選擇器 Modal ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 18, 16, 0.82);
+    backdrop-filter: blur(4px);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-card {
+    background: var(--surface);
+    border-radius: var(--radius-card);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 14.5px; font-weight: 800; }
+  .modal-close {
+    border: 1px solid var(--line-strong);
+    background: var(--surface-soft);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 800;
+  }
+  .modal-preview-img {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--line-strong);
+    display: block;
+  }
+  .scene-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 10px;
+  }
+  .scene-pick-option {
+    border: 2px solid var(--line-strong);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #1C1917;
+    position: relative;
+    aspect-ratio: 4 / 3;
+  }
+  .scene-pick-option:hover { border-color: var(--accent); }
+  .scene-pick-option img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .scene-pick-lbl {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 10.5px;
+    padding: 3px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .state-box {
     padding: 44px 16px;
     text-align: center;
     color: var(--dm-muted);
     font-size: 13.5px;
   }
-
   .toast {
     position: fixed;
     bottom: 76px;
@@ -900,49 +1217,6 @@
     white-space: nowrap;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(20, 18, 16, 0.82);
-    backdrop-filter: blur(4px);
-    z-index: 3000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 14px;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal-card {
-    background: var(--surface);
-    border-radius: var(--radius-card);
-    max-width: 520px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .modal-head { display: flex; align-items: center; justify-content: space-between; }
-  .modal-title { font-size: 14px; font-weight: 800; }
-  .modal-close {
-    border: 1px solid var(--line-strong);
-    background: var(--surface-soft);
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 800;
-  }
-  .modal-preview-img {
-    width: 100%;
-    height: auto;
-    border-radius: 6px;
-    border: 1px solid var(--line);
-    display: block;
-  }
 </style>
 </head>
 <body>
@@ -950,8 +1224,8 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand-wrap">
-      <div class="brand-mark">EL</div>
-      <div class="brand-title">高雅瓷 · DM 與電子目錄產生器</div>
+      <div class="brand-title">Ebook</div>
+      <span class="brand-sub-pill">直式雜誌 DM · 雙頁電子型錄</span>
     </div>
 
     <div class="top-controls staff-only">
@@ -970,7 +1244,7 @@
 </header>
 
 <main class="workspace">
-  <!-- 左側篩選控制欄（手機版預設收起，點「篩選條件」展開，讓手機第一眼直看 DM） -->
+  <!-- 左側篩選控制欄 -->
   <aside class="ctrl-panel" id="ctrlPanel">
     <div>
       <div class="sec-title">
@@ -996,7 +1270,7 @@
         <div class="chip-group" id="sizeChips">
           <button type="button" class="chip active" data-sz="60x120" onclick="selectSizeChip('60x120')">60×120</button>
           <button type="button" class="chip" data-sz="45x90" onclick="selectSizeChip('45x90')">45×90</button>
-          <button type="button" class="chip" data-sz="30×60" onclick="selectSizeChip('30x60')">30×60</button>
+          <button type="button" class="chip" data-sz="30x60" onclick="selectSizeChip('30x60')">30×60</button>
           <button type="button" class="chip" data-sz="120x120" onclick="selectSizeChip('120x120')">120×120</button>
           <button type="button" class="chip" data-sz="20x120" onclick="selectSizeChip('20x120')">20×120</button>
           <button type="button" class="chip" data-sz="" onclick="selectSizeChip('')">不限</button>
@@ -1033,10 +1307,10 @@
     <div>
       <div class="sec-title"><span>3. 單頁排列上限</span></div>
       <select id="selCount" class="select" onchange="applyAndPick()">
-        <option value="12" selected>單頁 12 款</option>
+        <option value="8" selected>單頁 8 款（雜誌推薦）</option>
+        <option value="12">單頁 12 款</option>
         <option value="16">單頁 16 款</option>
-        <option value="24">單頁 24 款</option>
-        <option value="8">單頁 8 款</option>
+        <option value="6">單頁 6 款（大圖精緻）</option>
       </select>
     </div>
 
@@ -1045,14 +1319,25 @@
     </button>
   </aside>
 
-  <!-- 右側預覽區 -->
+  <!-- 右側直式預覽區 -->
   <section class="preview-col">
-    <!-- DM 風格預覽選擇 ＋ 實景圖張數排版選擇（手機可橫滑一鍵切換） -->
+    <!-- 雜誌版型結構 ＋ 色彩風格 ＋ 實景張數控制列 -->
     <div class="style-preview-bar staff-only">
-      <div class="bar-group">
-        <span class="bar-lbl">DM風格：</span>
+      <div class="bar-row">
+        <span class="bar-lbl">雜誌版型：</span>
+        <button type="button" class="style-pill active" data-ly="bento" onclick="setMagLayout('bento')">① 跨欄大小片(Bento)</button>
+        <button type="button" class="style-pill" data-ly="cover" onclick="setMagLayout('cover')">② 封面大圖疊字</button>
+        <button type="button" class="style-pill" data-ly="sidebar" onclick="setMagLayout('sidebar')">③ 左右分欄畫廊</button>
+        <button type="button" class="style-pill" data-ly="museum" onclick="setMagLayout('museum')">④ 上磚下景顛倒版</button>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl">色彩風格：</span>
         <button type="button" class="style-pill active" data-st="warm" onclick="setDmStyle('warm')">
           <i class="swatch-dot" style="background:#8C5A32"></i>現代暖米
+        </button>
+        <button type="button" class="style-pill" data-st="editorial" onclick="setDmStyle('editorial')">
+          <i class="swatch-dot" style="background:#9E582F"></i>義式大地
         </button>
         <button type="button" class="style-pill" data-st="luxury" onclick="setDmStyle('luxury')">
           <i class="swatch-dot" style="background:#D4AF37"></i>奢石黑金
@@ -1060,19 +1345,17 @@
         <button type="button" class="style-pill" data-st="minimal" onclick="setDmStyle('minimal')">
           <i class="swatch-dot" style="background:#1F4D3A"></i>北歐極簡
         </button>
-        <button type="button" class="style-pill" data-st="editorial" onclick="setDmStyle('editorial')">
-          <i class="swatch-dot" style="background:#9E582F"></i>實景畫報
-        </button>
       </div>
 
-      <div class="bar-group">
-        <span class="bar-lbl">實景排版：</span>
-        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動(2~4張)</button>
-        <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">單張大圖</button>
+      <div class="bar-row">
+        <span class="bar-lbl">實景張數：</span>
+        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動依該系列</button>
+        <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">1張大圖</button>
         <button type="button" class="style-pill" data-sc="2" onclick="setSceneLayout('2')">2張雙併</button>
         <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌(1大2小)</button>
-        <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張四宮格</button>
+        <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張錯落</button>
         <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏實景</button>
+        <button type="button" class="style-pill" onclick="openScenePickerModal(-1)" style="border-style:dashed;">➕ 新增/上傳實景</button>
       </div>
     </div>
 
@@ -1080,32 +1363,18 @@
     <div class="action-bar">
       <div class="stat-pill">
         <span>本頁：<strong id="showingCountTxt">0</strong> 款</span>
-        <span style="margin-left:6px;color:var(--muted);font-size:11.5px;">(實景 <strong id="sceneCountTxt">0</strong> 張)</span>
+        <span style="color:var(--muted);font-size:11.5px;">(實景 <strong id="sceneCountTxt">0</strong> 張 · 標題與短語可直接點擊修改)</span>
       </div>
       <div class="action-btns">
-        <button type="button" class="btn-act staff-only" onclick="randomizePick()">🎲 隨機換</button>
+        <button type="button" class="btn-act staff-only" onclick="cycleTagline()">✍️ 換一句短語</button>
         <button type="button" class="btn-act staff-only" onclick="copyShareLink()">🔗 分享連結</button>
-        <button type="button" class="btn-act primary" onclick="exportFullPosterJPG()">📥 下載單頁 JPG</button>
+        <button type="button" class="btn-act primary" onclick="exportFullPosterJPG()">📥 下載直式 JPG</button>
       </div>
     </div>
 
-    <!-- DM 海報本體 -->
-    <div class="dm-sheet" id="dmSheet" data-style="warm">
-      <div class="dm-header">
-        <div>
-          <div class="dm-eyebrow">ELITILE IMPORTED PORCELAIN TILES</div>
-          <h1 class="dm-main-title" id="dmTitle">載入中...</h1>
-          <div class="dm-subtitle" id="dmSubtitle">正在同步即時庫存</div>
-        </div>
-      </div>
-
-      <!-- 2~4 張實景圖多版型拼貼區 -->
-      <div class="dm-scene-gallery" id="dmSceneGallery" style="display:none;">
-        <div class="scene-collage count-1" id="sceneCollage"></div>
-      </div>
-
-      <!-- 單片網格 -->
-      <div class="dm-body" id="dmBody">
+    <!-- 直式雜誌 DM 畫布本體 -->
+    <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento">
+      <div id="dmDynamicMount">
         <div class="state-box">正在載入產品與庫存資料...</div>
       </div>
 
@@ -1126,21 +1395,21 @@
   </section>
 </main>
 
-<!-- 底部固定：多頁 PDF 電子目錄快速組裝工作台 -->
+<!-- 底部固定：左右雙頁跨頁 PDF 電子目錄工作台 -->
 <div class="bottom-dock staff-only">
   <div class="dock-inner">
     <div class="pdf-queue-info" id="pdfQueueInfo">
       <span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：0 頁</span>
-      <span style="font-size:12px;color:#D6D3CD;" id="pdfEmptyHint">可將多個不同系列或尺寸加入目錄籃，一次匯出多頁 PDF 電子型錄</span>
+      <span style="font-size:12px;color:#D6D3CD;">生成 PDF 自動採用「一左一右雙頁跨頁」排版（單頁亦可自動拆為左景右磚雙頁）</span>
     </div>
     <div class="dock-btns">
       <button type="button" class="dock-btn" onclick="addCurrentPageToPdfQueue()">➕ 加入此頁至 PDF</button>
-      <button type="button" class="dock-btn gold" onclick="generateMultiPagePDF()">📄 快速生成 PDF 電子目錄</button>
+      <button type="button" class="dock-btn gold" onclick="generateSpreadPDF()">📖 生成左右雙頁 PDF 目錄</button>
     </div>
   </div>
 </div>
 
-<!-- 預覽 Modal -->
+<!-- 圖片放大預覽 Modal -->
 <div class="modal-backdrop" id="previewModal" onclick="if(event.target===this)closeModal()">
   <div class="modal-card">
     <div class="modal-head">
@@ -1150,8 +1419,28 @@
     <img id="modalImg" class="modal-preview-img" alt="預覽圖">
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button type="button" class="btn-act" onclick="closeModal()">關閉</button>
-      <a id="modalDownloadBtn" class="btn-act primary" download="ELITILE_DM.jpg" style="text-decoration:none;">儲存 JPG 圖檔</a>
+      <a id="modalDownloadBtn" class="btn-act primary" download="Ebook_DM.jpg" style="text-decoration:none;">儲存 JPG 圖檔</a>
     </div>
+  </div>
+</div>
+
+<!-- 更換 / 新增實景圖 Modal -->
+<div class="modal-backdrop" id="scenePickerModal" onclick="if(event.target===this)closeScenePickerModal()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="scenePickerTitle">更換或新增空間實景圖</div>
+      <button type="button" class="modal-close" onclick="closeScenePickerModal()">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <label class="btn-act primary" style="cursor:pointer;">
+        <span>📁 從手機/電腦上傳實景照片</span>
+        <input type="file" accept="image/*" style="display:none;" onchange="handleSceneFileUpload(event)">
+      </label>
+      <input type="text" id="customSceneUrlInput" class="input" style="flex:1;min-width:180px;" placeholder="或貼上實景圖片網址 URL...">
+      <button type="button" class="btn-act" onclick="applyCustomSceneUrl()">套用網址</button>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:var(--ink-2);margin-top:4px;" id="scenePoolSubTitle">本系列與同風格可用實景圖庫（點擊即可換上）：</div>
+    <div class="scene-picker-grid" id="scenePickerGrid"></div>
   </div>
 </div>
 
@@ -1165,8 +1454,13 @@ const GAS_API = "https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7Nvk
 const STYLE_PALETTES = {
   warm: {
     bg: "#FAF8F5", headerBg: "#1C1917", headerText: "#FFFFFF", headerSub: "#D6D3CD",
-    eyebrow: "#D6B392", accent: "#8C5A32", cardBg: "#FFFFFF", cardBorder: "#E5E0D5",
-    stageBg: "#EFECE4", ink: "#1C1917", ink2: "#44403C", muted: "#78716C", stock: "#1F5E3B"
+    eyebrow: "#B5835A", accent: "#8C5A32", cardBg: "#FFFFFF", cardBorder: "#E5E0D5",
+    stageBg: "#F0ECE3", ink: "#1C1917", ink2: "#44403C", muted: "#78716C", stock: "#1F5E3B"
+  },
+  editorial: {
+    bg: "#EFEAE2", headerBg: "#2C2520", headerText: "#FAF6F0", headerSub: "#C9BFB5",
+    eyebrow: "#9E582F", accent: "#9E582F", cardBg: "#FAF8F5", cardBorder: "#DCD4C6",
+    stageBg: "#E5DFD3", ink: "#241E1A", ink2: "#4A4039", muted: "#7A7067", stock: "#1F5E3B"
   },
   luxury: {
     bg: "#141312", headerBg: "#0B0A09", headerText: "#F7F3EB", headerSub: "#A8A096",
@@ -1175,14 +1469,33 @@ const STYLE_PALETTES = {
   },
   minimal: {
     bg: "#FFFFFF", headerBg: "#1F4D3A", headerText: "#FFFFFF", headerSub: "#D5E6DF",
-    eyebrow: "#A8D5C2", accent: "#1F4D3A", cardBg: "#FFFFFF", cardBorder: "#E2E8F0",
-    stageBg: "#F8FAFC", ink: "#0F172A", ink2: "#334155", muted: "#64748B", stock: "#15803D"
-  },
-  editorial: {
-    bg: "#EFECE6", headerBg: "#2C2520", headerText: "#FAF6F0", headerSub: "#C9BFB5",
-    eyebrow: "#E0A96D", accent: "#9E582F", cardBg: "#FAF8F5", cardBorder: "#DCD6CA",
-    stageBg: "#E5E0D5", ink: "#241E1A", ink2: "#4A4039", muted: "#7A7067", stock: "#1F5E3B"
+    eyebrow: "#1F4D3A", accent: "#1F4D3A", cardBg: "#FFFFFF", cardBorder: "#E2E8F0",
+    stageBg: "#F4F6F8", ink: "#0F172A", ink2: "#334155", muted: "#64748B", stock: "#15803D"
   }
+};
+
+// 零 Token 智慧系列形容短語庫（依風格自動匹配並支援隨機切換與手動編輯）
+const TAGLINE_LIBRARY = {
+  marble: [
+    "溫潤細膩的天然石材肌理，在光影交錯間勾勒沉穩大器的當代空間。",
+    "攫取歐洲礦脈的原生紋路，以低調奢華的石韻演繹永恆建築美學。",
+    "流暢大器的石材脈絡，讓立面與地坪自然延伸出開闊的視覺張力。"
+  ],
+  wood: [
+    "溫潤自然的原生木紋肌理，為居家與商業空間注入靜謐柔和的暖意。",
+    "還原北歐森林的真實木節與細膩觸感，兼顧溫馨視覺與磁磚耐用機能。",
+    "在陽光灑落的木質調地坪上，感受四季更迭的自然呼吸與生活溫度。"
+  ],
+  deco: [
+    "幾何語彙與色彩韻律的精巧交織，為空間立面創造令人過目難忘的視覺焦點。",
+    "汲取歐陸古典花磚與現代美學靈感，輕鬆點亮玄關、吧台與主題牆面。",
+    "細膩的釉面光澤與立體層次感，在方寸之間展現獨具品味的手工溫度。"
+  ],
+  general: [
+    "淬鍊極簡灰階與細膩微理，在留白與光影之間構築純粹耐看的當代日常。",
+    "柔和不刺眼的霧感質地與自然色階，完美契合現代極簡與侘寂美學空間。",
+    "以沉穩內斂的材質語彙，為挑高客廳與商業空間奠定永不過時的質感基底。"
+  ]
 };
 
 let allProducts = [];
@@ -1193,10 +1506,25 @@ let currentLevel = "all";
 let selectedSize = "60x120";
 let selectedStyle = "";
 let currentDmStyle = "warm";
+let currentMagLayout = "bento"; // 'bento' | 'cover' | 'sidebar' | 'museum'
 let currentSceneLayout = "auto"; // 'auto' | '1' | '2' | '3' | '4' | '0'
-let heroScenes = [];
+
+// 當前畫布上顯示的實景圖陣列（可獨立更換、刪除、新增）
+let activeScenes = [];
+// 屬於目前系列的全部可用實景圖池
+let seriesScenePool = [];
+let editingSceneIdx = -1;
+
+// 可編輯文字狀態（使用者點擊編輯後即保留在狀態中，同步至 JPG / PDF）
+let customHeaderText = {
+  eyebrow: "",
+  title: "",
+  tagline: "",
+  subtitle: ""
+};
+let taglineCursor = 0;
 let snapshotTimeStr = "";
-let pdfPagesQueue = []; // 儲存多頁 PDF 的設定快照
+let pdfPagesQueue = [];
 
 const ORIGIN_FLAG_MAP = {
   "義大利": "🇮🇹", "西班牙": "🇪🇸", "葡萄牙": "🇵🇹", "台灣": "🇹🇼",
@@ -1249,7 +1577,7 @@ function showToast(msg) {
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove("show"), 2500);
+  el._t = setTimeout(() => el.classList.remove("show"), 2600);
 }
 
 function toggleMobileFilter() {
@@ -1262,10 +1590,11 @@ function normalizeImgUrl(raw, forCanvas = false) {
   if (!raw) return "";
   let u = String(raw).split("#")[0].trim();
   if (!u) return "";
+  if (u.startsWith("data:")) return u;
   const idMatch = u.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{15,})/);
-  if (idMatch) u = `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1000`;
-  if (forCanvas && !u.includes("r2.dev")) {
-    return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=1000&output=jpg`;
+  if (idMatch) u = `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1200`;
+  if (forCanvas && !u.includes("r2.dev") && !u.startsWith("data:")) {
+    return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=1200&output=jpg`;
   }
   return u;
 }
@@ -1290,7 +1619,7 @@ function extractProductMedia(p, stockSnap) {
 async function initData() {
   try {
     const sbPromise = fetch(
-      `${SB_URL}/rest/v1/products?select=code,title_zh,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
+      `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
       { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } }
     ).then(r => r.ok ? r.json() : []);
 
@@ -1316,6 +1645,8 @@ async function initData() {
       return {
         code,
         series: String(p.title_zh || (snap && snap.series) || code).trim(),
+        seriesEn: String(p.title_en || "").trim(),
+        brand: String(p.brand || "").trim(),
         origin: String(p.origin || "").trim(),
         flag: getOriginFlag(p.origin),
         size: sizeClean,
@@ -1338,7 +1669,7 @@ async function initData() {
     restoreFromUrl();
   } catch (err) {
     console.error(err);
-    document.getElementById("dmBody").innerHTML = `<div class="state-box">載入資料時發生錯誤，請重新整理。</div>`;
+    document.getElementById("dmDynamicMount").innerHTML = `<div class="state-box">載入資料時發生錯誤，請重新整理。</div>`;
   }
 }
 
@@ -1348,9 +1679,10 @@ function renderSeriesOptions(kw) {
   const map = new Map();
   allProducts.forEach(p => {
     if (currentLevel !== "all" && p.level !== currentLevel) return;
-    if (q && !p.series.toUpperCase().includes(q) && !p.code.includes(q)) return;
-    const item = map.get(p.series) || { count: 0, size: p.size, sceneCount: 0, seenScenes: new Set() };
+    if (q && !p.series.toUpperCase().includes(q) && !p.seriesEn.toUpperCase().includes(q) && !p.code.includes(q)) return;
+    const item = map.get(p.series) || { count: 0, size: p.size, sceneCount: 0, seenScenes: new Set(), en: p.seriesEn };
     item.count++;
+    if (!item.en && p.seriesEn) item.en = p.seriesEn;
     p.scenes.forEach(sc => {
       if (!item.seenScenes.has(sc)) {
         item.seenScenes.add(sc);
@@ -1360,7 +1692,6 @@ function renderSeriesOptions(kw) {
     map.set(p.series, item);
   });
 
-  // 優先把實景圖豐富（2~4張以上）且款式多的系列排在最前面
   const entries = Array.from(map.entries()).sort((a, b) => {
     const aRich = a[1].sceneCount >= 2 ? 2 : (a[1].sceneCount === 1 ? 1 : 0);
     const bRich = b[1].sceneCount >= 2 ? 2 : (b[1].sceneCount === 1 ? 1 : 0);
@@ -1369,13 +1700,20 @@ function renderSeriesOptions(kw) {
   });
 
   selSeries.innerHTML = entries.map(([ser, info]) =>
-    `<option value="${ser}">${ser}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.sceneCount ? " · 實景" + info.sceneCount + "張" : ""}）</option>`
+    `<option value="${ser}">${ser}${info.en ? " " + info.en : ""}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.sceneCount ? " · 實景" + info.sceneCount + "張" : " · 無實景"}）</option>`
   ).join("");
 }
 
 function filterSeriesSelect() {
   renderSeriesOptions(document.getElementById("seriesSearchInput").value);
   pickBySeries();
+}
+
+function setMagLayout(ly) {
+  currentMagLayout = ly;
+  document.getElementById("dmSheet").setAttribute("data-layout", ly);
+  document.querySelectorAll('.style-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === ly));
+  renderDM();
 }
 
 function setDmStyle(st) {
@@ -1387,6 +1725,7 @@ function setDmStyle(st) {
 function setSceneLayout(sc) {
   currentSceneLayout = sc;
   document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
+  rebuildActiveScenesFromPool();
   renderDM();
 }
 
@@ -1436,13 +1775,178 @@ function setLevel(lv) {
   }
 }
 
+// 自動依據目前系列/產品產生預設計畫文字（英文名/品牌、主標、形容短語、副標）
+function initEditableHeaderForSelection() {
+  const first = currentPicked[0];
+  if (currentMode === "series") {
+    const ser = (first && first.series) || document.getElementById("selSeries").value || "精選系列";
+    const enParts = [];
+    if (first && first.seriesEn) enParts.push(first.seriesEn.toUpperCase());
+    if (first && first.brand) enParts.push(first.brand.toUpperCase());
+    if (first && first.origin) enParts.push(first.origin);
+    const sz = first && first.size ? first.size.replace(/x/gi, "×") + " cm" : "";
+    customHeaderText.eyebrow = enParts.length > 0 ? enParts.join(" · ") : (sz || "ARCHITECTURAL SURFACE COLLECTION");
+    customHeaderText.title = `${ser}系列`;
+    customHeaderText.subtitle = `${sz ? "規格 " + sz + " · " : ""}現貨共 ${currentPicked.length} 款`;
+  } else {
+    const parts = [];
+    if (selectedSize) parts.push(selectedSize.replace(/x/gi, "×") + " cm");
+    if (selectedStyle) parts.push(selectedStyle === "石紋" ? "石紋 / 理石磚" : selectedStyle === "地鐵" ? "地鐵磚 / 條磚" : selectedStyle + "磚");
+    customHeaderText.eyebrow = selectedSize ? `CURATED SELECTION · ${selectedSize.toUpperCase()} CM` : "ARCHITECTURAL SURFACE COLLECTION";
+    customHeaderText.title = parts.length > 0 ? parts.join(" · ") : "精選磁磚特輯";
+    customHeaderText.subtitle = `現貨共 ${currentPicked.length} 款`;
+  }
+  customHeaderText.tagline = pickAutoTagline();
+}
+
+function pickAutoTagline() {
+  const hay = currentPicked.map(p => `${p.area} ${p.style} ${p.series}`).join(" ");
+  let pool = TAGLINE_LIBRARY.general;
+  if (hay.includes("木")) pool = TAGLINE_LIBRARY.wood;
+  else if (hay.includes("花") || hay.includes("六角") || hay.includes("小品")) pool = TAGLINE_LIBRARY.deco;
+  else if (hay.includes("大理石") || hay.includes("石紋") || hay.includes("大版")) pool = TAGLINE_LIBRARY.marble;
+  const line = pool[taglineCursor % pool.length];
+  taglineCursor++;
+  return line;
+}
+
+function cycleTagline() {
+  customHeaderText.tagline = pickAutoTagline();
+  const el = document.getElementById("dmTagline");
+  if (el) el.textContent = customHeaderText.tagline;
+  showToast("已更換系列形容短語（亦可直接點擊文字修改）");
+}
+
+function onHeaderTextEdited(field, el) {
+  if (!el) return;
+  customHeaderText[field] = el.innerText.trim();
+}
+
+// 讀取屬於該系列自己的實景圖（不跨系列亂抓、不重複塞圖）
+function collectSeriesScenes() {
+  const seen = new Set();
+  seriesScenePool = [];
+  // 先收錄目前選中系列的全部產品實景圖
+  const targetSeriesSet = new Set(currentPicked.map(p => p.series));
+  allProducts.forEach(p => {
+    if (currentMode === "series" && !targetSeriesSet.has(p.series)) return;
+    if (currentMode === "theme" && !currentPicked.some(cp => cp.code === p.code)) return;
+    p.scenes.forEach(sc => {
+      if (!seen.has(sc)) {
+        seen.add(sc);
+        seriesScenePool.push({ url: sc, code: p.code, series: p.series });
+      }
+    });
+  });
+  rebuildActiveScenesFromPool();
+}
+
+function rebuildActiveScenesFromPool() {
+  if (currentSceneLayout === "0" || seriesScenePool.length === 0) {
+    activeScenes = [];
+    return;
+  }
+  const maxN = currentSceneLayout === "auto"
+    ? Math.min(4, seriesScenePool.length)
+    : Math.min(parseInt(currentSceneLayout, 10) || 1, seriesScenePool.length);
+  activeScenes = seriesScenePool.slice(0, maxN).map(s => ({ ...s }));
+}
+
+// 刪除單張實景圖（像卡片一樣支援刪除）
+function removeSceneAtIndex(idx, ev) {
+  if (ev) ev.stopPropagation();
+  activeScenes.splice(idx, 1);
+  renderDM();
+  showToast("已移除該張實景圖");
+}
+
+// 開啟「更換 / 新增實景圖」選擇器 Modal
+function openScenePickerModal(targetIdx, ev) {
+  if (ev) ev.stopPropagation();
+  editingSceneIdx = targetIdx; // -1 表示新增一張，>=0 表示替換指定位置的實景圖
+  document.getElementById("scenePickerTitle").textContent =
+    targetIdx >= 0 ? `更換第 ${targetIdx + 1} 張空間實景圖` : "新增空間實景圖";
+  document.getElementById("customSceneUrlInput").value = "";
+
+  // 整理候選清單：本系列實景圖優先，若本系列實景圖較少，附上其他有實景圖的系列供挑選
+  const seen = new Set();
+  const candidates = [];
+  seriesScenePool.forEach(s => {
+    if (!seen.has(s.url)) {
+      seen.add(s.url);
+      candidates.push({ ...s, badge: "本系列" });
+    }
+  });
+  allProducts.forEach(p => {
+    p.scenes.forEach(sc => {
+      if (!seen.has(sc) && candidates.length < 24) {
+        seen.add(sc);
+        candidates.push({ url: sc, code: p.code, series: p.series, badge: p.series });
+      }
+    });
+  });
+
+  const grid = document.getElementById("scenePickerGrid");
+  grid.innerHTML = candidates.map((c, i) => `
+    <div class="scene-pick-option" onclick="selectSceneCandidate(${i})">
+      <img src="${c.url}" alt="${c.series}" loading="lazy">
+      <div class="scene-pick-lbl">${c.badge} · ${c.code}</div>
+    </div>
+  `).join("");
+  grid._candidates = candidates;
+
+  document.getElementById("scenePickerModal").classList.add("open");
+}
+
+function closeScenePickerModal() {
+  document.getElementById("scenePickerModal").classList.remove("open");
+}
+
+function selectSceneCandidate(candIdx) {
+  const grid = document.getElementById("scenePickerGrid");
+  const cand = grid._candidates && grid._candidates[candIdx];
+  if (!cand) return;
+  applySceneItem({ url: cand.url, code: cand.code, series: cand.series });
+}
+
+function applyCustomSceneUrl() {
+  const raw = document.getElementById("customSceneUrlInput").value.trim();
+  if (!raw) return showToast("請先輸入圖片網址");
+  applySceneItem({ url: normalizeImgUrl(raw, false), code: "自訂實景", series: customHeaderText.title });
+}
+
+function handleSceneFileUpload(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    applySceneItem({ url: e.target.result, code: "上傳實景", series: customHeaderText.title });
+  };
+  reader.readAsDataURL(file);
+}
+
+function applySceneItem(newItem) {
+  if (editingSceneIdx >= 0 && editingSceneIdx < activeScenes.length) {
+    activeScenes[editingSceneIdx] = newItem;
+    showToast(`已更換第 ${editingSceneIdx + 1} 張實景圖`);
+  } else {
+    if (activeScenes.length >= 4) activeScenes[3] = newItem;
+    else activeScenes.push(newItem);
+    if (currentSceneLayout === "0") currentSceneLayout = "auto";
+    showToast("已新增實景圖至版面");
+  }
+  closeScenePickerModal();
+  renderDM();
+}
+
 function pickBySeries() {
   const ser = document.getElementById("selSeries").value;
-  const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 12;
+  const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 8;
   filteredPool = allProducts.filter(p => p.series === ser && (currentLevel === "all" || p.level === currentLevel));
   document.getElementById("poolCountBadge").textContent = `共 ${filteredPool.length} 款`;
   currentPicked = filteredPool.slice(0, maxCnt);
-  setupHeroScenes();
+  initEditableHeaderForSelection();
+  collectSeriesScenes();
   renderDM();
 }
 
@@ -1467,11 +1971,12 @@ function applyAndPick() {
   });
 
   document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
-  const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 12;
+  const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 8;
   const shuffled = [...filteredPool].sort(() => Math.random() - 0.5);
   shuffled.sort((a, b) => b.scenes.length - a.scenes.length);
   currentPicked = shuffled.slice(0, maxCnt);
-  setupHeroScenes();
+  initEditableHeaderForSelection();
+  collectSeriesScenes();
   renderDM();
 }
 
@@ -1479,7 +1984,6 @@ function randomizePick() {
   if (currentMode === "series") {
     const sel = document.getElementById("selSeries");
     if (sel.options.length > 0) {
-      // 優先抽有實景圖的系列
       const richIndices = [];
       for (let i = 0; i < sel.options.length; i++) {
         if (sel.options[i].text.includes("實景")) richIndices.push(i);
@@ -1495,101 +1999,40 @@ function randomizePick() {
 
 function removePickedCard(code) {
   currentPicked = currentPicked.filter(p => p.code !== code);
-  setupHeroScenes();
+  customHeaderText.subtitle = customHeaderText.subtitle.replace(/現貨共\s*\d+\s*款/, `現貨共 ${currentPicked.length} 款`);
   renderDM();
 }
 
-// 收集並去重實景圖（支援 2~4 張多圖展示）
-function setupHeroScenes() {
-  const seen = new Set();
-  heroScenes = [];
-  currentPicked.forEach(p => {
-    p.scenes.forEach(sc => {
-      if (!seen.has(sc)) {
-        seen.add(sc);
-        heroScenes.push({ url: sc, code: p.code, series: p.series });
-      }
-    });
-  });
-}
-
-function getActiveScenesForDisplay() {
-  if (currentSceneLayout === "0" || heroScenes.length === 0) return [];
-  if (currentSceneLayout === "auto") {
-    return heroScenes.slice(0, Math.min(4, heroScenes.length));
-  }
-  const targetN = parseInt(currentSceneLayout, 10) || 1;
-  // 若該系列實景圖不足指定張數，循環或取現有張數補齊以展示多圖排版效果
-  const list = [];
-  for (let i = 0; i < Math.min(targetN, Math.max(heroScenes.length, targetN)); i++) {
-    list.push(heroScenes[i % heroScenes.length]);
-  }
-  return list;
-}
-
-function buildDynamicTitle(pickedList = currentPicked, mode = currentMode) {
-  if (mode === "series") {
-    const first = pickedList[0];
-    const ser = (first && first.series) || document.getElementById("selSeries").value || "精選系列";
-    const sz = first && first.size ? first.size.replace(/x/gi, "×") + " cm" : "";
-    return {
-      title: `${ser}系列`,
-      sub: `${sz ? "規格 " + sz + " · " : ""}現貨共 ${pickedList.length} 款`
-    };
-  }
-  const parts = [];
-  if (selectedSize) parts.push(selectedSize.replace(/x/gi, "×") + " cm");
-  if (selectedStyle) parts.push(selectedStyle === "石紋" ? "石紋 / 理石磚" : selectedStyle === "地鐵" ? "地鐵磚 / 條磚" : selectedStyle + "磚");
-  const headStr = parts.length > 0 ? parts.join(" · ") : "精選磁磚";
-  return {
-    title: headStr,
-    sub: `現貨共 ${pickedList.length} 款`
-  };
-}
-
-function renderDM() {
-  document.getElementById("showingCountTxt").textContent = currentPicked.length;
-  const activeScenes = getActiveScenesForDisplay();
-  document.getElementById("sceneCountTxt").textContent = activeScenes.length;
-
-  const { title, sub } = buildDynamicTitle();
-  document.getElementById("dmTitle").textContent = title;
-  document.getElementById("dmSubtitle").textContent = sub;
-  document.getElementById("dmValidTimeTxt").textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
-
-  const shareUrl = getShareUrl();
-  document.getElementById("dmQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
-
-  // 渲染 1~4 張實景圖拼貼區
-  const galleryBox = document.getElementById("dmSceneGallery");
-  const collageEl = document.getElementById("sceneCollage");
-  if (activeScenes.length > 0) {
-    galleryBox.style.display = "block";
-    const cnt = Math.min(4, activeScenes.length);
-    collageEl.className = `scene-collage count-${cnt}`;
-    collageEl.innerHTML = activeScenes.slice(0, 4).map((sc, i) => `
-      <div class="sc-item">
-        <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series} (${sc.code}) 空間實景圖 ${i + 1}')">
-        <span class="sc-tag">實景 ${i + 1} · ${sc.code}</span>
+// 建立實景圖拼貼 HTML（支援更換與刪除）
+function buildSceneCollageHtml() {
+  if (activeScenes.length === 0) {
+    return `
+      <div class="empty-scene-bar staff-only">
+        <span>此系列目前未顯示實景圖（無實景或已隱藏）</span>
+        <button type="button" class="tiny-tool-btn" onclick="openScenePickerModal(-1)">➕ 點此選擇或上傳實景圖</button>
       </div>
-    `).join("");
-  } else {
-    galleryBox.style.display = "none";
+    `;
   }
+  const cnt = Math.min(4, activeScenes.length);
+  const itemsHtml = activeScenes.slice(0, 4).map((sc, idx) => `
+    <div class="sc-item">
+      <div class="sc-ctrl-bar staff-only">
+        <button type="button" class="sc-btn" onclick="openScenePickerModal(${idx}, event)" title="更換此張實景圖">🔄 換圖</button>
+        <button type="button" class="sc-btn del" onclick="removeSceneAtIndex(${idx}, event)" title="刪除此張實景圖">✕</button>
+      </div>
+      <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series} (${sc.code}) 空間實景圖 ${idx + 1}')">
+      <span class="sc-tag">空間實景 ${idx + 1} · ${sc.code}</span>
+    </div>
+  `).join("");
+  return `<div class="scene-collage count-${cnt}">${itemsHtml}</div>`;
+}
 
-  const body = document.getElementById("dmBody");
-  if (currentPicked.length === 0) {
-    body.innerHTML = `<div class="state-box">沒有符合條件的現貨產品，請切換其他尺寸或系列。</div>`;
-    return;
-  }
-
+// 建立單片磁磚網格 HTML（依單片數量自動套用跨欄與大小片）
+function buildPiecesGridHtml() {
   const showPrice = document.getElementById("chkShowPrice").checked;
+  const pCountClass = currentPicked.length >= 9 ? "pcount-many" : `pcount-${currentPicked.length}`;
 
   const cardsHtml = currentPicked.map(p => {
-    const sceneBtn = p.scenes.length > 0
-      ? `<button type="button" class="scene-dot-btn" onclick="openImageZoom('${p.scenes[0]}', '${p.code} 空間實景圖')">實景</button>`
-      : "";
-
     const priceHtml = showPrice && (p.pricePcs > 0 || p.pricePing > 0)
       ? `<div class="price-line">
            <span>單價</span>
@@ -1606,30 +2049,122 @@ function renderDM() {
         <div class="tile-stage">
           <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}')">
           ${p.flag ? `<span class="origin-flag" title="${p.origin}">${p.flag}</span>` : ""}
-          ${sceneBtn}
         </div>
-        <div class="tile-info">
-          <div class="tile-head">
-            <span class="tile-code">${p.code}</span>
-            <span class="tile-size">${(p.size || "").replace(/x/gi, "×")}</span>
+        <div class="tile-body-col">
+          <div class="tile-info">
+            <div class="tile-head">
+              <span class="tile-code">${p.code}</span>
+              <span class="tile-size">${(p.size || "").replace(/x/gi, "×")}</span>
+            </div>
+            <div class="tile-series">${p.series}</div>
+            <div class="tile-stock-line">
+              <span style="color:var(--dm-muted);font-weight:600;">可用</span>
+              <span class="stock-val">${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪</span>
+            </div>
+            ${priceHtml}
           </div>
-          <div class="tile-series">${p.series}</div>
-          <div class="tile-stock-line">
-            <span style="color:var(--dm-muted);font-weight:600;">可用</span>
-            <span class="stock-val">${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪</span>
+          <div class="card-actions">
+            <a class="card-btn" href="${webHref}" target="_blank" rel="noopener">明細</a>
+            <a class="card-btn" href="${reserveHref}" target="_blank" rel="noopener">下保留</a>
+            <button type="button" class="card-btn accent" onclick="exportSingleTileJPG('${p.code}')">單片圖</button>
           </div>
-          ${priceHtml}
-        </div>
-        <div class="card-actions">
-          <a class="card-btn" href="${webHref}" target="_blank" rel="noopener">明細</a>
-          <a class="card-btn" href="${reserveHref}" target="_blank" rel="noopener">下保留</a>
-          <button type="button" class="card-btn accent" onclick="exportSingleTileJPG('${p.code}')">單片圖</button>
         </div>
       </article>
     `;
   }).join("");
 
-  body.innerHTML = `<div class="dm-grid">${cardsHtml}</div>`;
+  return `<div class="pieces-grid ${pCountClass}">${cardsHtml}</div>`;
+}
+
+// 建立可編輯標頭 HTML
+function buildEditableHeaderHtml(extraClass = "header-split") {
+  return `
+    <div class="mag-header ${extraClass}">
+      <div>
+        <div class="mag-eyebrow" id="dmEyebrow" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('eyebrow', this)">${customHeaderText.eyebrow}</div>
+        <h1 class="mag-title" id="dmTitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('title', this)">${customHeaderText.title}</h1>
+        <div class="mag-subtitle" id="dmSubtitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('subtitle', this)">${customHeaderText.subtitle}</div>
+      </div>
+      <div class="mag-tagline-wrap">
+        <div class="mag-tagline" id="dmTagline" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('tagline', this)">${customHeaderText.tagline}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDM() {
+  document.getElementById("showingCountTxt").textContent = currentPicked.length;
+  document.getElementById("sceneCountTxt").textContent = activeScenes.length;
+  document.getElementById("dmValidTimeTxt").textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
+
+  const shareUrl = getShareUrl();
+  document.getElementById("dmQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
+
+  const mount = document.getElementById("dmDynamicMount");
+  if (currentPicked.length === 0) {
+    mount.innerHTML = `<div class="state-box">沒有符合條件的現貨產品，請切換其他尺寸或系列。</div>`;
+    return;
+  }
+
+  const sceneHtml = buildSceneCollageHtml();
+  const piecesHtml = buildPiecesGridHtml();
+
+  // 依據 4 種雜誌結構版型渲染完全不同的版面與文字位置
+  if (currentMagLayout === "cover" && activeScenes.length > 0) {
+    // 版型 ②：封面故事（上方大實景疊加標題與短語 + 下方橫列單片）
+    mount.innerHTML = `
+      <div class="mag-content">
+        <div class="cover-hero-wrap">
+          ${sceneHtml}
+          <div class="cover-overlay">
+            <div class="mag-eyebrow" id="dmEyebrow" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('eyebrow', this)">${customHeaderText.eyebrow}</div>
+            <h1 class="mag-title" id="dmTitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('title', this)">${customHeaderText.title}</h1>
+            <div class="mag-tagline" id="dmTagline" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('tagline', this)">${customHeaderText.tagline}</div>
+            <div class="mag-subtitle" id="dmSubtitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('subtitle', this)">${customHeaderText.subtitle}</div>
+          </div>
+        </div>
+        ${piecesHtml}
+      </div>
+    `;
+  } else if (currentMagLayout === "sidebar") {
+    // 版型 ③：左右分欄畫廊（左欄：標題＋短語＋直向實景；右欄：單片磚大小交錯）
+    mount.innerHTML = `
+      <div class="mag-content">
+        <div class="sidebar-editorial">
+          <div class="sidebar-left">
+            <div style="border-bottom:2px solid var(--dm-accent);padding-bottom:12px;">
+              <div class="mag-eyebrow" id="dmEyebrow" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('eyebrow', this)">${customHeaderText.eyebrow}</div>
+              <h1 class="mag-title" id="dmTitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('title', this)">${customHeaderText.title}</h1>
+              <div class="mag-subtitle" id="dmSubtitle" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('subtitle', this)">${customHeaderText.subtitle}</div>
+              <div class="mag-tagline" id="dmTagline" style="text-align:left;margin-top:10px;" contenteditable="true" spellcheck="false" onblur="onHeaderTextEdited('tagline', this)">${customHeaderText.tagline}</div>
+            </div>
+            ${sceneHtml}
+          </div>
+          <div class="sidebar-right">
+            ${piecesHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (currentMagLayout === "museum") {
+    // 版型 ④：上磚下景顛倒版（標頭 → 單片磚放上半部主打 → 實景圖排在最底部）
+    mount.innerHTML = `
+      ${buildEditableHeaderHtml("header-split")}
+      <div class="mag-content">
+        ${piecesHtml}
+        ${sceneHtml}
+      </div>
+    `;
+  } else {
+    // 版型 ① (預設 bento)：雙欄雜誌標頭 → 錯落實景拼貼 → 跨欄大小片 Bento 單片網格
+    mount.innerHTML = `
+      ${buildEditableHeaderHtml("header-split")}
+      <div class="mag-content">
+        ${sceneHtml}
+        ${piecesHtml}
+      </div>
+    `;
+  }
 }
 
 function toggleClientPreview() {
@@ -1643,6 +2178,7 @@ function getShareUrl() {
   u.search = "";
   if (codes) u.searchParams.set("codes", codes);
   u.searchParams.set("style", currentDmStyle);
+  u.searchParams.set("ly", currentMagLayout);
   u.searchParams.set("sc", currentSceneLayout);
   if (document.getElementById("chkShowPrice").checked) u.searchParams.set("price", "1");
   u.searchParams.set("view", "client");
@@ -1652,7 +2188,7 @@ function getShareUrl() {
 function copyShareLink() {
   const url = getShareUrl();
   navigator.clipboard.writeText(url).then(() => {
-    showToast("已複製客戶專屬連結！點開即呈現相同 DM 風格與實景排版。");
+    showToast("已複製專屬連結！客戶點開即呈現相同雜誌版型。");
   }).catch(() => {
     showToast("連結：" + url);
   });
@@ -1662,7 +2198,8 @@ function restoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("price") === "1") document.getElementById("chkShowPrice").checked = true;
   if (params.get("style") && STYLE_PALETTES[params.get("style")]) setDmStyle(params.get("style"));
-  if (params.get("sc")) setSceneLayout(params.get("sc"));
+  if (params.get("ly")) setMagLayout(params.get("ly"));
+  if (params.get("sc")) currentSceneLayout = params.get("sc");
   if (params.get("view") === "client") document.body.classList.add("client-view");
 
   const codesParam = params.get("codes");
@@ -1671,7 +2208,8 @@ function restoreFromUrl() {
     const matched = codeList.map(c => allProducts.find(p => p.code === c)).filter(Boolean);
     if (matched.length > 0) {
       currentPicked = matched;
-      setupHeroScenes();
+      initEditableHeaderForSelection();
+      collectSeriesScenes();
       renderDM();
       return;
     }
@@ -1684,7 +2222,7 @@ function openImageZoom(src, title) {
   document.getElementById("modalImg").src = src;
   const dl = document.getElementById("modalDownloadBtn");
   dl.href = src;
-  dl.download = (title || "ELITILE").replace(/\s+/g, "_") + ".jpg";
+  dl.download = (title || "Ebook_DM").replace(/\s+/g, "_") + ".jpg";
   document.getElementById("previewModal").classList.add("open");
 }
 
@@ -1699,8 +2237,8 @@ function loadImageForCanvas(url) {
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => {
-      if (!url.includes("wsrv.nl")) {
-        const proxy = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=1000&output=jpg`;
+      if (!url.includes("wsrv.nl") && !url.startsWith("data:")) {
+        const proxy = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=1200&output=jpg`;
         const img2 = new Image();
         img2.crossOrigin = "anonymous";
         img2.onload = () => resolve(img2);
@@ -1735,23 +2273,36 @@ function drawCoverImage(ctx, img, x, y, w, h, radius = 8) {
   ctx.restore();
 }
 
-// ── 將指定頁面配置渲染成高畫質 Canvas（供單頁 JPG 與多頁 PDF 共用） ──
-async function renderPageToCanvas(pageState) {
-  const { items, scenes, title, sub, dmStyle, showPrice, shareUrl } = pageState;
+function wrapTextLines(ctx, text, maxW) {
+  const chars = Array.from(String(text || ""));
+  const lines = [];
+  let cur = "";
+  for (const ch of chars) {
+    const test = cur + ch;
+    if (ctx.measureText(test).width > maxW && cur.length > 0) {
+      lines.push(cur);
+      cur = ch;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 將指定頁面渲染成標準直式雜誌單頁 Canvas (1080 x 1528，A4 直式比例)
+// 完整保留可編輯的英文名、主標、形容短語與 4 種雜誌版型結構
+// ════════════════════════════════════════════════════════════════
+async function renderPortraitPageToCanvas(pageState) {
+  const { items, scenes, headerText, dmStyle, magLayout, showPrice, shareUrl } = pageState;
   const pal = STYLE_PALETTES[dmStyle] || STYLE_PALETTES.warm;
-  const cols = items.length >= 9 ? 4 : 3;
-  const rows = Math.ceil(items.length / cols);
   const scCount = Math.min(4, scenes.length);
 
-  const W = 1200;
-  const pad = 34;
-  const gap = 16;
-  const headerH = 135;
-  const heroH = scCount === 0 ? 0 : (dmStyle === "editorial" ? 410 : (scCount >= 3 ? 350 : 290));
-  const cardH = 305;
-  const footerH = 108;
-  const bodyH = rows * cardH + Math.max(0, rows - 1) * gap + pad * 2;
-  const H = headerH + (heroH ? heroH + 18 : 0) + bodyH + footerH;
+  const W = 1080;
+  const H = 1528; // 直式 A4 雜誌比例 (1 : 1.414)
+  const pad = 42;
+  const footerH = 100;
 
   const cv = document.createElement("canvas");
   cv.width = W;
@@ -1761,123 +2312,258 @@ async function renderPageToCanvas(pageState) {
   ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, W, H);
 
-  // Header
-  ctx.fillStyle = pal.headerBg;
-  ctx.fillRect(0, 0, W, headerH);
-  ctx.fillStyle = pal.accent;
-  ctx.fillRect(0, headerH - 4, W, 4);
+  const [scImgs, pieceImgs, qrImg] = await Promise.all([
+    Promise.all(scenes.slice(0, 4).map(s => loadImageForCanvas(s.url))),
+    Promise.all(items.map(p => loadImageForCanvas(p.mainImg))),
+    loadImageForCanvas(`https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=3&data=${encodeURIComponent(shareUrl)}`)
+  ]);
 
-  ctx.fillStyle = pal.eyebrow;
-  ctx.font = "700 14px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", pad, 42);
-
-  ctx.fillStyle = pal.headerText;
-  ctx.font = "800 34px 'Noto Sans TC', sans-serif";
-  ctx.fillText(title, pad, 88);
-
-  ctx.fillStyle = pal.headerSub;
-  ctx.font = "600 19px 'Noto Sans TC', sans-serif";
-  ctx.fillText(sub, pad, 118);
-
-  let curY = headerH;
-
-  // 1~4 張實景圖拼貼繪製
-  if (scCount > 0) {
-    curY += 18;
-    const scImgs = await Promise.all(scenes.slice(0, 4).map(s => loadImageForCanvas(s.url)));
-    const innerW = W - pad * 2;
-    const g = 10;
-
+  // 繪製實景拼貼的共用函式
+  function paintCollageBox(bx, by, bw, bh) {
+    if (scCount === 0 || bh <= 0) return;
+    const g = 12;
     if (scCount === 1) {
-      drawCoverImage(ctx, scImgs[0], pad, curY, innerW, heroH, 10);
+      drawCoverImage(ctx, scImgs[0], bx, by, bw, bh, 12);
     } else if (scCount === 2) {
-      const w2 = (innerW - g) / 2;
-      drawCoverImage(ctx, scImgs[0], pad, curY, w2, heroH, 10);
-      drawCoverImage(ctx, scImgs[1], pad + w2 + g, curY, w2, heroH, 10);
+      const w1 = Math.round((bw - g) * 0.56);
+      const w2 = bw - g - w1;
+      drawCoverImage(ctx, scImgs[0], bx, by, w1, bh, 12);
+      drawCoverImage(ctx, scImgs[1], bx + w1 + g, by, w2, bh, 12);
     } else if (scCount === 3) {
-      const wLeft = Math.round(innerW * 0.57);
-      const wRight = innerW - wLeft - g;
-      const hHalf = (heroH - g) / 2;
-      drawCoverImage(ctx, scImgs[0], pad, curY, wLeft, heroH, 10);
-      drawCoverImage(ctx, scImgs[1], pad + wLeft + g, curY, wRight, hHalf, 10);
-      drawCoverImage(ctx, scImgs[2], pad + wLeft + g, curY + hHalf + g, wRight, hHalf, 10);
+      const wLeft = Math.round((bw - g) * 0.57);
+      const wRight = bw - g - wLeft;
+      const hHalf = (bh - g) / 2;
+      drawCoverImage(ctx, scImgs[0], bx, by, wLeft, bh, 12);
+      drawCoverImage(ctx, scImgs[1], bx + wLeft + g, by, wRight, hHalf, 12);
+      drawCoverImage(ctx, scImgs[2], bx + wLeft + g, by + hHalf + g, wRight, hHalf, 12);
     } else {
-      const w2 = (innerW - g) / 2;
-      const h2 = (heroH - g) / 2;
-      drawCoverImage(ctx, scImgs[0], pad, curY, w2, h2, 10);
-      drawCoverImage(ctx, scImgs[1], pad + w2 + g, curY, w2, h2, 10);
-      drawCoverImage(ctx, scImgs[2], pad, curY + h2 + g, w2, h2, 10);
-      drawCoverImage(ctx, scImgs[3], pad + w2 + g, curY + h2 + g, w2, h2, 10);
+      const wLeft = Math.round((bw - g) * 0.5);
+      const wRight = bw - g - wLeft;
+      const hHalf = (bh - g) / 2;
+      const wSmall = (wRight - g) / 2;
+      drawCoverImage(ctx, scImgs[0], bx, by, wLeft, bh, 12);
+      drawCoverImage(ctx, scImgs[1], bx + wLeft + g, by, wRight, hHalf, 12);
+      drawCoverImage(ctx, scImgs[2], bx + wLeft + g, by + hHalf + g, wSmall, hHalf, 12);
+      drawCoverImage(ctx, scImgs[3], bx + wLeft + g + wSmall + g, by + hHalf + g, wSmall, hHalf, 12);
     }
-    curY += heroH;
   }
 
-  // 繪製單片卡片網格
-  const pieceImgs = await Promise.all(items.map(p => loadImageForCanvas(p.mainImg)));
-  const cardW = (W - pad * 2 - gap * (cols - 1)) / cols;
+  // 繪製單片磁磚區域的共用函式
+  function paintPiecesArea(bx, by, bw, bh) {
+    if (items.length === 0 || bh <= 0) return;
+    const gap = 14;
+    let cols = items.length >= 9 ? 4 : (items.length <= 2 ? items.length : 3);
+    if (magLayout === "sidebar") cols = items.length <= 3 ? 1 : 2;
+    const rows = Math.max(1, Math.ceil(items.length / cols));
+    const cardW = (bw - gap * (cols - 1)) / cols;
+    const cardH = Math.min(340, (bh - gap * (rows - 1)) / rows);
 
-  items.forEach((p, idx) => {
-    const r = Math.floor(idx / cols);
-    const c = idx % cols;
-    const x = pad + c * (cardW + gap);
-    const y = curY + pad + r * (cardH + gap);
+    items.forEach((p, idx) => {
+      const r = Math.floor(idx / cols);
+      const c = idx % cols;
+      const x = bx + c * (cardW + gap);
+      const y = by + r * (cardH + gap);
 
-    ctx.fillStyle = pal.cardBg;
-    roundRect(ctx, x, y, cardW, cardH, 10);
-    ctx.fill();
-    ctx.strokeStyle = pal.cardBorder;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+      ctx.fillStyle = pal.cardBg;
+      roundRect(ctx, x, y, cardW, cardH, 10);
+      ctx.fill();
+      ctx.strokeStyle = pal.cardBorder;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-    const stH = 168;
-    ctx.fillStyle = pal.stageBg;
-    roundRect(ctx, x + 1.5, y + 1.5, cardW - 3, stH, 9);
-    ctx.fill();
+      const isHorizontalCard = cols === 1 && items.length <= 3;
+      if (isHorizontalCard) {
+        const stW = Math.round(cardW * 0.46);
+        ctx.fillStyle = pal.stageBg;
+        roundRect(ctx, x + 1.5, y + 1.5, stW, cardH - 3, 9);
+        ctx.fill();
+        const pImg = pieceImgs[idx];
+        if (pImg) {
+          const ratio = Math.min((stW - 24) / pImg.width, (cardH - 24) / pImg.height);
+          const dw = pImg.width * ratio, dh = pImg.height * ratio;
+          ctx.drawImage(pImg, x + (stW - dw) / 2, y + (cardH - dh) / 2, dw, dh);
+        }
+        const tx = x + stW + 20;
+        ctx.fillStyle = pal.ink;
+        ctx.font = "800 24px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
+        ctx.fillText(`${p.flag ? p.flag + " " : ""}${p.code}`, tx, y + 48);
+        ctx.fillStyle = pal.accent;
+        ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText((p.size || "").replace(/x/gi, "×") + " cm", tx, y + 80);
+        ctx.fillStyle = pal.ink2;
+        ctx.font = "700 19px 'Noto Sans TC', sans-serif";
+        ctx.fillText(p.series, tx, y + 112);
+        ctx.fillStyle = pal.stock;
+        ctx.font = "800 19px 'Noto Sans TC', sans-serif";
+        ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, tx, y + 148);
+        if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
+          ctx.fillStyle = pal.accent;
+          ctx.font = "800 18px 'Noto Sans TC', sans-serif";
+          ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), tx, y + 180);
+        }
+        return;
+      }
 
-    const pImg = pieceImgs[idx];
-    if (pImg) {
-      const maxW = cardW - 26;
-      const maxH = stH - 22;
-      const ratio = Math.min(maxW / pImg.width, maxH / pImg.height);
-      const dw = pImg.width * ratio, dh = pImg.height * ratio;
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.18)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetY = 4;
-      ctx.drawImage(pImg, x + (cardW - dw) / 2, y + (stH - dh) / 2, dw, dh);
-      ctx.restore();
-    }
+      const stH = Math.max(110, Math.round(cardH * 0.56));
+      ctx.fillStyle = pal.stageBg;
+      roundRect(ctx, x + 1.5, y + 1.5, cardW - 3, stH, 9);
+      ctx.fill();
 
-    if (p.flag) {
-      ctx.font = "20px sans-serif";
-      ctx.fillText(p.flag, x + 9, y + stH - 9);
-    }
+      const pImg = pieceImgs[idx];
+      if (pImg) {
+        const maxW = cardW - 24;
+        const maxH = stH - 20;
+        const ratio = Math.min(maxW / pImg.width, maxH / pImg.height);
+        const dw = pImg.width * ratio, dh = pImg.height * ratio;
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.18)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+        ctx.drawImage(pImg, x + (cardW - dw) / 2, y + (stH - dh) / 2, dw, dh);
+        ctx.restore();
+      }
+
+      if (p.flag) {
+        ctx.font = "18px sans-serif";
+        ctx.fillText(p.flag, x + 8, y + stH - 8);
+      }
+
+      ctx.fillStyle = pal.ink;
+      ctx.font = "800 19px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
+      ctx.fillText(p.code, x + 12, y + stH + 28);
+
+      const szStr = (p.size || "").replace(/x/gi, "×");
+      ctx.font = "700 14px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillStyle = pal.accent;
+      ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 12, y + stH + 27);
+
+      ctx.fillStyle = pal.ink2;
+      ctx.font = "700 15px 'Noto Sans TC', sans-serif";
+      ctx.fillText(p.series, x + 12, y + stH + 52);
+
+      ctx.fillStyle = pal.stock;
+      ctx.font = "800 15.5px 'Noto Sans TC', sans-serif";
+      ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, x + 12, y + stH + 80);
+
+      if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
+        ctx.fillStyle = pal.accent;
+        ctx.font = "800 14.5px 'Noto Sans TC', sans-serif";
+        ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 12, y + stH + 104);
+      }
+    });
+  }
+
+  // 繪製雙欄雜誌標頭的共用函式
+  function paintSplitHeader(topY) {
+    ctx.fillStyle = pal.eyebrow;
+    ctx.font = "700 16px 'Cormorant Garamond', 'Plus Jakarta Sans', serif";
+    ctx.fillText(headerText.eyebrow || "", pad, topY + 28);
 
     ctx.fillStyle = pal.ink;
-    ctx.font = "800 21px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
-    ctx.fillText(p.code, x + 13, y + stH + 32);
+    ctx.font = "900 40px 'Noto Serif TC', 'Noto Sans TC', serif";
+    ctx.fillText(headerText.title || "", pad, topY + 78);
 
-    const szStr = (p.size || "").replace(/x/gi, "×");
-    ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
     ctx.fillStyle = pal.accent;
-    ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 13, y + stH + 31);
+    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText(headerText.subtitle || "", pad, topY + 110);
 
+    // 右側形容短語
+    ctx.font = "600 17px 'Noto Serif TC', serif";
     ctx.fillStyle = pal.ink2;
+    const tagLines = wrapTextLines(ctx, headerText.tagline || "", 390);
+    const lineX = W - pad - 405;
+    ctx.fillStyle = pal.accent;
+    ctx.fillRect(lineX, topY + 26, 3, Math.max(54, tagLines.length * 26));
+    ctx.fillStyle = pal.ink2;
+    tagLines.slice(0, 3).forEach((ln, i) => {
+      ctx.fillText(ln, lineX + 14, topY + 46 + i * 26);
+    });
+
+    ctx.fillStyle = pal.cardBorder;
+    ctx.fillRect(pad, topY + 130, W - pad * 2, 1.5);
+    return topY + 150;
+  }
+
+  const contentBottom = H - footerH - 24;
+
+  if (magLayout === "cover" && scCount > 0) {
+    const heroH = 540;
+    paintCollageBox(pad, 36, W - pad * 2, heroH);
+    // 漸層遮罩疊字
+    const grad = ctx.createLinearGradient(0, 36 + heroH - 250, 0, 36 + heroH);
+    grad.addColorStop(0, "rgba(15,13,12,0)");
+    grad.addColorStop(1, "rgba(15,13,12,0.9)");
+    ctx.fillStyle = grad;
+    roundRect(ctx, pad, 36, W - pad * 2, heroH, 12);
+    ctx.fill();
+
+    ctx.fillStyle = "#E6C29F";
+    ctx.font = "700 16px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText(headerText.eyebrow || "", pad + 30, 36 + heroH - 135);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 44px 'Noto Serif TC', serif";
+    ctx.fillText(headerText.title || "", pad + 30, 36 + heroH - 82);
+
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.font = "600 18px 'Noto Serif TC', serif";
+    ctx.fillText((headerText.tagline || "").slice(0, 36), pad + 30, 36 + heroH - 48);
+
+    ctx.fillStyle = "#E6C29F";
     ctx.font = "700 17px 'Noto Sans TC', sans-serif";
-    ctx.fillText(p.series, x + 13, y + stH + 60);
+    ctx.fillText(headerText.subtitle || "", pad + 30, 36 + heroH - 18);
 
-    ctx.fillStyle = pal.stock;
-    ctx.font = "800 17px 'Noto Sans TC', sans-serif";
-    ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, x + 13, y + stH + 92);
+    paintPiecesArea(pad, 36 + heroH + 24, W - pad * 2, contentBottom - (36 + heroH + 24));
+  } else if (magLayout === "sidebar") {
+    const leftW = 430;
+    const rightX = pad + leftW + 26;
+    const rightW = W - pad - rightX;
 
-    if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
-      ctx.fillStyle = pal.accent;
-      ctx.font = "800 16px 'Noto Sans TC', sans-serif";
-      ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 13, y + stH + 119);
+    ctx.fillStyle = pal.eyebrow;
+    ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText(headerText.eyebrow || "", pad, 66);
+
+    ctx.fillStyle = pal.ink;
+    ctx.font = "900 38px 'Noto Serif TC', serif";
+    ctx.fillText(headerText.title || "", pad, 114);
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText(headerText.subtitle || "", pad, 146);
+
+    ctx.font = "600 17px 'Noto Serif TC', serif";
+    ctx.fillStyle = pal.ink2;
+    const lines = wrapTextLines(ctx, headerText.tagline || "", leftW);
+    lines.slice(0, 3).forEach((ln, i) => ctx.fillText(ln, pad, 182 + i * 26));
+
+    const scStartY = 182 + Math.min(3, lines.length) * 26 + 20;
+    if (scCount > 0) {
+      const eachH = (contentBottom - scStartY - (scCount - 1) * 12) / scCount;
+      for (let i = 0; i < scCount; i++) {
+        drawCoverImage(ctx, scImgs[i], pad, scStartY + i * (eachH + 12), leftW, eachH, 10);
+      }
     }
-  });
+    paintPiecesArea(rightX, 42, rightW, contentBottom - 42);
+  } else if (magLayout === "museum") {
+    const startY = paintSplitHeader(24);
+    const scH = scCount > 0 ? 390 : 0;
+    const piecesH = contentBottom - startY - (scH > 0 ? scH + 22 : 0);
+    paintPiecesArea(pad, startY, W - pad * 2, piecesH);
+    if (scH > 0) {
+      paintCollageBox(pad, startY + piecesH + 22, W - pad * 2, scH);
+    }
+  } else {
+    // 預設 Bento 雜誌版
+    const startY = paintSplitHeader(24);
+    const scH = scCount > 0 ? 430 : 0;
+    if (scH > 0) {
+      paintCollageBox(pad, startY, W - pad * 2, scH);
+    }
+    const pStartY = startY + (scH > 0 ? scH + 22 : 0);
+    paintPiecesArea(pad, pStartY, W - pad * 2, contentBottom - pStartY);
+  }
 
-  // Footer
+  // Footer（無品牌 Logo，僅顯示有效時間與 QR）
   const footY = H - footerH;
   ctx.fillStyle = pal.cardBg;
   ctx.fillRect(0, footY, W, footerH);
@@ -1885,33 +2571,30 @@ async function renderPageToCanvas(pageState) {
   ctx.fillRect(0, footY, W, 1.5);
 
   ctx.fillStyle = pal.ink;
-  ctx.font = "800 20px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 44);
+  ctx.font = "800 19px 'Noto Sans TC', sans-serif";
+  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 42);
 
   ctx.fillStyle = pal.muted;
-  ctx.font = "600 16px 'Noto Sans TC', sans-serif";
-  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看實景大圖或直接下保留單", pad, footY + 74);
+  ctx.font = "600 15px 'Noto Sans TC', sans-serif";
+  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看實景大圖或直接下保留單", pad, footY + 70);
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
-  const qrImg = await loadImageForCanvas(qrUrl);
   if (qrImg) {
     ctx.fillStyle = "#FFFFFF";
-    roundRect(ctx, W - pad - 84, footY + 12, 84, 84, 6);
+    roundRect(ctx, W - pad - 76, footY + 12, 76, 76, 6);
     ctx.fill();
-    ctx.drawImage(qrImg, W - pad - 80, footY + 16, 76, 76);
+    ctx.drawImage(qrImg, W - pad - 72, footY + 16, 68, 68);
   }
 
   return cv;
 }
 
 function getCurrentPageStateSnapshot() {
-  const { title, sub } = buildDynamicTitle();
   return {
     items: [...currentPicked],
-    scenes: getActiveScenesForDisplay(),
-    title,
-    sub,
+    scenes: activeScenes.map(s => ({ ...s })),
+    headerText: { ...customHeaderText },
     dmStyle: currentDmStyle,
+    magLayout: currentMagLayout,
     showPrice: document.getElementById("chkShowPrice").checked,
     shareUrl: getShareUrl()
   };
@@ -1920,19 +2603,21 @@ function getCurrentPageStateSnapshot() {
 async function exportFullPosterJPG() {
   if (currentPicked.length === 0) return;
   if (currentPicked.length === 1) return exportSingleTileJPG(currentPicked[0].code);
-  showToast("正在合成高清 DM 海報 JPG...");
+  showToast("正在合成直式雜誌 DM 海報 JPG...");
   const state = getCurrentPageStateSnapshot();
-  const cv = await renderPageToCanvas(state);
-  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${state.title}_DM`);
+  const cv = await renderPortraitPageToCanvas(state);
+  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `Ebook_${state.headerText.title}`);
 }
 
-// ── 多頁 PDF 電子目錄組裝與快速生成 ──
+// ════════════════════════════════════════════════════════════════
+// 一左一右「雙頁跨頁（2-Up Spread）」PDF 電子目錄生成引擎
+// ════════════════════════════════════════════════════════════════
 function addCurrentPageToPdfQueue() {
   if (currentPicked.length === 0) return showToast("目前畫面沒有產品可加入");
   const snap = getCurrentPageStateSnapshot();
   pdfPagesQueue.push(snap);
   renderPdfQueueBar();
-  showToast(`已將「${snap.title}」加入 PDF 第 ${pdfPagesQueue.length} 頁！可繼續挑其他系列加入。`);
+  showToast(`已將「${snap.headerText.title}」加入 PDF 第 ${pdfPagesQueue.length} 頁！`);
 }
 
 function removePdfQueuePage(idx) {
@@ -1941,68 +2626,102 @@ function removePdfQueuePage(idx) {
 }
 
 function renderPdfQueueBar() {
-  const badge = document.getElementById("pdfCountBadge");
   const info = document.getElementById("pdfQueueInfo");
-  badge.textContent = `PDF 目錄籃：${pdfPagesQueue.length} 頁`;
   if (pdfPagesQueue.length === 0) {
     info.innerHTML = `
       <span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：0 頁</span>
-      <span style="font-size:12px;color:#D6D3CD;">可點「➕ 加入此頁至 PDF」組合多個系列，或直接點右側生成當頁 PDF</span>
+      <span style="font-size:12px;color:#D6D3CD;">生成 PDF 自動採用「一左一右雙頁跨頁」排版（單頁亦可自動拆為左景右磚雙頁）</span>
     `;
     return;
   }
   const chips = pdfPagesQueue.map((p, i) => `
     <span class="pdf-page-chip">
-      <span>P${i + 1}. ${p.title} (${p.items.length}款)</span>
+      <span>P${i + 1}. ${p.headerText.title} (${p.items.length}款)</span>
       <button type="button" onclick="removePdfQueuePage(${i})" title="移除此頁">✕</button>
     </span>
   `).join("");
   info.innerHTML = `<span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：${pdfPagesQueue.length} 頁</span>` + chips;
 }
 
-async function generateMultiPagePDF() {
+// 當使用者只選了 1 個系列直接點「生成左右雙頁 PDF」時，自動將該系列拆成「左頁：封面實景畫報＋主打磚」與「右頁：完整色號明細」雙頁！
+function buildAutoTwoPagesFromSingle(snap) {
+  const half = Math.max(1, Math.min(2, Math.ceil(snap.items.length / 3)));
+  const leftPage = {
+    ...snap,
+    magLayout: snap.scenes.length > 0 ? "cover" : "bento",
+    items: snap.items.slice(0, half),
+    headerText: {
+      ...snap.headerText,
+      subtitle: `${snap.headerText.subtitle} · 空間實景與主打色`
+    }
+  };
+  const rightPage = {
+    ...snap,
+    magLayout: "museum",
+    scenes: snap.scenes.slice(1),
+    items: snap.items,
+    headerText: {
+      ...snap.headerText,
+      subtitle: `${snap.headerText.subtitle} · 全系列規格一覽`
+    }
+  };
+  return [leftPage, rightPage];
+}
+
+async function generateSpreadPDF() {
   if (!window.jspdf || !window.jspdf.jsPDF) {
     return showToast("PDF 引擎載入中，請稍候 1 秒再按一次");
   }
-  const pagesToRender = pdfPagesQueue.length > 0 ? pdfPagesQueue : [getCurrentPageStateSnapshot()];
-  showToast(`正在快速生成 ${pagesToRender.length} 頁 PDF 電子目錄，請稍候...`);
-
-  const { jsPDF } = window.jspdf;
-  let pdf = null;
-
-  for (let i = 0; i < pagesToRender.length; i++) {
-    const cv = await renderPageToCanvas(pagesToRender[i]);
-    const imgData = cv.toDataURL("image/jpeg", 0.9);
-    const wMm = 210; // 標準 A4 寬度 210mm，高度依內容等比延伸不裁切
-    const hMm = Math.round((cv.height / cv.width) * wMm);
-
-    if (i === 0) {
-      pdf = new jsPDF({
-        orientation: hMm >= wMm ? "p" : "l",
-        unit: "mm",
-        format: [wMm, hMm]
-      });
-    } else {
-      pdf.addPage([wMm, hMm], hMm >= wMm ? "p" : "l");
-    }
-    pdf.addImage(imgData, "JPEG", 0, 0, wMm, hMm, undefined, "FAST");
+  let pages = pdfPagesQueue.length > 0 ? [...pdfPagesQueue] : buildAutoTwoPagesFromSingle(getCurrentPageStateSnapshot());
+  if (pages.length === 1) {
+    pages = buildAutoTwoPagesFromSingle(pages[0]);
   }
 
-  const fileName = pagesToRender.length > 1
-    ? `高雅瓷_精選電子目錄_${pagesToRender.length}頁.pdf`
-    : `高雅瓷_${pagesToRender[0].title}_DM.pdf`;
+  const spreadCount = Math.ceil(pages.length / 2);
+  showToast(`正在合成 ${spreadCount} 張「一左一右雙頁跨頁」PDF 電子目錄...`);
+
+  const { jsPDF } = window.jspdf;
+  // A4 橫式雙頁並排跨頁 (寬 420mm x 高 297mm，即兩張直式 A4 210x297 一左一右並排)
+  const spreadW = 420;
+  const spreadH = 297;
+  const pdf = new jsPDF({ orientation: "l", unit: "mm", format: [spreadW, spreadH] });
+
+  for (let s = 0; s < spreadCount; s++) {
+    if (s > 0) pdf.addPage([spreadW, spreadH], "l");
+    const leftSnap = pages[s * 2];
+    const rightSnap = pages[s * 2 + 1] || null;
+
+    const leftCv = await renderPortraitPageToCanvas(leftSnap);
+    pdf.addImage(leftCv.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+
+    if (rightSnap) {
+      const rightCv = await renderPortraitPageToCanvas(rightSnap);
+      pdf.addImage(rightCv.toDataURL("image/jpeg", 0.9), "JPEG", 210, 0, 210, 297, undefined, "FAST");
+    } else {
+      // 若奇數頁最後一頁無右頁，填充同色系極簡封底
+      pdf.setFillColor(245, 242, 235);
+      pdf.rect(210, 0, 210, 297, "F");
+    }
+
+    // 繪製中央書本裝訂中縫線
+    pdf.setDrawColor(190, 182, 170);
+    pdf.setLineWidth(0.35);
+    pdf.line(210, 0, 210, 297);
+  }
+
+  const fileName = `Ebook_雙頁型錄_${pages[0].headerText.title}.pdf`;
   pdf.save(fileName);
-  showToast(`已完成下載：${fileName}`);
+  showToast(`已下載雙頁排版 PDF：${fileName}`);
 }
 
-// ── 匯出單片專屬規格卡 JPG (1080 x 1350) ──
+// ── 匯出單片專屬直式規格卡 JPG (1080 x 1440，無品牌 Logo) ──
 async function exportSingleTileJPG(code) {
   const p = allProducts.find(x => x.code === code);
   if (!p) return;
-  showToast(`正在產生 ${p.code} 單片規格卡 JPG...`);
+  showToast(`正在產生 ${p.code} 直式單片卡 JPG...`);
 
   const pal = STYLE_PALETTES[currentDmStyle] || STYLE_PALETTES.warm;
-  const W = 1080, H = 1350;
+  const W = 1080, H = 1440;
   const cv = document.createElement("canvas");
   cv.width = W;
   cv.height = H;
@@ -2017,11 +2736,11 @@ async function exportSingleTileJPG(code) {
   ctx.fillRect(0, 145, W, 5);
 
   ctx.fillStyle = pal.eyebrow;
-  ctx.font = "700 17px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", 44, 52);
+  ctx.font = "700 17px 'Cormorant Garamond', 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(customHeaderText.eyebrow || `${p.seriesEn || ""} ${p.brand || ""}`.trim() || "PORCELAIN SURFACE", 44, 52);
 
   ctx.fillStyle = pal.headerText;
-  ctx.font = "800 42px 'Noto Sans TC', sans-serif";
+  ctx.font = "800 42px 'Noto Serif TC', 'Noto Sans TC', sans-serif";
   ctx.fillText(`${p.flag ? p.flag + " " : ""}${p.series}  ${p.code}`, 44, 110);
 
   const szTxt = `${(p.size || "").replace(/x/gi, "×")} cm`;
@@ -2034,19 +2753,20 @@ async function exportSingleTileJPG(code) {
   ctx.fillText(szTxt, W - 44 - szW + 20, 102);
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=3&data=${encodeURIComponent("https://bigt.cc/web/product.html?code=" + p.code)}`;
+  const sceneUrlToUse = (activeScenes[0] && activeScenes[0].url) || p.scenes[0] || "";
   const [pieceImg, sceneImg, qrImg] = await Promise.all([
     loadImageForCanvas(p.mainImg),
-    p.scenes[0] ? loadImageForCanvas(p.scenes[0]) : Promise.resolve(null),
+    sceneUrlToUse ? loadImageForCanvas(sceneUrlToUse) : Promise.resolve(null),
     loadImageForCanvas(qrUrl)
   ]);
 
   let curY = 180;
   if (sceneImg) {
-    drawCoverImage(ctx, sceneImg, 44, curY, W - 88, 430, 14);
-    curY += 452;
+    drawCoverImage(ctx, sceneImg, 44, curY, W - 88, 460, 14);
+    curY += 482;
   }
 
-  const stageH = sceneImg ? 350 : 720;
+  const stageH = sceneImg ? 400 : 800;
   ctx.fillStyle = pal.cardBg;
   roundRect(ctx, 44, curY, W - 88, stageH, 14);
   ctx.fill();
@@ -2105,7 +2825,7 @@ async function exportSingleTileJPG(code) {
     ctx.drawImage(qrImg, W - 44 - qSize - 28, curY + (infoH - qSize) / 2, qSize, qSize);
   }
 
-  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${p.code}_${p.series}_單片DM`);
+  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `Ebook_${p.code}_${p.series}`);
 }
 
 initData();
