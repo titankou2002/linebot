@@ -1082,6 +1082,18 @@
     background: #DC2626;
     color: #FFFFFF;
   }
+  .card-ctrl-btn.rotate-btn:hover {
+    color: #E6C29F;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .card-ctrl-btn.active-rot {
+    color: #E6C29F !important;
+    background: rgba(197, 160, 89, 0.35) !important;
+  }
+  .sc-btn.active-rot {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+  }
 
   .tile-stage {
     height: 146px;
@@ -1093,6 +1105,7 @@
     position: relative;
     border-bottom: 1px solid var(--dm-card-border);
     flex-shrink: 0;
+    overflow: hidden;
   }
   .tile-stage img.piece-img {
     max-width: 100%;
@@ -1104,6 +1117,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
     border-radius: 2px;
     cursor: pointer;
+    transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1);
   }
   .tile-body-col {
     display: flex;
@@ -1825,7 +1839,8 @@
       </div>
 
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
-        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">2. 磁磚卡片搬移與順序自訂</div>
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">2. 磁磚卡片搬移、順序與圖片轉向</div>
+        <p>• <b>圖片轉向 90°</b>：木紋磚或條磚若直立顯示，點擊卡片右上角工具列的<b>旋轉按鈕</b>即可順時針旋轉 90° 轉為橫向躺平，系統會自動記憶！實景照片右上角亦有轉向鈕。</p>
         <p>• <b>滑鼠拖曳換位</b>：滑鼠直接按住任意磁磚卡片拖拉至目標位置放開，即可即時調換順序！</p>
         <p>• <b>快捷換位按鈕</b>：懸停卡片右上角，會浮現操作條：點 <b>◀ 前移</b>、<b>▶ 後移</b> 即可精準換位；點 <b>× 刪除</b> 可隱藏此款。</p>
       </div>
@@ -1838,8 +1853,9 @@
       </div>
 
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
-        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">4. 自動記憶功能（免手動存檔）</div>
-        <p>• 系統會為您<b>自動記憶</b>每個系列排版過的花色順序、自訂文案、挑選的實景照片、版型與微調開關。下次再開啟同系列時，會自動還原您調好的樣式！</p>
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">4. 多頁翻頁與自動記憶（免手動存檔）</div>
+        <p>• <b>多頁換圖與轉向獨立記憶</b>：第 1 頁與第 2 頁更換的圖片與轉向角度皆會妥善記憶，點擊「上一頁 / 下一頁」翻頁切換絕不會被重設！</p>
+        <p>• 系統會為您<b>自動記憶</b>每個系列與尺寸風格排版過的花色順序、自訂文案、挑選的實景照片、旋轉角度、版型與微調開關。下次再開啟時自動還原！</p>
       </div>
 
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
@@ -1875,7 +1891,8 @@ const SVG = {
   chevronUp: `<svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`,
   chevronLeft: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
   chevronRight: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
-  grip: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/></svg>`
+  grip: `<svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/></svg>`,
+  rotate: `<svg class="svg-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-1.19"/></svg>`
 };
 
 const SVG_FLAGS = {
@@ -2002,7 +2019,15 @@ let currentSceneLayout = "auto";
 
 let activeScenes = [];
 let seriesScenePool = [];
+let pageScenesMap = {}; // { [pageIndex]: [{ url, code, series, rotation }] }
 let editingSceneIdx = -1;
+
+const PRODUCT_ROTATIONS_KEY = "ebook_product_rotations_v1";
+let productRotations = {};
+try {
+  const rawRot = localStorage.getItem(PRODUCT_ROTATIONS_KEY);
+  if (rawRot) productRotations = JSON.parse(rawRot);
+} catch (e) {}
 
 let customHeaderText = {
   eyebrow: "",
@@ -2255,7 +2280,7 @@ function filterSeriesSelect() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 系列專屬自訂樣式記憶系統 (LocalStorage)
+// 系列與條件專屬自訂樣式記憶系統 (LocalStorage)
 // ════════════════════════════════════════════════════════════════
 const SERIES_MEMORY_KEY = "ebook_series_memory_v1";
 
@@ -2268,27 +2293,53 @@ function getAllSavedSeriesMemory() {
   }
 }
 
-function loadSeriesCustomMemory(ser) {
-  if (!ser) return null;
-  const memory = getAllSavedSeriesMemory();
-  return memory[ser] || null;
+function getCurrentMemoryKey() {
+  if (currentMode === "series") {
+    const sel = document.getElementById("selSeries");
+    return (sel && sel.value) ? `ser_${sel.value}` : null;
+  } else {
+    const sz = selectedSize || "all";
+    const st = selectedStyle || "all";
+    return `theme_${sz}_${st}`;
+  }
 }
 
-function saveSeriesCustomMemory() {
-  if (currentMode !== "series") return;
-  const sel = document.getElementById("selSeries");
-  if (!sel || !sel.value) return;
-  const ser = sel.value;
+function loadCurrentCustomMemory(explicitKey = null) {
+  const key = explicitKey || getCurrentMemoryKey();
+  if (!key) return null;
+  const memory = getAllSavedSeriesMemory();
+  if (memory[key]) return memory[key];
+  if (currentMode === "series") {
+    const sel = document.getElementById("selSeries");
+    if (sel && sel.value && memory[sel.value]) return memory[sel.value];
+  }
+  return null;
+}
+
+function loadSeriesCustomMemory(ser) {
+  return loadCurrentCustomMemory(ser ? `ser_${ser}` : null) || (ser ? getAllSavedSeriesMemory()[ser] : null);
+}
+
+function saveCurrentCustomMemory() {
+  const key = getCurrentMemoryKey();
+  if (!key) return;
+
+  if (activeScenes.length > 0) {
+    pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+  }
 
   const memory = getAllSavedSeriesMemory();
-  memory[ser] = {
+  const data = {
+    mode: currentMode,
     magLayout: currentMagLayout,
     dmStyle: currentDmStyle,
     dmFont: currentDmFont,
     sceneLayout: currentSceneLayout,
     customHeaderText: { ...customHeaderText },
     activeScenes: activeScenes.map(s => ({ ...s })),
+    pageScenesMap: JSON.parse(JSON.stringify(pageScenesMap)),
     pickedCodes: currentPicked.map(p => p.code),
+    productRotations: { ...productRotations },
     showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
     showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
     showReserveBtn: document.getElementById("chkShowReserveBtn") ? document.getElementById("chkShowReserveBtn").checked : true,
@@ -2297,9 +2348,23 @@ function saveSeriesCustomMemory() {
     updatedAt: Date.now()
   };
 
+  memory[key] = data;
+  if (currentMode === "series") {
+    const sel = document.getElementById("selSeries");
+    if (sel && sel.value) memory[sel.value] = data;
+  }
+
   try {
     localStorage.setItem(SERIES_MEMORY_KEY, JSON.stringify(memory));
   } catch (e) {}
+
+  try {
+    localStorage.setItem(PRODUCT_ROTATIONS_KEY, JSON.stringify(productRotations));
+  } catch (e) {}
+}
+
+function saveSeriesCustomMemory() {
+  saveCurrentCustomMemory();
 }
 
 function clearCurrentSeriesMemory() {
@@ -2503,9 +2568,35 @@ function rebuildActiveScenesFromPool() {
 function removeSceneAtIndex(idx, ev) {
   if (ev) ev.stopPropagation();
   activeScenes.splice(idx, 1);
-  saveSeriesCustomMemory();
+  pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+  saveCurrentCustomMemory();
   renderDM();
   showToast("已移除該張圖片");
+}
+
+function rotateSceneImage(idx, ev) {
+  if (ev) ev.stopPropagation();
+  if (!activeScenes[idx]) return;
+  const cur = activeScenes[idx].rotation || 0;
+  const next = (cur + 90) % 360;
+  activeScenes[idx].rotation = next;
+  pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+  saveCurrentCustomMemory();
+  renderDM();
+  showToast(`實景圖片已順時針轉向 ${next}°（已自動記憶）`);
+}
+
+function rotateProductCardImage(code, ev) {
+  if (ev) ev.stopPropagation();
+  const cur = productRotations[code] || 0;
+  const next = (cur + 90) % 360;
+  productRotations[code] = next;
+  try {
+    localStorage.setItem(PRODUCT_ROTATIONS_KEY, JSON.stringify(productRotations));
+  } catch (e) {}
+  saveCurrentCustomMemory();
+  renderDM();
+  showToast(`已將 ${code} 順時針轉向 ${next}°（已永久記憶）`);
 }
 
 function openScenePickerModal(targetIdx, ev) {
@@ -2572,18 +2663,82 @@ function handleSceneFileUpload(ev) {
 }
 
 function applySceneItem(newItem) {
+  const itemToSet = { ...newItem, rotation: newItem.rotation || 0 };
   if (editingSceneIdx >= 0 && editingSceneIdx < activeScenes.length) {
-    activeScenes[editingSceneIdx] = newItem;
+    activeScenes[editingSceneIdx] = itemToSet;
     showToast(`已更換第 ${editingSceneIdx + 1} 張圖片`);
   } else {
-    if (activeScenes.length >= 4) activeScenes[3] = newItem;
-    else activeScenes.push(newItem);
+    if (activeScenes.length >= 4) activeScenes[3] = itemToSet;
+    else activeScenes.push(itemToSet);
     if (currentSceneLayout === "0") currentSceneLayout = "auto";
     showToast("已新增圖片至版面");
   }
   closeScenePickerModal();
-  saveSeriesCustomMemory();
+  pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+  saveCurrentCustomMemory();
   renderDM();
+}
+
+function applySavedMemoryToState(mem) {
+  if (!mem) return;
+  if (mem.pageScenesMap) {
+    pageScenesMap = JSON.parse(JSON.stringify(mem.pageScenesMap));
+  }
+  if (mem.productRotations) {
+    productRotations = { ...productRotations, ...mem.productRotations };
+  }
+  if (mem.pickedCodes && mem.pickedCodes.length > 0) {
+    const codeMap = new Map();
+    filteredPool.forEach(p => codeMap.set(p.code, p));
+    const reordered = [];
+    mem.pickedCodes.forEach(code => {
+      if (codeMap.has(code)) {
+        reordered.push(codeMap.get(code));
+        codeMap.delete(code);
+      }
+    });
+    codeMap.forEach(p => reordered.push(p));
+    filteredPool = reordered;
+  }
+  if (mem.magLayout) {
+    currentMagLayout = mem.magLayout;
+    document.getElementById("dmSheet")?.setAttribute("data-layout", mem.magLayout);
+    document.querySelectorAll('.style-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === mem.magLayout));
+  }
+  if (mem.dmStyle && STYLE_PALETTES[mem.dmStyle]) {
+    currentDmStyle = mem.dmStyle;
+    document.getElementById("dmSheet")?.setAttribute("data-style", mem.dmStyle);
+    document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === mem.dmStyle));
+  }
+  if (mem.dmFont) {
+    currentDmFont = mem.dmFont;
+    document.getElementById("dmSheet")?.setAttribute("data-font", mem.dmFont);
+    document.querySelectorAll('.style-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === mem.dmFont));
+  }
+  if (mem.sceneLayout) {
+    currentSceneLayout = mem.sceneLayout;
+    document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === mem.sceneLayout));
+  }
+  if (mem.showPrice !== undefined) {
+    const chk = document.getElementById("chkShowPrice");
+    if (chk) chk.checked = mem.showPrice;
+  }
+  if (mem.showPing !== undefined) {
+    const chk = document.getElementById("chkShowPing");
+    if (chk) chk.checked = mem.showPing;
+  }
+  if (mem.showReserveBtn !== undefined) {
+    const chk = document.getElementById("chkShowReserveBtn");
+    if (chk) { chk.checked = mem.showReserveBtn; toggleReserveBtns(mem.showReserveBtn); }
+  }
+  if (mem.showFlags !== undefined) {
+    const chk = document.getElementById("chkShowFlags");
+    if (chk) { chk.checked = mem.showFlags; toggleOriginFlags(mem.showFlags); }
+  }
+  if (mem.cardSquare !== undefined) {
+    const chk = document.getElementById("chkCardSquare");
+    if (chk) { chk.checked = mem.cardSquare; toggleCardCorner(mem.cardSquare); }
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2602,76 +2757,22 @@ function pickBySeries(preservePage = false) {
     return true;
   });
 
-  const mem = loadSeriesCustomMemory(ser);
-  if (mem) {
-    // 1. 若有記憶的磁磚排序，依記憶排序排列
-    if (mem.pickedCodes && mem.pickedCodes.length > 0) {
-      const codeMap = new Map();
-      filteredPool.forEach(p => codeMap.set(p.code, p));
-      const reordered = [];
-      mem.pickedCodes.forEach(code => {
-        if (codeMap.has(code)) {
-          reordered.push(codeMap.get(code));
-          codeMap.delete(code);
-        }
-      });
-      codeMap.forEach(p => reordered.push(p));
-      filteredPool = reordered;
-    }
-    // 2. 恢復版型、色彩風格、字體、實景排版
-    if (mem.magLayout) {
-      currentMagLayout = mem.magLayout;
-      document.getElementById("dmSheet")?.setAttribute("data-layout", mem.magLayout);
-      document.querySelectorAll('.style-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === mem.magLayout));
-    }
-    if (mem.dmStyle && STYLE_PALETTES[mem.dmStyle]) {
-      currentDmStyle = mem.dmStyle;
-      document.getElementById("dmSheet")?.setAttribute("data-style", mem.dmStyle);
-      document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === mem.dmStyle));
-    }
-    if (mem.dmFont) {
-      currentDmFont = mem.dmFont;
-      document.getElementById("dmSheet")?.setAttribute("data-font", mem.dmFont);
-      document.querySelectorAll('.style-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === mem.dmFont));
-    }
-    if (mem.sceneLayout) {
-      currentSceneLayout = mem.sceneLayout;
-      document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === mem.sceneLayout));
-    }
-    // 3. 恢復微調設定
-    if (mem.showPrice !== undefined) {
-      const chk = document.getElementById("chkShowPrice");
-      if (chk) chk.checked = mem.showPrice;
-    }
-    if (mem.showPing !== undefined) {
-      const chk = document.getElementById("chkShowPing");
-      if (chk) chk.checked = mem.showPing;
-    }
-    if (mem.showReserveBtn !== undefined) {
-      const chk = document.getElementById("chkShowReserveBtn");
-      if (chk) { chk.checked = mem.showReserveBtn; toggleReserveBtns(mem.showReserveBtn); }
-    }
-    if (mem.showFlags !== undefined) {
-      const chk = document.getElementById("chkShowFlags");
-      if (chk) { chk.checked = mem.showFlags; toggleOriginFlags(mem.showFlags); }
-    }
-    if (mem.cardSquare !== undefined) {
-      const chk = document.getElementById("chkCardSquare");
-      if (chk) { chk.checked = mem.cardSquare; toggleCardCorner(mem.cardSquare); }
-    }
-  }
-
   const badge = document.getElementById("poolCountBadge");
   if (badge) badge.textContent = `共 ${filteredPool.length} 款`;
-  
+
+  pageScenesMap = {};
+  const mem = loadSeriesCustomMemory(ser);
+  if (mem) {
+    applySavedMemoryToState(mem);
+  }
+
   updatePaginationAndPick(preservePage);
 
   if (mem) {
-    if (mem.customHeaderText) {
-      customHeaderText = { ...mem.customHeaderText };
-    }
+    if (mem.customHeaderText) customHeaderText = { ...mem.customHeaderText };
     if (mem.activeScenes && mem.activeScenes.length > 0) {
       activeScenes = mem.activeScenes.map(s => ({ ...s }));
+      pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
     }
     renderDM();
   }
@@ -2703,7 +2804,23 @@ function applyAndPick(preservePage = false) {
   document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
   // 優先將有空間實景圖片的產品排在前面，以供頂部實景區展示
   filteredPool.sort((a, b) => b.scenes.length - a.scenes.length);
+
+  pageScenesMap = {};
+  const mem = loadCurrentCustomMemory();
+  if (mem) {
+    applySavedMemoryToState(mem);
+  }
+
   updatePaginationAndPick(preservePage);
+
+  if (mem) {
+    if (mem.customHeaderText) customHeaderText = { ...mem.customHeaderText };
+    if (mem.activeScenes && mem.activeScenes.length > 0) {
+      activeScenes = mem.activeScenes.map(s => ({ ...s }));
+      pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+    }
+    renderDM();
+  }
 }
 
 function updatePaginationAndPick(preservePage = false) {
@@ -2714,24 +2831,52 @@ function updatePaginationAndPick(preservePage = false) {
   }
 
   currentPicked = filteredPool.slice(currentPageIndex * pageSize, (currentPageIndex + 1) * pageSize);
-  initEditableHeaderForSelection();
-  collectSeriesScenes();
+
+  // 1. 維護標題：若已有自訂或已有標題，僅更新分頁提示，絕不覆寫使用者自訂文字！
+  if (preservePage && customHeaderText.title) {
+    const pageTag = totalPages > 1 ? ` · 第 ${currentPageIndex + 1}/${totalPages} 頁` : "";
+    customHeaderText.subtitle = (customHeaderText.subtitle || "")
+      .replace(/ · 第 \d+\/\d+ 頁.*/g, "")
+      .replace(/（本頁 \d+ 款）/g, "")
+      + `${pageTag}（本頁 ${currentPicked.length} 款）`;
+  } else {
+    initEditableHeaderForSelection();
+  }
+
+  // 2. 維護實景照片：切換頁面時優先使用已儲存的該頁照片，絕不被盲目重設！
+  if (pageScenesMap[currentPageIndex] && pageScenesMap[currentPageIndex].length > 0) {
+    activeScenes = pageScenesMap[currentPageIndex].map(s => ({ ...s }));
+  } else if (!preservePage || activeScenes.length === 0) {
+    collectSeriesScenes();
+    pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+  } else {
+    pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+  }
+
   renderPaginationBar();
   renderDM();
 }
 
 function goToPrevPage() {
   if (currentPageIndex > 0) {
+    if (activeScenes.length > 0) {
+      pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+    }
     currentPageIndex--;
     updatePaginationAndPick(true);
+    saveCurrentCustomMemory();
     showToast(`切換至第 ${currentPageIndex + 1} 頁`);
   }
 }
 
 function goToNextPage() {
   if (currentPageIndex < totalPages - 1) {
+    if (activeScenes.length > 0) {
+      pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+    }
     currentPageIndex++;
     updatePaginationAndPick(true);
+    saveCurrentCustomMemory();
     showToast(`切換至第 ${currentPageIndex + 1} 頁`);
   }
 }
@@ -2849,8 +2994,17 @@ function handleCardDrop(e, targetIdx) {
   const fromIdx = dragSrcCardIdx;
   const item = currentPicked.splice(fromIdx, 1)[0];
   currentPicked.splice(targetIdx, 0, item);
+
+  const pageSize = parseInt(document.getElementById("selCount")?.value, 10) || 8;
+  const globalSrc = currentPageIndex * pageSize + fromIdx;
+  const globalTgt = currentPageIndex * pageSize + targetIdx;
+  if (globalSrc >= 0 && globalSrc < filteredPool.length && globalTgt >= 0 && globalTgt < filteredPool.length) {
+    const pItem = filteredPool.splice(globalSrc, 1)[0];
+    filteredPool.splice(globalTgt, 0, pItem);
+  }
+
   dragSrcCardIdx = null;
-  saveSeriesCustomMemory();
+  saveCurrentCustomMemory();
   renderDM();
   showToast(`已調整磁磚順序：${item.code} 移至第 ${targetIdx + 1} 位（已自動記憶）`);
 }
@@ -2868,7 +3022,16 @@ function movePickedCard(idx, direction) {
   if (targetIdx < 0 || targetIdx >= currentPicked.length) return;
   const item = currentPicked.splice(idx, 1)[0];
   currentPicked.splice(targetIdx, 0, item);
-  saveSeriesCustomMemory();
+
+  const pageSize = parseInt(document.getElementById("selCount")?.value, 10) || 8;
+  const globalSrc = currentPageIndex * pageSize + idx;
+  const globalTgt = currentPageIndex * pageSize + targetIdx;
+  if (globalSrc >= 0 && globalSrc < filteredPool.length && globalTgt >= 0 && globalTgt < filteredPool.length) {
+    const pItem = filteredPool.splice(globalSrc, 1)[0];
+    filteredPool.splice(globalTgt, 0, pItem);
+  }
+
+  saveCurrentCustomMemory();
   renderDM();
   showToast(`已移動磁磚：${item.code} 移至第 ${targetIdx + 1} 位（已自動記憶）`);
 }
@@ -2885,16 +3048,21 @@ function buildSceneCollageHtml() {
     `;
   }
   const cnt = Math.min(4, activeScenes.length);
-  const itemsHtml = activeScenes.slice(0, 4).map((sc, idx) => `
+  const itemsHtml = activeScenes.slice(0, 4).map((sc, idx) => {
+    const rot = sc.rotation || 0;
+    const activeRotClass = rot ? "active-rot" : "";
+    return `
     <div class="sc-item">
       <div class="sc-ctrl-bar staff-only">
+        <button type="button" class="sc-btn ${activeRotClass}" onclick="rotateSceneImage(${idx}, event)" title="圖片順時針旋轉 90°（目前 ${rot}°）">${SVG.rotate} 轉向</button>
         <button type="button" class="sc-btn" onclick="openScenePickerModal(${idx}, event)" title="更換此張圖片">${SVG.refresh} 換圖</button>
         <button type="button" class="sc-btn del" onclick="removeSceneAtIndex(${idx}, event)" title="刪除此張圖片">${SVG.close}</button>
       </div>
-      <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series}')">
+      <img src="${sc.url}" alt="${sc.series}" style="${rot ? `transform: rotate(${rot}deg);` : ''}" onclick="openImageZoom('${sc.url}', '${sc.series}', ${rot})">
       <span class="sc-tag-num">${String(idx + 1).padStart(2, "0")}</span>
     </div>
-  `).join("");
+    `;
+  }).join("");
   return `<div class="scene-collage count-${cnt}">${itemsHtml}</div>`;
 }
 
@@ -2919,6 +3087,12 @@ function buildPiecesGridHtml() {
     const reserveHref = `reservation_form.html?code=${encodeURIComponent(p.code)}`;
     const webHref = `https://bigt.cc/web/product.html?code=${encodeURIComponent(p.code)}`;
 
+    const rot = productRotations[p.code] || 0;
+    const rotStyle = rot ? (rot === 90 || rot === 270
+      ? `transform: rotate(${rot}deg); max-width: 126px !important; max-height: 185px !important;`
+      : `transform: rotate(${rot}deg);`) : "";
+    const activeRotClass = rot ? "active-rot" : "";
+
     return `
       <article class="tile-card"
                draggable="true"
@@ -2930,12 +3104,13 @@ function buildPiecesGridHtml() {
                ondragend="handleCardDragEnd(event)">
         <div class="card-ctrl-bar staff-only">
           <span class="card-ctrl-btn drag-handle" title="按住拖曳可調整順序">${SVG.grip}</span>
+          <button type="button" class="card-ctrl-btn rotate-btn ${activeRotClass}" title="圖片順時針旋轉 90°（目前 ${rot}°）" onclick="rotateProductCardImage('${p.code}', event)">${SVG.rotate}</button>
           <button type="button" class="card-ctrl-btn" title="往前移一位" onclick="movePickedCard(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>${SVG.chevronLeft}</button>
           <button type="button" class="card-ctrl-btn" title="往後移一位" onclick="movePickedCard(${idx}, 1)" ${idx === currentPicked.length - 1 ? 'disabled' : ''}>${SVG.chevronRight}</button>
           <button type="button" class="card-ctrl-btn delete-btn" title="移除此款" onclick="removePickedCard('${p.code}')">${SVG.close}</button>
         </div>
         <div class="tile-stage">
-          <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}')">
+          <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" data-rot="${rot}" style="${rotStyle}" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}', ${rot})">
           ${flagSvg}
         </div>
         <div class="tile-body-col">
@@ -3111,9 +3286,11 @@ function restoreFromUrl() {
   pickBySeries(false);
 }
 
-function openImageZoom(src, title) {
+function openImageZoom(src, title, rot = 0) {
   document.getElementById("modalTitle").textContent = title || "預覽";
-  document.getElementById("modalImg").src = src;
+  const imgEl = document.getElementById("modalImg");
+  imgEl.src = src;
+  imgEl.style.transform = rot ? `rotate(${rot}deg)` : "";
   const dl = document.getElementById("modalDownloadBtn");
   dl.href = src;
   dl.download = (title || "Ebook_DM").replace(/\s+/g, "_") + ".jpg";
@@ -3156,14 +3333,24 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function drawCoverImage(ctx, img, x, y, w, h, radius = 8) {
+function drawCoverImage(ctx, img, x, y, w, h, radius = 8, rot = 0) {
   if (!img) return;
   ctx.save();
   roundRect(ctx, x, y, w, h, radius);
   ctx.clip();
-  const sRatio = Math.max(w / img.width, h / img.height);
-  const sw = img.width * sRatio, sh = img.height * sRatio;
-  ctx.drawImage(img, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh);
+  if (rot !== 0) {
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.rotate((rot * Math.PI) / 180);
+    const dw = (rot === 90 || rot === 270) ? h : w;
+    const dh = (rot === 90 || rot === 270) ? w : h;
+    const sRatio = Math.max(dw / img.width, dh / img.height);
+    const sw = img.width * sRatio, sh = img.height * sRatio;
+    ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+  } else {
+    const sRatio = Math.max(w / img.width, h / img.height);
+    const sw = img.width * sRatio, sh = img.height * sRatio;
+    ctx.drawImage(img, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh);
+  }
   ctx.restore();
 }
 
@@ -3299,9 +3486,10 @@ function applyTextSize(dir) {
 // 直式雜誌單頁 Canvas 渲染 (1080 x 1528)
 // ════════════════════════════════════════════════════════════════
 async function renderPortraitPageToCanvas(pageState) {
-  const { items, scenes, headerText, dmStyle, magLayout, showPrice, showPing, shareUrl } = pageState;
+  const { items, scenes, headerText, dmStyle, magLayout, showPrice, showPing, shareUrl, productRotations: stateRotations } = pageState;
   const pal = STYLE_PALETTES[dmStyle] || STYLE_PALETTES.warm;
   const scCount = Math.min(4, scenes.length);
+  const rotationsToUse = stateRotations || productRotations;
 
   const W = 1080;
   const H = 1528;
@@ -3326,28 +3514,28 @@ async function renderPortraitPageToCanvas(pageState) {
     if (scCount === 0 || bh <= 0) return;
     const g = 12;
     if (scCount === 1) {
-      drawCoverImage(ctx, scImgs[0], bx, by, bw, bh, 12);
+      drawCoverImage(ctx, scImgs[0], bx, by, bw, bh, 12, (scenes[0] && scenes[0].rotation) || 0);
     } else if (scCount === 2) {
       const w1 = Math.round((bw - g) * 0.56);
       const w2 = bw - g - w1;
-      drawCoverImage(ctx, scImgs[0], bx, by, w1, bh, 12);
-      drawCoverImage(ctx, scImgs[1], bx + w1 + g, by, w2, bh, 12);
+      drawCoverImage(ctx, scImgs[0], bx, by, w1, bh, 12, (scenes[0] && scenes[0].rotation) || 0);
+      drawCoverImage(ctx, scImgs[1], bx + w1 + g, by, w2, bh, 12, (scenes[1] && scenes[1].rotation) || 0);
     } else if (scCount === 3) {
       const wLeft = Math.round((bw - g) * 0.57);
       const wRight = bw - g - wLeft;
       const hHalf = (bh - g) / 2;
-      drawCoverImage(ctx, scImgs[0], bx, by, wLeft, bh, 12);
-      drawCoverImage(ctx, scImgs[1], bx + wLeft + g, by, wRight, hHalf, 12);
-      drawCoverImage(ctx, scImgs[2], bx + wLeft + g, by + hHalf + g, wRight, hHalf, 12);
+      drawCoverImage(ctx, scImgs[0], bx, by, wLeft, bh, 12, (scenes[0] && scenes[0].rotation) || 0);
+      drawCoverImage(ctx, scImgs[1], bx + wLeft + g, by, wRight, hHalf, 12, (scenes[1] && scenes[1].rotation) || 0);
+      drawCoverImage(ctx, scImgs[2], bx + wLeft + g, by + hHalf + g, wRight, hHalf, 12, (scenes[2] && scenes[2].rotation) || 0);
     } else {
       const wLeft = Math.round((bw - g) * 0.5);
       const wRight = bw - g - wLeft;
       const hHalf = (bh - g) / 2;
       const wSmall = (wRight - g) / 2;
-      drawCoverImage(ctx, scImgs[0], bx, by, wLeft, bh, 12);
-      drawCoverImage(ctx, scImgs[1], bx + wLeft + g, by, wRight, hHalf, 12);
-      drawCoverImage(ctx, scImgs[2], bx + wLeft + g, by + hHalf + g, wSmall, hHalf, 12);
-      drawCoverImage(ctx, scImgs[3], bx + wLeft + g + wSmall + g, by + hHalf + g, wSmall, hHalf, 12);
+      drawCoverImage(ctx, scImgs[0], bx, by, wLeft, bh, 12, (scenes[0] && scenes[0].rotation) || 0);
+      drawCoverImage(ctx, scImgs[1], bx + wLeft + g, by, wRight, hHalf, 12, (scenes[1] && scenes[1].rotation) || 0);
+      drawCoverImage(ctx, scImgs[2], bx + wLeft + g, by + hHalf + g, wSmall, hHalf, 12, (scenes[2] && scenes[2].rotation) || 0);
+      drawCoverImage(ctx, scImgs[3], bx + wLeft + g + wSmall + g, by + hHalf + g, wSmall, hHalf, 12, (scenes[3] && scenes[3].rotation) || 0);
     }
   }
 
@@ -3386,9 +3574,17 @@ async function renderPortraitPageToCanvas(pageState) {
         ctx.fill();
         const pImg = pieceImgs[idx];
         if (pImg) {
-          const ratio = Math.min((stW - 24) / pImg.width, (cardH - 24) / pImg.height);
+          const rot = rotationsToUse[p.code] || 0;
+          const isSwapped = (rot === 90 || rot === 270);
+          const effW = isSwapped ? pImg.height : pImg.width;
+          const effH = isSwapped ? pImg.width : pImg.height;
+          const ratio = Math.min((stW - 24) / effW, (cardH - 24) / effH);
           const dw = pImg.width * ratio, dh = pImg.height * ratio;
-          ctx.drawImage(pImg, x + (stW - dw) / 2, y + (cardH - dh) / 2, dw, dh);
+          ctx.save();
+          ctx.translate(x + stW / 2, y + cardH / 2);
+          if (rot !== 0) ctx.rotate((rot * Math.PI) / 180);
+          ctx.drawImage(pImg, -dw / 2, -dh / 2, dw, dh);
+          ctx.restore();
         }
         if (p.origin) drawVectorFlagOnCanvas(ctx, p.origin, x + 8, y + cardH - 24, 22, 14);
 
@@ -3426,15 +3622,21 @@ async function renderPortraitPageToCanvas(pageState) {
 
       const pImg = pieceImgs[idx];
       if (pImg) {
+        const rot = rotationsToUse[p.code] || 0;
+        const isSwapped = (rot === 90 || rot === 270);
+        const effW = isSwapped ? pImg.height : pImg.width;
+        const effH = isSwapped ? pImg.width : pImg.height;
         const maxW = cardW - 24;
         const maxH = stH - 20;
-        const ratio = Math.min(maxW / pImg.width, maxH / pImg.height);
+        const ratio = Math.min(maxW / effW, maxH / effH);
         const dw = pImg.width * ratio, dh = pImg.height * ratio;
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.18)";
         ctx.shadowBlur = 8;
         ctx.shadowOffsetY = 3;
-        ctx.drawImage(pImg, x + (cardW - dw) / 2, y + (stH - dh) / 2, dw, dh);
+        ctx.translate(x + cardW / 2, y + stH / 2);
+        if (rot !== 0) ctx.rotate((rot * Math.PI) / 180);
+        ctx.drawImage(pImg, -dw / 2, -dh / 2, dw, dh);
         ctx.restore();
       }
 
@@ -3609,6 +3811,7 @@ function getCurrentPageStateSnapshot() {
     dmStyle: currentDmStyle,
     dmFont: currentDmFont,
     magLayout: currentMagLayout,
+    productRotations: { ...productRotations },
     showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
     showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
     shareUrl: getShareUrl()
@@ -3685,9 +3888,13 @@ async function exportAllPagesToPdf() {
       });
     });
 
+    const pageScenesToUse = (pageScenesMap[pIdx] && pageScenesMap[pIdx].length > 0)
+      ? pageScenesMap[pIdx]
+      : (pageScenes.length > 0 ? pageScenes : activeScenes);
+
     allPageSnapshots.push({
       items: pageItems,
-      scenes: pageScenes.length > 0 ? pageScenes : activeScenes,
+      scenes: pageScenesToUse.map(s => ({ ...s })),
       headerText: {
         ...customHeaderText,
         title: baseTitle,
@@ -3696,6 +3903,7 @@ async function exportAllPagesToPdf() {
       dmStyle: currentDmStyle,
       dmFont: currentDmFont,
       magLayout: currentMagLayout,
+      productRotations: { ...productRotations },
       showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
       showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
       shareUrl: getShareUrl()
@@ -3886,7 +4094,8 @@ async function exportSingleTileJPG(code) {
 
   let curY = 180;
   if (sceneImg) {
-    drawCoverImage(ctx, sceneImg, 44, curY, W - 88, 460, 14);
+    const scRot = (activeScenes[0] && activeScenes[0].rotation) || 0;
+    drawCoverImage(ctx, sceneImg, 44, curY, W - 88, 460, 14, scRot);
     curY += 482;
   }
 
@@ -3899,14 +4108,22 @@ async function exportSingleTileJPG(code) {
   ctx.stroke();
 
   if (pieceImg) {
+    const rot = productRotations[p.code] || 0;
+    const isSwapped = (rot === 90 || rot === 270);
+    const effW = isSwapped ? pieceImg.height : pieceImg.width;
+    const effH = isSwapped ? pieceImg.width : pieceImg.height;
     const pad = 38;
-    const ratio = Math.min((W - 88 - pad * 2) / pieceImg.width, (stageH - pad * 2) / pieceImg.height);
+    const maxW = W - 88 - pad * 2;
+    const maxH = stageH - pad * 2;
+    const ratio = Math.min(maxW / effW, maxH / effH);
     const dw = pieceImg.width * ratio, dh = pieceImg.height * ratio;
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.2)";
     ctx.shadowBlur = 20;
     ctx.shadowOffsetY = 6;
-    ctx.drawImage(pieceImg, 44 + (W - 88 - dw) / 2, curY + (stageH - dh) / 2, dw, dh);
+    ctx.translate(44 + (W - 88) / 2, curY + stageH / 2);
+    if (rot !== 0) ctx.rotate((rot * Math.PI) / 180);
+    ctx.drawImage(pieceImg, -dw / 2, -dh / 2, dw, dh);
     ctx.restore();
   }
   if (p.origin) drawVectorFlagOnCanvas(ctx, p.origin, 60, curY + stageH - 34, 28, 18);
