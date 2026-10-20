@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>高雅瓷 · 產品文宣 DM 產生器</title>
+<title>高雅瓷 · 產品文宣 DM 與多頁 PDF 電子目錄產生器</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Noto+Serif+TC:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
   :root {
     --bg: #F5F2EB;
@@ -22,15 +23,77 @@
     --accent-hover: #724725;
     --accent-soft: #F7EFE8;
     --green: #1F5E3B;
-    --green-bg: #E9F5EE;
-    --amber: #9A5B13;
-    --amber-bg: #FDF3E6;
     --red: #9E2A2B;
-    --red-bg: #FBECEC;
     --radius-card: 10px;
     --radius-ctrl: 8px;
     --shadow-sm: 0 2px 6px rgba(28, 25, 23, 0.05);
-    --shadow-md: 0 10px 28px rgba(28, 25, 23, 0.08);
+    --shadow-md: 0 10px 28px rgba(28, 25, 23, 0.09);
+
+    /* DM 畫布專屬主題變數（隨「DM風格預覽」動態切換） */
+    --dm-bg: #FAF8F5;
+    --dm-header-bg: #1C1917;
+    --dm-header-text: #FFFFFF;
+    --dm-header-sub: #D6D3CD;
+    --dm-eyebrow: #D6B392;
+    --dm-accent: #8C5A32;
+    --dm-card-bg: #FFFFFF;
+    --dm-card-border: #E5E0D5;
+    --dm-stage-bg: #EFECE4;
+    --dm-ink: #1C1917;
+    --dm-ink-2: #44403C;
+    --dm-muted: #78716C;
+    --dm-stock: #1F5E3B;
+  }
+
+  /* 風格 2：奢石黑金風 */
+  .dm-sheet[data-style="luxury"] {
+    --dm-bg: #141312;
+    --dm-header-bg: #0B0A09;
+    --dm-header-text: #F7F3EB;
+    --dm-header-sub: #A8A096;
+    --dm-eyebrow: #D4AF37;
+    --dm-accent: #C59B27;
+    --dm-card-bg: #1E1C1A;
+    --dm-card-border: #332F2B;
+    --dm-stage-bg: #272421;
+    --dm-ink: #F5F2EB;
+    --dm-ink-2: #C7C0B8;
+    --dm-muted: #8C857B;
+    --dm-stock: #5CE096;
+  }
+
+  /* 風格 3：北歐極簡畫廊風 */
+  .dm-sheet[data-style="minimal"] {
+    --dm-bg: #FFFFFF;
+    --dm-header-bg: #1F4D3A;
+    --dm-header-text: #FFFFFF;
+    --dm-header-sub: #D5E6DF;
+    --dm-eyebrow: #A8D5C2;
+    --dm-accent: #1F4D3A;
+    --dm-card-bg: #FFFFFF;
+    --dm-card-border: #E2E8F0;
+    --dm-stage-bg: #F8FAFC;
+    --dm-ink: #0F172A;
+    --dm-ink-2: #334155;
+    --dm-muted: #64748B;
+    --dm-stock: #15803D;
+  }
+
+  /* 風格 4：義式雜誌畫報風 */
+  .dm-sheet[data-style="editorial"] {
+    --dm-bg: #EFECE6;
+    --dm-header-bg: #2C2520;
+    --dm-header-text: #FAF6F0;
+    --dm-header-sub: #C9BFB5;
+    --dm-eyebrow: #E0A96D;
+    --dm-accent: #9E582F;
+    --dm-card-bg: #FAF8F5;
+    --dm-card-border: #DCD6CA;
+    --dm-stage-bg: #E5E0D5;
+    --dm-ink: #241E1A;
+    --dm-ink-2: #4A4039;
+    --dm-muted: #7A7067;
+    --dm-stock: #1F5E3B;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,37 +103,37 @@
     color: var(--ink);
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
-    padding-bottom: 56px;
+    padding-bottom: 84px;
   }
   button, input, select { font-family: inherit; }
 
-  /* ── 頂部極簡導覽列 ── */
+  /* ── 頂部導覽列 ── */
   .topbar {
     position: sticky;
     top: 0;
     z-index: 200;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line);
-    padding: 10px 18px;
+    padding: 10px 16px;
   }
   .topbar-inner {
-    max-width: 1400px;
+    max-width: 1420px;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 10px;
   }
   .brand-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
+    min-width: 0;
   }
   .brand-mark {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 6px;
     background: var(--ink);
     color: #fff;
@@ -78,48 +141,69 @@
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 13px;
+    font-size: 12.5px;
+    flex-shrink: 0;
   }
   .brand-title {
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 800;
     color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .top-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
   }
   .price-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    font-size: 13px;
+    gap: 6px;
+    font-size: 12.5px;
     font-weight: 700;
     color: var(--ink-2);
     background: var(--surface-muted);
-    padding: 6px 12px;
+    padding: 5px 10px;
     border-radius: var(--radius-ctrl);
     border: 1px solid var(--line);
     cursor: pointer;
     user-select: none;
   }
   .price-toggle input {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
     accent-color: var(--accent);
+  }
+  .mob-filter-toggle {
+    display: none;
+    height: 34px;
+    padding: 0 11px;
+    border-radius: var(--radius-ctrl);
+    border: 1px solid var(--line-strong);
+    background: var(--ink);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    align-items: center;
+    gap: 5px;
     cursor: pointer;
   }
+  @media (max-width: 960px) {
+    .mob-filter-toggle { display: inline-flex; }
+    .hide-on-mob { display: none !important; }
+  }
 
-  /* ── 主工作區（客戶檢視模式時自動隱藏左側面板） ── */
+  /* ── 主工作區 ── */
   .workspace {
-    max-width: 1400px;
-    margin: 16px auto 0;
-    padding: 0 16px;
+    max-width: 1420px;
+    margin: 14px auto 0;
+    padding: 0 14px;
     display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 20px;
+    grid-template-columns: 330px 1fr;
+    gap: 18px;
     align-items: start;
   }
   body.client-view .workspace {
@@ -131,22 +215,34 @@
     display: none !important;
   }
   @media (max-width: 960px) {
-    .workspace { grid-template-columns: 1fr; }
+    .workspace {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .ctrl-panel {
+      display: none;
+    }
+    .ctrl-panel.mob-open {
+      display: flex;
+    }
   }
 
-  /* ── 左側極簡控制面板 ── */
+  /* ── 左側控制面板 ── */
   .ctrl-panel {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-card);
-    padding: 16px;
+    padding: 15px;
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 13px;
+  }
+  @media (max-width: 960px) {
+    .ctrl-panel { display: none; }
   }
   .sec-title {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 800;
     color: var(--ink-2);
     margin-bottom: 6px;
@@ -163,7 +259,6 @@
     color: var(--accent);
   }
 
-  /* 兩大模式切換：預設 1.單一系列 / 2.尺寸×風格 */
   .mode-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -175,13 +270,12 @@
   .mode-tab {
     border: none;
     background: transparent;
-    padding: 8px 6px;
-    font-size: 13px;
+    padding: 7px 6px;
+    font-size: 12.5px;
     font-weight: 800;
     color: var(--ink-2);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.15s;
   }
   .mode-tab.active {
     background: var(--surface);
@@ -192,15 +286,15 @@
   .chip-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
   }
   .chip {
     border: 1px solid var(--line-strong);
     background: var(--surface-soft);
     color: var(--ink-2);
-    padding: 5px 10px;
+    padding: 5px 9px;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.12s;
@@ -221,44 +315,99 @@
     border-radius: var(--radius-ctrl);
     background: var(--surface);
     color: var(--ink);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
     outline: none;
   }
   .input:focus, .select:focus { border-color: var(--accent); }
-
   .divider { height: 1px; background: var(--line); }
 
   .btn-random {
     width: 100%;
-    height: 42px;
+    height: 40px;
     border: none;
     border-radius: var(--radius-ctrl);
     background: var(--accent);
     color: #FFFFFF;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    transition: background 0.15s, transform 0.1s;
+    gap: 6px;
   }
-  .btn-random:hover { background: var(--accent-hover); }
   .btn-random:active { transform: scale(0.98); }
 
-  /* ── 右側 DM 預覽與操作列 ── */
+  /* ── 右側預覽與風格快速切換列 ── */
   .preview-col {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
   }
+
+  /* 手機與桌面共用的「DM 風格 & 實景排版」預覽選擇條 */
+  .style-preview-bar {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+  }
+  .bar-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none;
+  }
+  .bar-group::-webkit-scrollbar { display: none; }
+  .bar-lbl {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--muted);
+    white-space: nowrap;
+    margin-right: 2px;
+  }
+  .style-pill {
+    border: 1px solid var(--line-strong);
+    background: var(--surface-soft);
+    color: var(--ink-2);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .style-pill.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .swatch-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+
   .action-bar {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-card);
-    padding: 10px 16px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -267,7 +416,7 @@
     box-shadow: var(--shadow-sm);
   }
   .stat-pill {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 600;
     color: var(--ink-2);
   }
@@ -276,172 +425,220 @@
   .action-btns {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     flex-wrap: wrap;
   }
   .btn-act {
-    height: 36px;
-    padding: 0 13px;
+    height: 34px;
+    padding: 0 12px;
     border-radius: var(--radius-ctrl);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     border: 1px solid var(--line-strong);
     background: var(--surface);
     color: var(--ink);
-    transition: all 0.15s;
+    white-space: nowrap;
   }
-  .btn-act:hover { border-color: var(--ink); background: var(--surface-soft); }
   .btn-act:active { transform: scale(0.98); }
   .btn-act.primary {
     background: var(--ink);
     border-color: var(--ink);
     color: #FFFFFF;
   }
+  .btn-act.accent {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #FFFFFF;
+  }
 
-  /* ── DM 海報主體 ── */
+  /* ── DM 海報主畫布（支援 4 種風格主題變數） ── */
   .dm-sheet {
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--dm-bg);
+    border: 1px solid var(--dm-card-border);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-md);
     overflow: hidden;
+    transition: background 0.2s ease, color 0.2s ease;
   }
   .dm-header {
-    padding: 20px 24px 16px;
-    background: #1C1917;
-    color: #FFFFFF;
+    padding: 18px 22px 14px;
+    background: var(--dm-header-bg);
+    color: var(--dm-header-text);
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-    border-bottom: 3px solid var(--accent);
+    border-bottom: 3px solid var(--dm-accent);
   }
   .dm-eyebrow {
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.18em;
-    color: #D6B392;
-    margin-bottom: 3px;
+    color: var(--dm-eyebrow);
+    margin-bottom: 2px;
   }
   .dm-main-title {
     font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
-    font-size: clamp(20px, 2.5vw, 26px);
+    font-size: clamp(19px, 2.4vw, 25px);
     font-weight: 700;
     line-height: 1.25;
+    color: var(--dm-header-text);
   }
   .dm-subtitle {
-    margin-top: 4px;
-    font-size: 13px;
-    color: #D6D3CD;
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--dm-header-sub);
   }
 
-  /* 實景圖區 */
-  .dm-scene-hero {
-    position: relative;
-    background: #262320;
-    max-height: 310px;
+  /* ── 多張實景圖（1~4張）自動拼貼畫廊 ── */
+  .dm-scene-gallery {
+    padding: 14px 18px 4px;
+    background: var(--dm-bg);
+  }
+  @media (max-width: 560px) {
+    .dm-scene-gallery { padding: 10px 10px 2px; }
+  }
+  .scene-collage {
+    display: grid;
+    gap: 8px;
+    border-radius: 8px;
     overflow: hidden;
   }
-  .dm-scene-hero img {
+  /* 1 張實景 */
+  .scene-collage.count-1 {
+    grid-template-columns: 1fr;
+    height: 280px;
+  }
+  /* 2 張實景：左右雙併（手機版亦維持精緻雙圖或上下） */
+  .scene-collage.count-2 {
+    grid-template-columns: 1fr 1fr;
+    height: 260px;
+  }
+  /* 3 張實景：左 1 大圖 + 右 2 小圖（雜誌 Bento 排版） */
+  .scene-collage.count-3 {
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 310px;
+  }
+  .scene-collage.count-3 .sc-item:first-child {
+    grid-row: 1 / span 2;
+  }
+  /* 4 張實景：2x2 四宮格空間應用 */
+  .scene-collage.count-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 320px;
+  }
+  /* 義式畫報風時放大實景區高度 */
+  .dm-sheet[data-style="editorial"] .scene-collage.count-1 { height: 350px; }
+  .dm-sheet[data-style="editorial"] .scene-collage.count-2 { height: 320px; }
+  .dm-sheet[data-style="editorial"] .scene-collage.count-3,
+  .dm-sheet[data-style="editorial"] .scene-collage.count-4 { height: 380px; }
+
+  @media (max-width: 560px) {
+    .scene-collage.count-1 { height: 200px; }
+    .scene-collage.count-2 { height: 175px; gap: 6px; }
+    .scene-collage.count-3 { height: 220px; gap: 6px; }
+    .scene-collage.count-4 { height: 230px; gap: 6px; }
+  }
+
+  .sc-item {
+    position: relative;
     width: 100%;
-    height: 290px;
+    height: 100%;
+    overflow: hidden;
+    background: #262320;
+    border-radius: 6px;
+  }
+  .sc-item img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     display: block;
     cursor: pointer;
+    transition: transform 0.3s ease;
   }
-  .dm-scene-caption {
+  .sc-item:hover img { transform: scale(1.03); }
+  .sc-tag {
     position: absolute;
-    bottom: 10px;
-    left: 14px;
-    right: 14px;
-    display: flex;
-    justify-content: space-between;
+    bottom: 6px;
+    left: 6px;
+    background: rgba(20, 18, 16, 0.76);
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
     pointer-events: none;
   }
-  .scene-badge {
-    pointer-events: auto;
-    background: rgba(28, 25, 23, 0.82);
-    color: #FFFFFF;
-    padding: 4px 10px;
-    border-radius: 5px;
-    font-size: 11.5px;
-    font-weight: 600;
-    border: 1px solid rgba(255,255,255,0.15);
-    cursor: pointer;
-  }
 
-  /* 緊湊型多品項網格：電腦版一排 4~5 張，手機版一排 2 張 */
+  /* ── 單片磁磚高密度網格 ── */
   .dm-body {
-    padding: 18px 20px;
-    background: var(--surface-soft);
+    padding: 14px 18px 18px;
+    background: var(--dm-bg);
   }
   .dm-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 10px;
   }
   @media (max-width: 560px) {
-    .dm-body { padding: 12px; }
+    .dm-body { padding: 10px; }
     .dm-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
     }
   }
 
   /* 精簡版磁磚卡片 */
   .tile-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-card);
+    background: var(--dm-card-bg);
+    border: 1px solid var(--dm-card-border);
+    border-radius: 8px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-sm);
     position: relative;
   }
-  /* 已淘汰/不想要的單品可在製作時點右上角 × 踢除 */
   .remove-item-btn {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 5px;
+    right: 5px;
     z-index: 5;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     border: none;
     background: rgba(28, 25, 23, 0.65);
     color: #fff;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.15s;
   }
   .tile-card:hover .remove-item-btn { opacity: 1; }
-  @media (hover: none) {
-    .remove-item-btn { opacity: 0.85; }
-  }
+  @media (hover: none) { .remove-item-btn { opacity: 0.85; } }
 
   .tile-stage {
-    height: 148px;
-    background: var(--surface-muted);
-    padding: 12px;
+    height: 136px;
+    background: var(--dm-stage-bg);
+    padding: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--dm-card-border);
   }
   @media (max-width: 560px) {
-    .tile-stage { height: 126px; padding: 10px; }
+    .tile-stage { height: 112px; padding: 8px; }
   }
   .tile-stage img.piece-img {
     max-width: 100%;
@@ -450,41 +647,38 @@
     height: auto;
     object-fit: contain;
     display: block;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
     border-radius: 2px;
     cursor: pointer;
   }
-
-  /* 產地國旗直接疊在圖片左下角 */
   .origin-flag {
     position: absolute;
-    bottom: 6px;
-    left: 8px;
-    font-size: 15px;
+    bottom: 5px;
+    left: 7px;
+    font-size: 14px;
     line-height: 1;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
     pointer-events: none;
   }
   .scene-dot-btn {
     position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background: rgba(28, 25, 23, 0.78);
+    bottom: 5px;
+    right: 5px;
+    background: rgba(20, 18, 16, 0.78);
     color: #fff;
     border: none;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     cursor: pointer;
   }
 
-  /* 精簡版卡片資訊區 */
   .tile-info {
-    padding: 10px 12px;
+    padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     flex: 1;
   }
   .tile-head {
@@ -494,156 +688,229 @@
     gap: 4px;
   }
   .tile-code {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
-    color: var(--ink);
+    color: var(--dm-ink);
   }
   .tile-size {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--dm-accent);
   }
   .tile-series {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    color: var(--ink-2);
+    color: var(--dm-ink-2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .tile-stock-line {
-    margin-top: 4px;
-    padding-top: 6px;
-    border-top: 1px dashed var(--line-strong);
+    margin-top: 3px;
+    padding-top: 5px;
+    border-top: 1px dashed var(--dm-card-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 12.5px;
+    font-size: 11.5px;
   }
   .stock-val {
     font-weight: 800;
-    color: var(--green);
+    color: var(--dm-stock);
   }
   .price-line {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 800;
-    color: var(--accent);
+    color: var(--dm-accent);
   }
 
   .card-actions {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 4px;
-    padding: 7px 10px 9px;
-    background: var(--surface-soft);
-    border-top: 1px solid var(--line);
+    padding: 6px 8px 8px;
+    background: var(--dm-card-bg);
+    border-top: 1px solid var(--dm-card-border);
   }
   .card-btn {
-    height: 27px;
-    border-radius: 5px;
-    border: 1px solid var(--line-strong);
-    background: var(--surface);
-    color: var(--ink-2);
-    font-size: 11px;
+    height: 25px;
+    border-radius: 4px;
+    border: 1px solid var(--dm-card-border);
+    background: transparent;
+    color: var(--dm-ink-2);
+    font-size: 10.5px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    transition: all 0.12s;
   }
-  .card-btn:hover { border-color: var(--ink); color: var(--ink); }
   .card-btn.accent {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--dm-accent);
+    border-color: var(--dm-accent);
     color: #fff;
   }
 
-  /* DM 底部（含庫存有效時間與 QR Code） */
+  /* DM 底部（有效時間 + QR） */
   .dm-footer {
-    padding: 14px 22px;
-    background: var(--surface);
-    border-top: 1px solid var(--line);
+    padding: 12px 18px;
+    background: var(--dm-card-bg);
+    border-top: 1px solid var(--dm-card-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .dm-valid-time {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
-    color: var(--ink-2);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    color: var(--dm-ink);
   }
   .dm-valid-sub {
-    font-size: 11.5px;
-    color: var(--muted);
+    font-size: 10.5px;
+    color: var(--dm-muted);
     font-weight: 500;
   }
   .dm-qr-box {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: var(--surface-soft);
-    padding: 6px 10px;
+    gap: 7px;
+    background: #FFFFFF;
+    padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid var(--line);
   }
-  .dm-qr-box img {
-    width: 44px;
-    height: 44px;
-    display: block;
+  .dm-qr-box img { width: 40px; height: 40px; display: block; }
+  .dm-qr-txt { font-size: 10px; color: #1C1917; font-weight: 700; line-height: 1.25; }
+
+  /* ── 底部懸浮「多頁 PDF 電子目錄工作台」與手機快捷列 ── */
+  .bottom-dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 500;
+    background: rgba(28, 25, 23, 0.96);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
   }
-  .dm-qr-txt {
+  .dock-inner {
+    max-width: 1420px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pdf-queue-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .pdf-badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .pdf-page-chip {
+    background: rgba(255,255,255,0.12);
+    color: #F5F2EB;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .pdf-page-chip button {
+    border: none;
+    background: transparent;
+    color: #FCA5A5;
+    font-weight: 800;
+    cursor: pointer;
     font-size: 11px;
-    color: var(--ink-2);
+  }
+  .dock-btns {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+  }
+  .dock-btn {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 12.5px;
     font-weight: 700;
-    line-height: 1.3;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .dock-btn.gold {
+    background: #C59B27;
+    border-color: #C59B27;
+    color: #141312;
+    font-weight: 800;
   }
 
   .state-box {
-    padding: 48px 20px;
+    padding: 44px 16px;
     text-align: center;
-    color: var(--muted);
-    font-size: 14px;
+    color: var(--dm-muted);
+    font-size: 13.5px;
   }
 
-  /* Modal & Toast */
   .toast {
     position: fixed;
-    bottom: 20px;
+    bottom: 76px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--ink);
     color: #fff;
-    padding: 9px 18px;
+    padding: 9px 16px;
     border-radius: var(--radius-ctrl);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease;
     z-index: 9999;
+    white-space: nowrap;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(28, 25, 23, 0.78);
+    background: rgba(20, 18, 16, 0.82);
     backdrop-filter: blur(4px);
     z-index: 3000;
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: 14px;
   }
   .modal-backdrop.open { display: flex; }
   .modal-card {
@@ -651,21 +918,20 @@
     border-radius: var(--radius-card);
     max-width: 520px;
     width: 100%;
-    max-height: 92vh;
+    max-height: 90vh;
     overflow-y: auto;
-    padding: 16px;
-    box-shadow: var(--shadow-md);
+    padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   .modal-head { display: flex; align-items: center; justify-content: space-between; }
-  .modal-title { font-size: 14.5px; font-weight: 800; }
+  .modal-title { font-size: 14px; font-weight: 800; }
   .modal-close {
     border: 1px solid var(--line-strong);
     background: var(--surface-soft);
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 800;
@@ -685,7 +951,7 @@
   <div class="topbar-inner">
     <div class="brand-wrap">
       <div class="brand-mark">EL</div>
-      <div class="brand-title">高雅瓷 · 產品文宣 DM 產生器</div>
+      <div class="brand-title">高雅瓷 · DM 與電子目錄產生器</div>
     </div>
 
     <div class="top-controls staff-only">
@@ -693,17 +959,19 @@
         <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
         <span>顯示單價</span>
       </label>
-      <button type="button" class="btn-act" onclick="toggleClientPreview()">
-        <span id="btnClientPreviewTxt">預覽客戶端畫面</span>
+      <button type="button" class="mob-filter-toggle" onclick="toggleMobileFilter()">
+        <span id="mobFilterBtnTxt">篩選條件 ▾</span>
+      </button>
+      <button type="button" class="btn-act hide-on-mob" onclick="toggleClientPreview()">
+        <span id="btnClientPreviewTxt">預覽客戶視角</span>
       </button>
     </div>
   </div>
 </header>
 
 <main class="workspace">
-  <!-- 左側極簡控制欄（僅業務看得到） -->
-  <aside class="ctrl-panel">
-    <!-- 1. 選擇模式（預設：單一系列） -->
+  <!-- 左側篩選控制欄（手機版預設收起，點「篩選條件」展開，讓手機第一眼直看 DM） -->
+  <aside class="ctrl-panel" id="ctrlPanel">
     <div>
       <div class="sec-title">
         <span>1. 選擇生成方式</span>
@@ -715,54 +983,45 @@
       </div>
     </div>
 
-    <!-- 模式 A：單一系列（預設） -->
-    <div id="seriesFilterBox" style="display:flex;flex-direction:column;gap:10px;">
-      <div>
-        <div class="sec-title">搜尋系列名稱或編號</div>
-        <input type="text" id="seriesSearchInput" class="input" placeholder="輸入系列（例：沙丘、波特蘭）或編號..." oninput="filterSeriesSelect()">
-      </div>
-      <div>
-        <div class="sec-title">選擇系列</div>
-        <select id="selSeries" class="select" onchange="pickBySeries()"></select>
-      </div>
+    <!-- 模式 A：單一系列 -->
+    <div id="seriesFilterBox" style="display:flex;flex-direction:column;gap:8px;">
+      <input type="text" id="seriesSearchInput" class="input" placeholder="搜尋系列（如：沙丘、波特蘭）或編號..." oninput="filterSeriesSelect()">
+      <select id="selSeries" class="select" onchange="pickBySeries()"></select>
     </div>
 
-    <!-- 模式 B：尺寸（±1cm 容差）× 風格 -->
-    <div id="themeFilterBox" style="display:none;flex-direction:column;gap:12px;">
+    <!-- 模式 B：尺寸（±1cm）× 風格 -->
+    <div id="themeFilterBox" style="display:none;flex-direction:column;gap:10px;">
       <div>
-        <div class="sec-title">
-          <span>常用尺寸（自動含 ±1cm 規格）</span>
-        </div>
+        <div class="sec-title"><span>標準尺寸（±1cm 自動歸類）</span></div>
         <div class="chip-group" id="sizeChips">
           <button type="button" class="chip active" data-sz="60x120" onclick="selectSizeChip('60x120')">60×120</button>
           <button type="button" class="chip" data-sz="45x90" onclick="selectSizeChip('45x90')">45×90</button>
-          <button type="button" class="chip" data-sz="30x60" onclick="selectSizeChip('30x60')">30×60</button>
+          <button type="button" class="chip" data-sz="30×60" onclick="selectSizeChip('30x60')">30×60</button>
           <button type="button" class="chip" data-sz="120x120" onclick="selectSizeChip('120x120')">120×120</button>
           <button type="button" class="chip" data-sz="20x120" onclick="selectSizeChip('20x120')">20×120</button>
           <button type="button" class="chip" data-sz="" onclick="selectSizeChip('')">不限</button>
         </div>
-        <input type="text" id="customSizeInput" class="input" style="margin-top:7px;" placeholder="或手打尺寸 (例: 7.5x25、20x20)" oninput="onCustomSizeInput()">
+        <input type="text" id="customSizeInput" class="input" style="margin-top:6px;" placeholder="或手打尺寸 (例: 7.5x25、20x20)" oninput="onCustomSizeInput()">
       </div>
 
       <div>
-        <div class="sec-title">磚種風格</div>
+        <div class="sec-title"><span>磚種風格</span></div>
         <div class="chip-group" id="styleChips">
-          <button type="button" class="chip active" data-st="" onclick="selectStyleChip('')">全部風格</button>
-          <button type="button" class="chip" data-st="石紋" onclick="selectStyleChip('石紋')">石紋 / 理石</button>
+          <button type="button" class="chip active" data-st="" onclick="selectStyleChip('')">全部</button>
+          <button type="button" class="chip" data-st="石紋" onclick="selectStyleChip('石紋')">石紋/理石</button>
           <button type="button" class="chip" data-st="木紋" onclick="selectStyleChip('木紋')">木紋磚</button>
           <button type="button" class="chip" data-st="大版" onclick="selectStyleChip('大版')">大板磚</button>
           <button type="button" class="chip" data-st="花磚" onclick="selectStyleChip('花磚')">花磚</button>
           <button type="button" class="chip" data-st="六角" onclick="selectStyleChip('六角')">六角磚</button>
-          <button type="button" class="chip" data-st="地鐵" onclick="selectStyleChip('地鐵')">地鐵磚 / 條磚</button>
+          <button type="button" class="chip" data-st="地鐵" onclick="selectStyleChip('地鐵')">地鐵磚</button>
         </div>
       </div>
     </div>
 
     <div class="divider"></div>
 
-    <!-- 2. 產品身分與顯示筆數 -->
     <div>
-      <div class="sec-title">2. 產品分類（睡美人 / 正常 / 不續辦）</div>
+      <div class="sec-title"><span>2. 產品分類</span></div>
       <div class="chip-group" id="levelChips">
         <button type="button" class="chip active" data-lv="all" onclick="setLevel('all')">全部</button>
         <button type="button" class="chip" data-lv="level1" onclick="setLevel('level1')">睡美人</button>
@@ -772,41 +1031,66 @@
     </div>
 
     <div>
-      <div class="sec-title">3. 單頁排列數量上限</div>
+      <div class="sec-title"><span>3. 單頁排列上限</span></div>
       <select id="selCount" class="select" onchange="applyAndPick()">
-        <option value="12" selected>一次排 12 款（標準總覽）</option>
-        <option value="16">一次排 16 款（高密度型錄）</option>
-        <option value="24">一次排 24 款（全系列大表）</option>
-        <option value="8">一次排 8 款（精選卡片）</option>
+        <option value="12" selected>單頁 12 款</option>
+        <option value="16">單頁 16 款</option>
+        <option value="24">單頁 24 款</option>
+        <option value="8">單頁 8 款</option>
       </select>
     </div>
 
     <button type="button" class="btn-random" onclick="randomizePick()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
-      <span id="btnRandomTxt">隨機換一個系列</span>
+      <span id="btnRandomTxt">🎲 隨機換一個系列</span>
     </button>
   </aside>
 
-  <!-- 右側 DM 畫布 -->
+  <!-- 右側預覽區 -->
   <section class="preview-col">
-    <div class="action-bar">
-      <div class="stat-pill">
-        <span>目前呈現：<strong id="showingCountTxt">0</strong> 款現貨</span>
-        <span class="staff-only" style="color:var(--muted);font-size:12px;margin-left:6px;">（點卡片右上角 × 可單獨移除該款）</span>
+    <!-- DM 風格預覽選擇 ＋ 實景圖張數排版選擇（手機可橫滑一鍵切換） -->
+    <div class="style-preview-bar staff-only">
+      <div class="bar-group">
+        <span class="bar-lbl">DM風格：</span>
+        <button type="button" class="style-pill active" data-st="warm" onclick="setDmStyle('warm')">
+          <i class="swatch-dot" style="background:#8C5A32"></i>現代暖米
+        </button>
+        <button type="button" class="style-pill" data-st="luxury" onclick="setDmStyle('luxury')">
+          <i class="swatch-dot" style="background:#D4AF37"></i>奢石黑金
+        </button>
+        <button type="button" class="style-pill" data-st="minimal" onclick="setDmStyle('minimal')">
+          <i class="swatch-dot" style="background:#1F4D3A"></i>北歐極簡
+        </button>
+        <button type="button" class="style-pill" data-st="editorial" onclick="setDmStyle('editorial')">
+          <i class="swatch-dot" style="background:#9E582F"></i>實景畫報
+        </button>
       </div>
-      <div class="action-btns">
-        <button type="button" class="btn-act staff-only" onclick="copyShareLink()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          <span>複製客戶專屬連結</span>
-        </button>
-        <button type="button" class="btn-act primary" onclick="exportFullPosterJPG()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>下載整張 DM (JPG)</span>
-        </button>
+
+      <div class="bar-group">
+        <span class="bar-lbl">實景排版：</span>
+        <button type="button" class="style-pill active" data-sc="auto" onclick="setSceneLayout('auto')">自動(2~4張)</button>
+        <button type="button" class="style-pill" data-sc="1" onclick="setSceneLayout('1')">單張大圖</button>
+        <button type="button" class="style-pill" data-sc="2" onclick="setSceneLayout('2')">2張雙併</button>
+        <button type="button" class="style-pill" data-sc="3" onclick="setSceneLayout('3')">3張雜誌(1大2小)</button>
+        <button type="button" class="style-pill" data-sc="4" onclick="setSceneLayout('4')">4張四宮格</button>
+        <button type="button" class="style-pill" data-sc="0" onclick="setSceneLayout('0')">隱藏實景</button>
       </div>
     </div>
 
-    <div class="dm-sheet" id="dmSheet">
+    <!-- 操作列 -->
+    <div class="action-bar">
+      <div class="stat-pill">
+        <span>本頁：<strong id="showingCountTxt">0</strong> 款</span>
+        <span style="margin-left:6px;color:var(--muted);font-size:11.5px;">(實景 <strong id="sceneCountTxt">0</strong> 張)</span>
+      </div>
+      <div class="action-btns">
+        <button type="button" class="btn-act staff-only" onclick="randomizePick()">🎲 隨機換</button>
+        <button type="button" class="btn-act staff-only" onclick="copyShareLink()">🔗 分享連結</button>
+        <button type="button" class="btn-act primary" onclick="exportFullPosterJPG()">📥 下載單頁 JPG</button>
+      </div>
+    </div>
+
+    <!-- DM 海報本體 -->
+    <div class="dm-sheet" id="dmSheet" data-style="warm">
       <div class="dm-header">
         <div>
           <div class="dm-eyebrow">ELITILE IMPORTED PORCELAIN TILES</div>
@@ -815,29 +1099,26 @@
         </div>
       </div>
 
-      <!-- 若該系列或主題有實景圖，頂部呈現實景主視覺 -->
-      <div class="dm-scene-hero" id="dmSceneHero" style="display:none;">
-        <img id="dmSceneImg" alt="空間實景圖" onclick="openImageZoom(this.src, '空間實景應用圖')">
-        <div class="dm-scene-caption">
-          <span class="scene-badge" id="dmSceneCaptionTxt">空間實景參考</span>
-          <button type="button" class="scene-badge" id="btnNextScene" onclick="cycleSceneHero()" style="display:none;">切換實景圖</button>
-        </div>
+      <!-- 2~4 張實景圖多版型拼貼區 -->
+      <div class="dm-scene-gallery" id="dmSceneGallery" style="display:none;">
+        <div class="scene-collage count-1" id="sceneCollage"></div>
       </div>
 
+      <!-- 單片網格 -->
       <div class="dm-body" id="dmBody">
         <div class="state-box">正在載入產品與庫存資料...</div>
       </div>
 
       <div class="dm-footer">
-        <div class="dm-valid-time">
-          <div id="dmValidTimeTxt">庫存有效時間：載入中</div>
-          <div class="dm-valid-sub">現場庫存即時變動，如需鎖貨請直接點選卡片「保留」按鈕或洽負責業務</div>
+        <div>
+          <div class="dm-valid-time" id="dmValidTimeTxt">庫存有效時間：載入中</div>
+          <div class="dm-valid-sub">現場庫存即時變動，如需鎖貨請點選卡片「下保留」或洽負責業務</div>
         </div>
         <div class="dm-qr-box">
           <img id="dmQrImg" alt="QR Code" src="">
           <div class="dm-qr-txt">
-            <div>掃描開啟互動頁</div>
-            <div style="color:var(--muted);font-weight:500;font-size:10px;">點圖看大圖 · 直接下保留</div>
+            <div>掃描開互動頁</div>
+            <div style="color:#78716C;font-weight:500;">看實景 · 下保留</div>
           </div>
         </div>
       </div>
@@ -845,7 +1126,21 @@
   </section>
 </main>
 
-<!-- 單片預覽 / 海報下載 Modal -->
+<!-- 底部固定：多頁 PDF 電子目錄快速組裝工作台 -->
+<div class="bottom-dock staff-only">
+  <div class="dock-inner">
+    <div class="pdf-queue-info" id="pdfQueueInfo">
+      <span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：0 頁</span>
+      <span style="font-size:12px;color:#D6D3CD;" id="pdfEmptyHint">可將多個不同系列或尺寸加入目錄籃，一次匯出多頁 PDF 電子型錄</span>
+    </div>
+    <div class="dock-btns">
+      <button type="button" class="dock-btn" onclick="addCurrentPageToPdfQueue()">➕ 加入此頁至 PDF</button>
+      <button type="button" class="dock-btn gold" onclick="generateMultiPagePDF()">📄 快速生成 PDF 電子目錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- 預覽 Modal -->
 <div class="modal-backdrop" id="previewModal" onclick="if(event.target===this)closeModal()">
   <div class="modal-card">
     <div class="modal-head">
@@ -867,27 +1162,45 @@ const SB_URL = "https://vzpizjhlwxsfzbiguvfo.supabase.co";
 const SB_KEY = "sb_publishable_wXvQ3jLB3tXGdkp-8Vgl7w_8A3Vn4gT";
 const GAS_API = "https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7NvkB2oNGVMfXwJRJvMZcCR0GYhpNlIbTtEwqy_G4pVJ5N-x/exec";
 
+const STYLE_PALETTES = {
+  warm: {
+    bg: "#FAF8F5", headerBg: "#1C1917", headerText: "#FFFFFF", headerSub: "#D6D3CD",
+    eyebrow: "#D6B392", accent: "#8C5A32", cardBg: "#FFFFFF", cardBorder: "#E5E0D5",
+    stageBg: "#EFECE4", ink: "#1C1917", ink2: "#44403C", muted: "#78716C", stock: "#1F5E3B"
+  },
+  luxury: {
+    bg: "#141312", headerBg: "#0B0A09", headerText: "#F7F3EB", headerSub: "#A8A096",
+    eyebrow: "#D4AF37", accent: "#C59B27", cardBg: "#1E1C1A", cardBorder: "#332F2B",
+    stageBg: "#272421", ink: "#F5F2EB", ink2: "#C7C0B8", muted: "#8C857B", stock: "#5CE096"
+  },
+  minimal: {
+    bg: "#FFFFFF", headerBg: "#1F4D3A", headerText: "#FFFFFF", headerSub: "#D5E6DF",
+    eyebrow: "#A8D5C2", accent: "#1F4D3A", cardBg: "#FFFFFF", cardBorder: "#E2E8F0",
+    stageBg: "#F8FAFC", ink: "#0F172A", ink2: "#334155", muted: "#64748B", stock: "#15803D"
+  },
+  editorial: {
+    bg: "#EFECE6", headerBg: "#2C2520", headerText: "#FAF6F0", headerSub: "#C9BFB5",
+    eyebrow: "#E0A96D", accent: "#9E582F", cardBg: "#FAF8F5", cardBorder: "#DCD6CA",
+    stageBg: "#E5E0D5", ink: "#241E1A", ink2: "#4A4039", muted: "#7A7067", stock: "#1F5E3B"
+  }
+};
+
 let allProducts = [];
 let filteredPool = [];
 let currentPicked = [];
-let currentMode = "series";   // 預設直接進「單一系列」
+let currentMode = "series";
 let currentLevel = "all";
 let selectedSize = "60x120";
 let selectedStyle = "";
+let currentDmStyle = "warm";
+let currentSceneLayout = "auto"; // 'auto' | '1' | '2' | '3' | '4' | '0'
 let heroScenes = [];
-let heroSceneIdx = 0;
 let snapshotTimeStr = "";
+let pdfPagesQueue = []; // 儲存多頁 PDF 的設定快照
 
 const ORIGIN_FLAG_MAP = {
-  "義大利": "🇮🇹",
-  "西班牙": "🇪🇸",
-  "葡萄牙": "🇵🇹",
-  "台灣": "🇹🇼",
-  "馬來西亞": "🇲🇾",
-  "印度": "🇮🇳",
-  "越南": "🇻🇳",
-  "土耳其": "🇹🇷",
-  "巴西": "🇧🇷"
+  "義大利": "🇮🇹", "西班牙": "🇪🇸", "葡萄牙": "🇵🇹", "台灣": "🇹🇼",
+  "馬來西亞": "🇲🇾", "印度": "🇮🇳", "越南": "🇻🇳", "土耳其": "🇹🇷", "巴西": "🇧🇷"
 };
 
 function getOriginFlag(origin) {
@@ -898,29 +1211,23 @@ function getOriginFlag(origin) {
   return "";
 }
 
-// 坪數無條件捨去（不加「約」字，例如 1.1 -> 1、4.8 -> 4.5、0.9 -> 0.5）
 function formatFloorPing(rawPing) {
   const n = Number(rawPing) || 0;
   if (n <= 0) return "0";
-  if (n < 1) {
-    return n >= 0.5 ? "0.5" : String(Math.floor(n * 10) / 10);
-  }
+  if (n < 1) return n >= 0.5 ? "0.5" : String(Math.floor(n * 10) / 10);
   const flooredHalf = Math.floor(n * 2) / 2;
   return Number.isInteger(flooredHalf) ? String(flooredHalf) : flooredHalf.toFixed(1);
 }
 
-// 解析尺寸字串為 [短邊, 長邊] 數值陣列，供 ±1cm 比對
 function parseSizeNums(sizeStr) {
   const s = String(sizeStr || "").replace(/[×*＊Ｘ]/g, "x");
   const m = s.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
   if (!m) return null;
-  const a = parseFloat(m[1]);
-  const b = parseFloat(m[2]);
+  const a = parseFloat(m[1]), b = parseFloat(m[2]);
   if (isNaN(a) || isNaN(b)) return null;
   return [Math.min(a, b), Math.max(a, b)];
 }
 
-// 判斷兩個尺寸是否在 ±1cm 誤差內視為同一規格
 function isSizeMatchWithTolerance(itemSizeStr, targetSizeStr) {
   if (!targetSizeStr) return true;
   const targetNums = parseSizeNums(targetSizeStr);
@@ -942,7 +1249,13 @@ function showToast(msg) {
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove("show"), 2400);
+  el._t = setTimeout(() => el.classList.remove("show"), 2500);
+}
+
+function toggleMobileFilter() {
+  const panel = document.getElementById("ctrlPanel");
+  const isOpen = panel.classList.toggle("mob-open");
+  document.getElementById("mobFilterBtnTxt").textContent = isOpen ? "收起篩選 ▴" : "篩選條件 ▾";
 }
 
 function normalizeImgUrl(raw, forCanvas = false) {
@@ -950,9 +1263,7 @@ function normalizeImgUrl(raw, forCanvas = false) {
   let u = String(raw).split("#")[0].trim();
   if (!u) return "";
   const idMatch = u.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{15,})/);
-  if (idMatch) {
-    u = `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1000`;
-  }
+  if (idMatch) u = `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1000`;
   if (forCanvas && !u.includes("r2.dev")) {
     return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=1000&output=jpg`;
   }
@@ -1038,20 +1349,27 @@ function renderSeriesOptions(kw) {
   allProducts.forEach(p => {
     if (currentLevel !== "all" && p.level !== currentLevel) return;
     if (q && !p.series.toUpperCase().includes(q) && !p.code.includes(q)) return;
-    const item = map.get(p.series) || { count: 0, size: p.size, hasScene: false };
+    const item = map.get(p.series) || { count: 0, size: p.size, sceneCount: 0, seenScenes: new Set() };
     item.count++;
-    if (p.scenes.length > 0) item.hasScene = true;
+    p.scenes.forEach(sc => {
+      if (!item.seenScenes.has(sc)) {
+        item.seenScenes.add(sc);
+        item.sceneCount++;
+      }
+    });
     map.set(p.series, item);
   });
 
-  // 優先把款式較多且有實景圖的系列排前面
+  // 優先把實景圖豐富（2~4張以上）且款式多的系列排在最前面
   const entries = Array.from(map.entries()).sort((a, b) => {
-    if (a[1].hasScene !== b[1].hasScene) return b[1].hasScene ? 1 : -1;
+    const aRich = a[1].sceneCount >= 2 ? 2 : (a[1].sceneCount === 1 ? 1 : 0);
+    const bRich = b[1].sceneCount >= 2 ? 2 : (b[1].sceneCount === 1 ? 1 : 0);
+    if (aRich !== bRich) return bRich - aRich;
     return b[1].count - a[1].count;
   });
 
   selSeries.innerHTML = entries.map(([ser, info]) =>
-    `<option value="${ser}">${ser}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款）</option>`
+    `<option value="${ser}">${ser}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.sceneCount ? " · 實景" + info.sceneCount + "張" : ""}）</option>`
   ).join("");
 }
 
@@ -1060,13 +1378,25 @@ function filterSeriesSelect() {
   pickBySeries();
 }
 
+function setDmStyle(st) {
+  currentDmStyle = st;
+  document.getElementById("dmSheet").setAttribute("data-style", st);
+  document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === st));
+}
+
+function setSceneLayout(sc) {
+  currentSceneLayout = sc;
+  document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
+  renderDM();
+}
+
 function switchMode(mode) {
   currentMode = mode;
   document.getElementById("tabSeries").classList.toggle("active", mode === "series");
   document.getElementById("tabTheme").classList.toggle("active", mode === "theme");
   document.getElementById("seriesFilterBox").style.display = mode === "series" ? "flex" : "none";
   document.getElementById("themeFilterBox").style.display = mode === "theme" ? "flex" : "none";
-  document.getElementById("btnRandomTxt").textContent = mode === "series" ? "隨機換一個系列" : "隨機換一批產品";
+  document.getElementById("btnRandomTxt").textContent = mode === "series" ? "🎲 隨機換一個系列" : "🎲 隨機換一批產品";
 
   if (mode === "series") {
     renderSeriesOptions(document.getElementById("seriesSearchInput").value);
@@ -1084,8 +1414,7 @@ function selectSizeChip(sz) {
 }
 
 function onCustomSizeInput() {
-  const val = document.getElementById("customSizeInput").value.trim();
-  selectedSize = val;
+  selectedSize = document.getElementById("customSizeInput").value.trim();
   document.querySelectorAll("#sizeChips .chip").forEach(b => b.classList.remove("active"));
   applyAndPick();
 }
@@ -1118,9 +1447,7 @@ function pickBySeries() {
 }
 
 function applyAndPick() {
-  if (currentMode === "series") {
-    return pickBySeries();
-  }
+  if (currentMode === "series") return pickBySeries();
   filteredPool = allProducts.filter(p => {
     if (currentLevel !== "all" && p.level !== currentLevel) return false;
     if (selectedSize && !isSizeMatchWithTolerance(p.size, selectedSize)) return false;
@@ -1142,7 +1469,7 @@ function applyAndPick() {
   document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
   const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 12;
   const shuffled = [...filteredPool].sort(() => Math.random() - 0.5);
-  shuffled.sort((a, b) => (b.scenes.length > 0 ? 1 : 0) - (a.scenes.length > 0 ? 1 : 0));
+  shuffled.sort((a, b) => b.scenes.length - a.scenes.length);
   currentPicked = shuffled.slice(0, maxCnt);
   setupHeroScenes();
   renderDM();
@@ -1152,7 +1479,13 @@ function randomizePick() {
   if (currentMode === "series") {
     const sel = document.getElementById("selSeries");
     if (sel.options.length > 0) {
-      sel.selectedIndex = Math.floor(Math.random() * sel.options.length);
+      // 優先抽有實景圖的系列
+      const richIndices = [];
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].text.includes("實景")) richIndices.push(i);
+      }
+      const pool = richIndices.length > 0 ? richIndices : Array.from({ length: sel.options.length }, (_, i) => i);
+      sel.selectedIndex = pool[Math.floor(Math.random() * pool.length)];
       pickBySeries();
     }
     return;
@@ -1166,32 +1499,42 @@ function removePickedCard(code) {
   renderDM();
 }
 
+// 收集並去重實景圖（支援 2~4 張多圖展示）
 function setupHeroScenes() {
+  const seen = new Set();
   heroScenes = [];
   currentPicked.forEach(p => {
     p.scenes.forEach(sc => {
-      heroScenes.push({ url: sc, code: p.code, series: p.series });
+      if (!seen.has(sc)) {
+        seen.add(sc);
+        heroScenes.push({ url: sc, code: p.code, series: p.series });
+      }
     });
   });
-  heroSceneIdx = 0;
 }
 
-function cycleSceneHero() {
-  if (heroScenes.length <= 1) return;
-  heroSceneIdx = (heroSceneIdx + 1) % heroScenes.length;
-  const cur = heroScenes[heroSceneIdx];
-  document.getElementById("dmSceneImg").src = cur.url;
-  document.getElementById("dmSceneCaptionTxt").textContent = `空間實景：${cur.series} (${cur.code}) · ${heroSceneIdx + 1}/${heroScenes.length}`;
+function getActiveScenesForDisplay() {
+  if (currentSceneLayout === "0" || heroScenes.length === 0) return [];
+  if (currentSceneLayout === "auto") {
+    return heroScenes.slice(0, Math.min(4, heroScenes.length));
+  }
+  const targetN = parseInt(currentSceneLayout, 10) || 1;
+  // 若該系列實景圖不足指定張數，循環或取現有張數補齊以展示多圖排版效果
+  const list = [];
+  for (let i = 0; i < Math.min(targetN, Math.max(heroScenes.length, targetN)); i++) {
+    list.push(heroScenes[i % heroScenes.length]);
+  }
+  return list;
 }
 
-function buildDynamicTitle() {
-  if (currentMode === "series") {
-    const ser = document.getElementById("selSeries").value || (currentPicked[0] && currentPicked[0].series) || "精選系列";
-    const first = currentPicked[0];
+function buildDynamicTitle(pickedList = currentPicked, mode = currentMode) {
+  if (mode === "series") {
+    const first = pickedList[0];
+    const ser = (first && first.series) || document.getElementById("selSeries").value || "精選系列";
     const sz = first && first.size ? first.size.replace(/x/gi, "×") + " cm" : "";
     return {
       title: `${ser}系列`,
-      sub: `${sz ? "規格 " + sz + " · " : ""}現貨共 ${currentPicked.length} 款`
+      sub: `${sz ? "規格 " + sz + " · " : ""}現貨共 ${pickedList.length} 款`
     };
   }
   const parts = [];
@@ -1200,12 +1543,15 @@ function buildDynamicTitle() {
   const headStr = parts.length > 0 ? parts.join(" · ") : "精選磁磚";
   return {
     title: headStr,
-    sub: `現貨共 ${currentPicked.length} 款`
+    sub: `現貨共 ${pickedList.length} 款`
   };
 }
 
 function renderDM() {
   document.getElementById("showingCountTxt").textContent = currentPicked.length;
+  const activeScenes = getActiveScenesForDisplay();
+  document.getElementById("sceneCountTxt").textContent = activeScenes.length;
+
   const { title, sub } = buildDynamicTitle();
   document.getElementById("dmTitle").textContent = title;
   document.getElementById("dmSubtitle").textContent = sub;
@@ -1214,15 +1560,21 @@ function renderDM() {
   const shareUrl = getShareUrl();
   document.getElementById("dmQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
 
-  const heroBox = document.getElementById("dmSceneHero");
-  if (heroScenes.length > 0) {
-    const cur = heroScenes[heroSceneIdx];
-    heroBox.style.display = "block";
-    document.getElementById("dmSceneImg").src = cur.url;
-    document.getElementById("dmSceneCaptionTxt").textContent = `空間實景：${cur.series} (${cur.code}) · ${heroSceneIdx + 1}/${heroScenes.length}`;
-    document.getElementById("btnNextScene").style.display = heroScenes.length > 1 ? "inline-block" : "none";
+  // 渲染 1~4 張實景圖拼貼區
+  const galleryBox = document.getElementById("dmSceneGallery");
+  const collageEl = document.getElementById("sceneCollage");
+  if (activeScenes.length > 0) {
+    galleryBox.style.display = "block";
+    const cnt = Math.min(4, activeScenes.length);
+    collageEl.className = `scene-collage count-${cnt}`;
+    collageEl.innerHTML = activeScenes.slice(0, 4).map((sc, i) => `
+      <div class="sc-item">
+        <img src="${sc.url}" alt="${sc.series}" onclick="openImageZoom('${sc.url}', '${sc.series} (${sc.code}) 空間實景圖 ${i + 1}')">
+        <span class="sc-tag">實景 ${i + 1} · ${sc.code}</span>
+      </div>
+    `).join("");
   } else {
-    heroBox.style.display = "none";
+    galleryBox.style.display = "none";
   }
 
   const body = document.getElementById("dmBody");
@@ -1250,7 +1602,7 @@ function renderDM() {
 
     return `
       <article class="tile-card">
-        <button type="button" class="remove-item-btn staff-only" title="從這張 DM 移除此款" onclick="removePickedCard('${p.code}')">✕</button>
+        <button type="button" class="remove-item-btn staff-only" title="移除此款" onclick="removePickedCard('${p.code}')">✕</button>
         <div class="tile-stage">
           <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}')">
           ${p.flag ? `<span class="origin-flag" title="${p.origin}">${p.flag}</span>` : ""}
@@ -1263,7 +1615,7 @@ function renderDM() {
           </div>
           <div class="tile-series">${p.series}</div>
           <div class="tile-stock-line">
-            <span style="color:var(--muted);font-weight:600;">可用</span>
+            <span style="color:var(--dm-muted);font-weight:600;">可用</span>
             <span class="stock-val">${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪</span>
           </div>
           ${priceHtml}
@@ -1282,7 +1634,7 @@ function renderDM() {
 
 function toggleClientPreview() {
   const isClient = document.body.classList.toggle("client-view");
-  document.getElementById("btnClientPreviewTxt").textContent = isClient ? "返回業務編輯" : "預覽客戶端畫面";
+  document.getElementById("btnClientPreviewTxt").textContent = isClient ? "返回業務編輯" : "預覽客戶視角";
 }
 
 function getShareUrl() {
@@ -1290,6 +1642,8 @@ function getShareUrl() {
   const u = new URL(window.location.href);
   u.search = "";
   if (codes) u.searchParams.set("codes", codes);
+  u.searchParams.set("style", currentDmStyle);
+  u.searchParams.set("sc", currentSceneLayout);
   if (document.getElementById("chkShowPrice").checked) u.searchParams.set("price", "1");
   u.searchParams.set("view", "client");
   return u.toString();
@@ -1298,7 +1652,7 @@ function getShareUrl() {
 function copyShareLink() {
   const url = getShareUrl();
   navigator.clipboard.writeText(url).then(() => {
-    showToast("已複製客戶專屬連結！客戶點開只會看到乾淨的 DM 與下保留按鈕。");
+    showToast("已複製客戶專屬連結！點開即呈現相同 DM 風格與實景排版。");
   }).catch(() => {
     showToast("連結：" + url);
   });
@@ -1306,12 +1660,11 @@ function copyShareLink() {
 
 function restoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("price") === "1") {
-    document.getElementById("chkShowPrice").checked = true;
-  }
-  if (params.get("view") === "client") {
-    document.body.classList.add("client-view");
-  }
+  if (params.get("price") === "1") document.getElementById("chkShowPrice").checked = true;
+  if (params.get("style") && STYLE_PALETTES[params.get("style")]) setDmStyle(params.get("style"));
+  if (params.get("sc")) setSceneLayout(params.get("sc"));
+  if (params.get("view") === "client") document.body.classList.add("client-view");
+
   const codesParam = params.get("codes");
   if (codesParam) {
     const codeList = codesParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
@@ -1323,12 +1676,11 @@ function restoreFromUrl() {
       return;
     }
   }
-  // 預設直接載入第一個系列
   pickBySeries();
 }
 
 function openImageZoom(src, title) {
-  document.getElementById("modalTitle").textContent = title || "圖片預覽";
+  document.getElementById("modalTitle").textContent = title || "預覽";
   document.getElementById("modalImg").src = src;
   const dl = document.getElementById("modalDownloadBtn");
   dl.href = src;
@@ -1372,38 +1724,310 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+function drawCoverImage(ctx, img, x, y, w, h, radius = 8) {
+  if (!img) return;
+  ctx.save();
+  roundRect(ctx, x, y, w, h, radius);
+  ctx.clip();
+  const sRatio = Math.max(w / img.width, h / img.height);
+  const sw = img.width * sRatio, sh = img.height * sRatio;
+  ctx.drawImage(img, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh);
+  ctx.restore();
+}
+
+// ── 將指定頁面配置渲染成高畫質 Canvas（供單頁 JPG 與多頁 PDF 共用） ──
+async function renderPageToCanvas(pageState) {
+  const { items, scenes, title, sub, dmStyle, showPrice, shareUrl } = pageState;
+  const pal = STYLE_PALETTES[dmStyle] || STYLE_PALETTES.warm;
+  const cols = items.length >= 9 ? 4 : 3;
+  const rows = Math.ceil(items.length / cols);
+  const scCount = Math.min(4, scenes.length);
+
+  const W = 1200;
+  const pad = 34;
+  const gap = 16;
+  const headerH = 135;
+  const heroH = scCount === 0 ? 0 : (dmStyle === "editorial" ? 410 : (scCount >= 3 ? 350 : 290));
+  const cardH = 305;
+  const footerH = 108;
+  const bodyH = rows * cardH + Math.max(0, rows - 1) * gap + pad * 2;
+  const H = headerH + (heroH ? heroH + 18 : 0) + bodyH + footerH;
+
+  const cv = document.createElement("canvas");
+  cv.width = W;
+  cv.height = H;
+  const ctx = cv.getContext("2d");
+
+  ctx.fillStyle = pal.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Header
+  ctx.fillStyle = pal.headerBg;
+  ctx.fillRect(0, 0, W, headerH);
+  ctx.fillStyle = pal.accent;
+  ctx.fillRect(0, headerH - 4, W, 4);
+
+  ctx.fillStyle = pal.eyebrow;
+  ctx.font = "700 14px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", pad, 42);
+
+  ctx.fillStyle = pal.headerText;
+  ctx.font = "800 34px 'Noto Sans TC', sans-serif";
+  ctx.fillText(title, pad, 88);
+
+  ctx.fillStyle = pal.headerSub;
+  ctx.font = "600 19px 'Noto Sans TC', sans-serif";
+  ctx.fillText(sub, pad, 118);
+
+  let curY = headerH;
+
+  // 1~4 張實景圖拼貼繪製
+  if (scCount > 0) {
+    curY += 18;
+    const scImgs = await Promise.all(scenes.slice(0, 4).map(s => loadImageForCanvas(s.url)));
+    const innerW = W - pad * 2;
+    const g = 10;
+
+    if (scCount === 1) {
+      drawCoverImage(ctx, scImgs[0], pad, curY, innerW, heroH, 10);
+    } else if (scCount === 2) {
+      const w2 = (innerW - g) / 2;
+      drawCoverImage(ctx, scImgs[0], pad, curY, w2, heroH, 10);
+      drawCoverImage(ctx, scImgs[1], pad + w2 + g, curY, w2, heroH, 10);
+    } else if (scCount === 3) {
+      const wLeft = Math.round(innerW * 0.57);
+      const wRight = innerW - wLeft - g;
+      const hHalf = (heroH - g) / 2;
+      drawCoverImage(ctx, scImgs[0], pad, curY, wLeft, heroH, 10);
+      drawCoverImage(ctx, scImgs[1], pad + wLeft + g, curY, wRight, hHalf, 10);
+      drawCoverImage(ctx, scImgs[2], pad + wLeft + g, curY + hHalf + g, wRight, hHalf, 10);
+    } else {
+      const w2 = (innerW - g) / 2;
+      const h2 = (heroH - g) / 2;
+      drawCoverImage(ctx, scImgs[0], pad, curY, w2, h2, 10);
+      drawCoverImage(ctx, scImgs[1], pad + w2 + g, curY, w2, h2, 10);
+      drawCoverImage(ctx, scImgs[2], pad, curY + h2 + g, w2, h2, 10);
+      drawCoverImage(ctx, scImgs[3], pad + w2 + g, curY + h2 + g, w2, h2, 10);
+    }
+    curY += heroH;
+  }
+
+  // 繪製單片卡片網格
+  const pieceImgs = await Promise.all(items.map(p => loadImageForCanvas(p.mainImg)));
+  const cardW = (W - pad * 2 - gap * (cols - 1)) / cols;
+
+  items.forEach((p, idx) => {
+    const r = Math.floor(idx / cols);
+    const c = idx % cols;
+    const x = pad + c * (cardW + gap);
+    const y = curY + pad + r * (cardH + gap);
+
+    ctx.fillStyle = pal.cardBg;
+    roundRect(ctx, x, y, cardW, cardH, 10);
+    ctx.fill();
+    ctx.strokeStyle = pal.cardBorder;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    const stH = 168;
+    ctx.fillStyle = pal.stageBg;
+    roundRect(ctx, x + 1.5, y + 1.5, cardW - 3, stH, 9);
+    ctx.fill();
+
+    const pImg = pieceImgs[idx];
+    if (pImg) {
+      const maxW = cardW - 26;
+      const maxH = stH - 22;
+      const ratio = Math.min(maxW / pImg.width, maxH / pImg.height);
+      const dw = pImg.width * ratio, dh = pImg.height * ratio;
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.18)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 4;
+      ctx.drawImage(pImg, x + (cardW - dw) / 2, y + (stH - dh) / 2, dw, dh);
+      ctx.restore();
+    }
+
+    if (p.flag) {
+      ctx.font = "20px sans-serif";
+      ctx.fillText(p.flag, x + 9, y + stH - 9);
+    }
+
+    ctx.fillStyle = pal.ink;
+    ctx.font = "800 21px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
+    ctx.fillText(p.code, x + 13, y + stH + 32);
+
+    const szStr = (p.size || "").replace(/x/gi, "×");
+    ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = pal.accent;
+    ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 13, y + stH + 31);
+
+    ctx.fillStyle = pal.ink2;
+    ctx.font = "700 17px 'Noto Sans TC', sans-serif";
+    ctx.fillText(p.series, x + 13, y + stH + 60);
+
+    ctx.fillStyle = pal.stock;
+    ctx.font = "800 17px 'Noto Sans TC', sans-serif";
+    ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, x + 13, y + stH + 92);
+
+    if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
+      ctx.fillStyle = pal.accent;
+      ctx.font = "800 16px 'Noto Sans TC', sans-serif";
+      ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 13, y + stH + 119);
+    }
+  });
+
+  // Footer
+  const footY = H - footerH;
+  ctx.fillStyle = pal.cardBg;
+  ctx.fillRect(0, footY, W, footerH);
+  ctx.fillStyle = pal.cardBorder;
+  ctx.fillRect(0, footY, W, 1.5);
+
+  ctx.fillStyle = pal.ink;
+  ctx.font = "800 20px 'Noto Sans TC', sans-serif";
+  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 44);
+
+  ctx.fillStyle = pal.muted;
+  ctx.font = "600 16px 'Noto Sans TC', sans-serif";
+  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看實景大圖或直接下保留單", pad, footY + 74);
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
+  const qrImg = await loadImageForCanvas(qrUrl);
+  if (qrImg) {
+    ctx.fillStyle = "#FFFFFF";
+    roundRect(ctx, W - pad - 84, footY + 12, 84, 84, 6);
+    ctx.fill();
+    ctx.drawImage(qrImg, W - pad - 80, footY + 16, 76, 76);
+  }
+
+  return cv;
+}
+
+function getCurrentPageStateSnapshot() {
+  const { title, sub } = buildDynamicTitle();
+  return {
+    items: [...currentPicked],
+    scenes: getActiveScenesForDisplay(),
+    title,
+    sub,
+    dmStyle: currentDmStyle,
+    showPrice: document.getElementById("chkShowPrice").checked,
+    shareUrl: getShareUrl()
+  };
+}
+
+async function exportFullPosterJPG() {
+  if (currentPicked.length === 0) return;
+  if (currentPicked.length === 1) return exportSingleTileJPG(currentPicked[0].code);
+  showToast("正在合成高清 DM 海報 JPG...");
+  const state = getCurrentPageStateSnapshot();
+  const cv = await renderPageToCanvas(state);
+  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${state.title}_DM`);
+}
+
+// ── 多頁 PDF 電子目錄組裝與快速生成 ──
+function addCurrentPageToPdfQueue() {
+  if (currentPicked.length === 0) return showToast("目前畫面沒有產品可加入");
+  const snap = getCurrentPageStateSnapshot();
+  pdfPagesQueue.push(snap);
+  renderPdfQueueBar();
+  showToast(`已將「${snap.title}」加入 PDF 第 ${pdfPagesQueue.length} 頁！可繼續挑其他系列加入。`);
+}
+
+function removePdfQueuePage(idx) {
+  pdfPagesQueue.splice(idx, 1);
+  renderPdfQueueBar();
+}
+
+function renderPdfQueueBar() {
+  const badge = document.getElementById("pdfCountBadge");
+  const info = document.getElementById("pdfQueueInfo");
+  badge.textContent = `PDF 目錄籃：${pdfPagesQueue.length} 頁`;
+  if (pdfPagesQueue.length === 0) {
+    info.innerHTML = `
+      <span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：0 頁</span>
+      <span style="font-size:12px;color:#D6D3CD;">可點「➕ 加入此頁至 PDF」組合多個系列，或直接點右側生成當頁 PDF</span>
+    `;
+    return;
+  }
+  const chips = pdfPagesQueue.map((p, i) => `
+    <span class="pdf-page-chip">
+      <span>P${i + 1}. ${p.title} (${p.items.length}款)</span>
+      <button type="button" onclick="removePdfQueuePage(${i})" title="移除此頁">✕</button>
+    </span>
+  `).join("");
+  info.innerHTML = `<span class="pdf-badge" id="pdfCountBadge">PDF 目錄籃：${pdfPagesQueue.length} 頁</span>` + chips;
+}
+
+async function generateMultiPagePDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    return showToast("PDF 引擎載入中，請稍候 1 秒再按一次");
+  }
+  const pagesToRender = pdfPagesQueue.length > 0 ? pdfPagesQueue : [getCurrentPageStateSnapshot()];
+  showToast(`正在快速生成 ${pagesToRender.length} 頁 PDF 電子目錄，請稍候...`);
+
+  const { jsPDF } = window.jspdf;
+  let pdf = null;
+
+  for (let i = 0; i < pagesToRender.length; i++) {
+    const cv = await renderPageToCanvas(pagesToRender[i]);
+    const imgData = cv.toDataURL("image/jpeg", 0.9);
+    const wMm = 210; // 標準 A4 寬度 210mm，高度依內容等比延伸不裁切
+    const hMm = Math.round((cv.height / cv.width) * wMm);
+
+    if (i === 0) {
+      pdf = new jsPDF({
+        orientation: hMm >= wMm ? "p" : "l",
+        unit: "mm",
+        format: [wMm, hMm]
+      });
+    } else {
+      pdf.addPage([wMm, hMm], hMm >= wMm ? "p" : "l");
+    }
+    pdf.addImage(imgData, "JPEG", 0, 0, wMm, hMm, undefined, "FAST");
+  }
+
+  const fileName = pagesToRender.length > 1
+    ? `高雅瓷_精選電子目錄_${pagesToRender.length}頁.pdf`
+    : `高雅瓷_${pagesToRender[0].title}_DM.pdf`;
+  pdf.save(fileName);
+  showToast(`已完成下載：${fileName}`);
+}
+
 // ── 匯出單片專屬規格卡 JPG (1080 x 1350) ──
 async function exportSingleTileJPG(code) {
   const p = allProducts.find(x => x.code === code);
   if (!p) return;
   showToast(`正在產生 ${p.code} 單片規格卡 JPG...`);
 
+  const pal = STYLE_PALETTES[currentDmStyle] || STYLE_PALETTES.warm;
   const W = 1080, H = 1350;
   const cv = document.createElement("canvas");
   cv.width = W;
   cv.height = H;
   const ctx = cv.getContext("2d");
 
-  ctx.fillStyle = "#F5F2EB";
+  ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.fillStyle = "#1C1917";
+  ctx.fillStyle = pal.headerBg;
   ctx.fillRect(0, 0, W, 145);
-  ctx.fillStyle = "#8C5A32";
+  ctx.fillStyle = pal.accent;
   ctx.fillRect(0, 145, W, 5);
 
-  ctx.fillStyle = "#D6B392";
+  ctx.fillStyle = pal.eyebrow;
   ctx.font = "700 17px 'Plus Jakarta Sans', sans-serif";
   ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", 44, 52);
 
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = pal.headerText;
   ctx.font = "800 42px 'Noto Sans TC', sans-serif";
   ctx.fillText(`${p.flag ? p.flag + " " : ""}${p.series}  ${p.code}`, 44, 110);
 
   const szTxt = `${(p.size || "").replace(/x/gi, "×")} cm`;
   ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
   const szW = ctx.measureText(szTxt).width + 40;
-  ctx.fillStyle = "#8C5A32";
+  ctx.fillStyle = pal.accent;
   roundRect(ctx, W - 44 - szW, 68, szW, 50, 8);
   ctx.fill();
   ctx.fillStyle = "#FFFFFF";
@@ -1418,21 +2042,15 @@ async function exportSingleTileJPG(code) {
 
   let curY = 180;
   if (sceneImg) {
-    ctx.save();
-    roundRect(ctx, 44, curY, W - 88, 430, 14);
-    ctx.clip();
-    const sRatio = Math.max((W - 88) / sceneImg.width, 430 / sceneImg.height);
-    const sw = sceneImg.width * sRatio, sh = sceneImg.height * sRatio;
-    ctx.drawImage(sceneImg, 44 + ((W - 88) - sw) / 2, curY + (430 - sh) / 2, sw, sh);
-    ctx.restore();
+    drawCoverImage(ctx, sceneImg, 44, curY, W - 88, 430, 14);
     curY += 452;
   }
 
   const stageH = sceneImg ? 350 : 720;
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = pal.cardBg;
   roundRect(ctx, 44, curY, W - 88, stageH, 14);
   ctx.fill();
-  ctx.strokeStyle = "#E5E0D5";
+  ctx.strokeStyle = pal.cardBorder;
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -1450,23 +2068,23 @@ async function exportSingleTileJPG(code) {
   curY += stageH + 22;
 
   const infoH = H - curY - 38;
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = pal.cardBg;
   roundRect(ctx, 44, curY, W - 88, infoH, 14);
   ctx.fill();
-  ctx.strokeStyle = "#E5E0D5";
+  ctx.strokeStyle = pal.cardBorder;
   ctx.stroke();
 
-  ctx.fillStyle = "#1C1917";
+  ctx.fillStyle = pal.ink;
   ctx.font = "800 34px 'Noto Sans TC', sans-serif";
   ctx.fillText(`${p.code} · ${p.series}（${(p.size || "").replace(/x/gi, "×")} cm）`, 76, curY + 68);
 
-  ctx.fillStyle = "#1F5E3B";
+  ctx.fillStyle = pal.stock;
   ctx.font = "800 30px 'Noto Sans TC', sans-serif";
   ctx.fillText(`可用庫存：${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, 76, curY + 128);
 
   const showPrice = document.getElementById("chkShowPrice").checked;
   if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
-    ctx.fillStyle = "#8C5A32";
+    ctx.fillStyle = pal.accent;
     ctx.font = "800 30px 'Noto Sans TC', sans-serif";
     ctx.fillText(
       `單價：${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "($" + p.pricePing.toLocaleString() + "/坪)" : ""}`,
@@ -1475,166 +2093,19 @@ async function exportSingleTileJPG(code) {
     );
   }
 
-  ctx.fillStyle = "#78716C";
+  ctx.fillStyle = pal.muted;
   ctx.font = "600 20px 'Noto Sans TC', sans-serif";
   ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, 76, curY + infoH - 28);
 
   if (qrImg) {
     const qSize = 148;
+    ctx.fillStyle = "#FFFFFF";
+    roundRect(ctx, W - 44 - qSize - 32, curY + (infoH - qSize) / 2 - 4, qSize + 8, qSize + 8, 8);
+    ctx.fill();
     ctx.drawImage(qrImg, W - 44 - qSize - 28, curY + (infoH - qSize) / 2, qSize, qSize);
   }
 
   openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${p.code}_${p.series}_單片DM`);
-}
-
-// ── 匯出整張多品項海報 JPG（一排 3~4 欄高密度精簡排版） ──
-async function exportFullPosterJPG() {
-  if (currentPicked.length === 0) return;
-  if (currentPicked.length === 1) return exportSingleTileJPG(currentPicked[0].code);
-
-  showToast("正在合成高清 DM 海報 JPG...");
-  const items = currentPicked;
-  const cols = items.length >= 9 ? 4 : 3;
-  const rows = Math.ceil(items.length / cols);
-  const hasHero = heroScenes.length > 0;
-
-  const W = 1200;
-  const pad = 36;
-  const gap = 18;
-  const headerH = 145;
-  const heroH = hasHero ? 320 : 0;
-  const cardH = 315;
-  const footerH = 115;
-  const bodyH = rows * cardH + (rows - 1) * gap + pad * 2;
-  const H = headerH + heroH + bodyH + footerH;
-
-  const cv = document.createElement("canvas");
-  cv.width = W;
-  cv.height = H;
-  const ctx = cv.getContext("2d");
-
-  ctx.fillStyle = "#F5F2EB";
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = "#1C1917";
-  ctx.fillRect(0, 0, W, headerH);
-  ctx.fillStyle = "#8C5A32";
-  ctx.fillRect(0, headerH - 4, W, 4);
-
-  const { title, sub } = buildDynamicTitle();
-  ctx.fillStyle = "#D6B392";
-  ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", pad, 44);
-
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = "800 36px 'Noto Sans TC', sans-serif";
-  ctx.fillText(title, pad, 94);
-
-  ctx.fillStyle = "#D6D3CD";
-  ctx.font = "600 20px 'Noto Sans TC', sans-serif";
-  ctx.fillText(sub, pad, 126);
-
-  let curY = headerH;
-  if (hasHero) {
-    const heroImg = await loadImageForCanvas(heroScenes[heroSceneIdx].url);
-    if (heroImg) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, curY, W, heroH);
-      ctx.clip();
-      const sRatio = Math.max(W / heroImg.width, heroH / heroImg.height);
-      const sw = heroImg.width * sRatio, sh = heroImg.height * sRatio;
-      ctx.drawImage(heroImg, (W - sw) / 2, curY + (heroH - sh) / 2, sw, sh);
-      ctx.restore();
-    }
-    curY += heroH;
-  }
-
-  const pieceImgs = await Promise.all(items.map(p => loadImageForCanvas(p.mainImg)));
-  const showPrice = document.getElementById("chkShowPrice").checked;
-  const cardW = (W - pad * 2 - gap * (cols - 1)) / cols;
-
-  items.forEach((p, idx) => {
-    const r = Math.floor(idx / cols);
-    const c = idx % cols;
-    const x = pad + c * (cardW + gap);
-    const y = curY + pad + r * (cardH + gap);
-
-    ctx.fillStyle = "#FFFFFF";
-    roundRect(ctx, x, y, cardW, cardH, 10);
-    ctx.fill();
-    ctx.strokeStyle = "#E5E0D5";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    const stH = 175;
-    ctx.fillStyle = "#EFECE4";
-    roundRect(ctx, x + 1.5, y + 1.5, cardW - 3, stH, 9);
-    ctx.fill();
-
-    const pImg = pieceImgs[idx];
-    if (pImg) {
-      const maxW = cardW - 28;
-      const maxH = stH - 24;
-      const ratio = Math.min(maxW / pImg.width, maxH / pImg.height);
-      const dw = pImg.width * ratio, dh = pImg.height * ratio;
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.16)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetY = 4;
-      ctx.drawImage(pImg, x + (cardW - dw) / 2, y + (stH - dh) / 2, dw, dh);
-      ctx.restore();
-    }
-
-    if (p.flag) {
-      ctx.font = "22px sans-serif";
-      ctx.fillText(p.flag, x + 10, y + stH - 10);
-    }
-
-    ctx.fillStyle = "#1C1917";
-    ctx.font = "800 22px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
-    ctx.fillText(p.code, x + 14, y + stH + 34);
-
-    const szStr = (p.size || "").replace(/x/gi, "×");
-    ctx.font = "700 16px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillStyle = "#8C5A32";
-    ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 14, y + stH + 33);
-
-    ctx.fillStyle = "#44403C";
-    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
-    ctx.fillText(p.series, x + 14, y + stH + 64);
-
-    ctx.fillStyle = "#1F5E3B";
-    ctx.font = "800 18px 'Noto Sans TC', sans-serif";
-    ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, x + 14, y + stH + 98);
-
-    if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
-      ctx.fillStyle = "#8C5A32";
-      ctx.font = "800 17px 'Noto Sans TC', sans-serif";
-      ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 14, y + stH + 126);
-    }
-  });
-
-  const footY = H - footerH;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, footY, W, footerH);
-  ctx.fillStyle = "#E5E0D5";
-  ctx.fillRect(0, footY, W, 1.5);
-
-  ctx.fillStyle = "#1C1917";
-  ctx.font = "800 21px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 48);
-
-  ctx.fillStyle = "#78716C";
-  ctx.font = "600 17px 'Noto Sans TC', sans-serif";
-  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看實景大圖或直接下保留單", pad, footY + 80);
-
-  const qrImg = await loadImageForCanvas(document.getElementById("dmQrImg").src);
-  if (qrImg) {
-    ctx.drawImage(qrImg, W - pad - 86, footY + 14, 86, 86);
-  }
-
-  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${title}_DM`);
 }
 
 initData();

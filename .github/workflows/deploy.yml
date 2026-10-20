@@ -30,18 +30,3 @@ jobs:
             *.json
             *.md
 
-      - name: 🚀 Sync TTS Logistics Tracking to /tts/
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: /tts/
-          exclude: |
-            .git/**
-            .github/**
-            *.js
-            *.xlsx
-            *.json
-            *.md
