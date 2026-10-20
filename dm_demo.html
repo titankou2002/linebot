@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>高雅瓷 · 智慧文宣與選材 DM 產生器</title>
+<title>高雅瓷 · 產品文宣 DM 產生器</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Noto+Serif+TC:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -27,10 +27,10 @@
     --amber-bg: #FDF3E6;
     --red: #9E2A2B;
     --red-bg: #FBECEC;
-    --radius-card: 12px;
+    --radius-card: 10px;
     --radius-ctrl: 8px;
-    --shadow-sm: 0 2px 8px rgba(28, 25, 23, 0.05);
-    --shadow-md: 0 12px 32px rgba(28, 25, 23, 0.09);
+    --shadow-sm: 0 2px 6px rgba(28, 25, 23, 0.05);
+    --shadow-md: 0 10px 28px rgba(28, 25, 23, 0.08);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,161 +38,146 @@
     font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
     color: var(--ink);
-    line-height: 1.5;
+    line-height: 1.45;
     -webkit-font-smoothing: antialiased;
-    padding-bottom: 64px;
+    padding-bottom: 56px;
   }
   button, input, select { font-family: inherit; }
 
-  /* ── 頂部導覽與角色切換列 ── */
+  /* ── 頂部極簡導覽列 ── */
   .topbar {
     position: sticky;
     top: 0;
     z-index: 200;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line);
-    padding: 12px 20px;
+    padding: 10px 18px;
   }
   .topbar-inner {
-    max-width: 1360px;
+    max-width: 1400px;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
   }
   .brand-wrap {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
   .brand-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-ctrl);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     background: var(--ink);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 15px;
-    letter-spacing: 0.05em;
+    font-size: 13px;
   }
   .brand-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     color: var(--ink);
-    letter-spacing: 0.02em;
   }
-  .brand-sub {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 500;
-  }
-
-  .role-switcher {
+  .top-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .price-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
     background: var(--surface-muted);
-    padding: 4px;
+    padding: 6px 12px;
     border-radius: var(--radius-ctrl);
     border: 1px solid var(--line);
-  }
-  .role-lbl {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-2);
-    padding: 0 8px;
-    white-space: nowrap;
-  }
-  .role-btn {
-    border: none;
-    background: transparent;
-    color: var(--ink-2);
-    font-size: 12.5px;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.15s ease;
-    white-space: nowrap;
+    user-select: none;
   }
-  .role-btn:hover { color: var(--ink); }
-  .role-btn:active { transform: scale(0.98); }
-  .role-btn.active {
-    background: var(--ink);
-    color: #FFFFFF;
-    box-shadow: var(--shadow-sm);
+  .price-toggle input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
   }
 
-  /* ── 主雙欄佈局 ── */
+  /* ── 主工作區（客戶檢視模式時自動隱藏左側面板） ── */
   .workspace {
-    max-width: 1360px;
-    margin: 20px auto 0;
-    padding: 0 20px;
+    max-width: 1400px;
+    margin: 16px auto 0;
+    padding: 0 16px;
     display: grid;
-    grid-template-columns: 390px 1fr;
-    gap: 24px;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
     align-items: start;
   }
-  @media (max-width: 1024px) {
+  body.client-view .workspace {
+    grid-template-columns: 1fr;
+    max-width: 1120px;
+  }
+  body.client-view .ctrl-panel,
+  body.client-view .staff-only {
+    display: none !important;
+  }
+  @media (max-width: 960px) {
     .workspace { grid-template-columns: 1fr; }
   }
 
-  /* ── 左側控制面板 ── */
+  /* ── 左側極簡控制面板 ── */
   .ctrl-panel {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-card);
-    padding: 20px;
+    padding: 16px;
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 14px;
   }
-  .sec-head {
+  .sec-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--ink-2);
+    margin-bottom: 6px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
-  }
-  .sec-title {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--ink);
-    letter-spacing: 0.03em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
   }
   .sec-badge {
     font-size: 11px;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 6px;
+    padding: 2px 7px;
+    border-radius: 5px;
     background: var(--accent-soft);
     color: var(--accent);
   }
 
-  /* 模式切換 Tabs */
+  /* 兩大模式切換：預設 1.單一系列 / 2.尺寸×風格 */
   .mode-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
     background: var(--surface-muted);
-    padding: 4px;
+    padding: 3px;
     border-radius: var(--radius-ctrl);
     border: 1px solid var(--line);
   }
   .mode-tab {
     border: none;
     background: transparent;
-    padding: 9px 10px;
+    padding: 8px 6px;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--ink-2);
     border-radius: 6px;
     cursor: pointer;
@@ -204,7 +189,6 @@
     box-shadow: var(--shadow-sm);
   }
 
-  /* 藥丸按鈕群 */
   .chip-group {
     display: flex;
     flex-wrap: wrap;
@@ -214,53 +198,25 @@
     border: 1px solid var(--line-strong);
     background: var(--surface-soft);
     color: var(--ink-2);
-    padding: 6px 11px;
-    border-radius: var(--radius-ctrl);
+    padding: 5px 10px;
+    border-radius: 6px;
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.15s;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    transition: all 0.12s;
   }
   .chip:hover { border-color: var(--accent); color: var(--accent); }
   .chip:active { transform: scale(0.98); }
   .chip.active {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--ink);
+    border-color: var(--ink);
     color: #FFFFFF;
   }
 
-  /* 色階圓點 */
-  .color-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.2);
-    display: inline-block;
-  }
-
-  /* 表單控制項 */
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .field label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink-2);
-  }
   .input, .select {
     width: 100%;
-    height: 38px;
-    padding: 0 11px;
+    height: 36px;
+    padding: 0 10px;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-ctrl);
     background: var(--surface);
@@ -268,55 +224,45 @@
     font-size: 13.5px;
     font-weight: 600;
     outline: none;
-    transition: border-color 0.15s;
   }
-  .input:focus, .select:focus {
-    border-color: var(--accent);
-  }
+  .input:focus, .select:focus { border-color: var(--accent); }
 
-  .divider {
-    height: 1px;
-    background: var(--line);
-  }
+  .divider { height: 1px; background: var(--line); }
 
-  /* 主動隨機按鈕 */
   .btn-random {
     width: 100%;
-    height: 46px;
+    height: 42px;
     border: none;
     border-radius: var(--radius-ctrl);
     background: var(--accent);
     color: #FFFFFF;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
-    letter-spacing: 0.02em;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    box-shadow: 0 4px 14px rgba(140, 90, 50, 0.25);
+    gap: 7px;
     transition: background 0.15s, transform 0.1s;
   }
   .btn-random:hover { background: var(--accent-hover); }
   .btn-random:active { transform: scale(0.98); }
 
-  /* ── 右側預覽與輸出區 ── */
+  /* ── 右側 DM 預覽與操作列 ── */
   .preview-col {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
-
   .action-bar {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-card);
-    padding: 14px 18px;
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
     box-shadow: var(--shadow-sm);
   }
@@ -324,35 +270,29 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--ink-2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
-  .stat-pill strong {
-    color: var(--ink);
-    font-weight: 800;
-  }
+  .stat-pill strong { color: var(--ink); font-weight: 800; }
+
   .action-btns {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .btn-act {
-    height: 40px;
-    padding: 0 16px;
+    height: 36px;
+    padding: 0 13px;
     border-radius: var(--radius-ctrl);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    transition: all 0.15s;
+    gap: 6px;
     border: 1px solid var(--line-strong);
     background: var(--surface);
     color: var(--ink);
-    white-space: nowrap;
+    transition: all 0.15s;
   }
   .btn-act:hover { border-color: var(--ink); background: var(--surface-soft); }
   .btn-act:active { transform: scale(0.98); }
@@ -361,122 +301,99 @@
     border-color: var(--ink);
     color: #FFFFFF;
   }
-  .btn-act.primary:hover { background: #332E2A; }
 
-  /* ── DM 互動海報主畫布 ── */
+  /* ── DM 海報主體 ── */
   .dm-sheet {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-md);
     overflow: hidden;
-    position: relative;
   }
-
-  /* DM 頂部橫幅 */
   .dm-header {
-    padding: 28px 32px 22px;
+    padding: 20px 24px 16px;
     background: #1C1917;
     color: #FFFFFF;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 20px;
+    gap: 12px;
     flex-wrap: wrap;
     border-bottom: 3px solid var(--accent);
   }
   .dm-eyebrow {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     color: #D6B392;
-    text-transform: uppercase;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
   .dm-main-title {
     font-family: 'Noto Serif TC', 'Noto Sans TC', serif;
-    font-size: clamp(22px, 3vw, 30px);
+    font-size: clamp(20px, 2.5vw, 26px);
     font-weight: 700;
-    letter-spacing: 0.03em;
     line-height: 1.25;
   }
   .dm-subtitle {
-    margin-top: 6px;
-    font-size: 13.5px;
+    margin-top: 4px;
+    font-size: 13px;
     color: #D6D3CD;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .dm-tag-pill {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.12);
-    color: #F5EFE6;
   }
 
-  /* 實景主視覺區 (若有實景圖時顯示) */
+  /* 實景圖區 */
   .dm-scene-hero {
     position: relative;
     background: #262320;
-    max-height: 390px;
+    max-height: 310px;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .dm-scene-hero img {
     width: 100%;
-    height: 360px;
+    height: 290px;
     object-fit: cover;
     display: block;
     cursor: pointer;
-    transition: transform 0.35s ease;
   }
-  .dm-scene-hero:hover img { transform: scale(1.02); }
   .dm-scene-caption {
     position: absolute;
-    bottom: 14px;
-    left: 20px;
-    right: 20px;
+    bottom: 10px;
+    left: 14px;
+    right: 14px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
     pointer-events: none;
   }
   .scene-badge {
     pointer-events: auto;
     background: rgba(28, 25, 23, 0.82);
-    backdrop-filter: blur(6px);
     color: #FFFFFF;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11.5px;
     font-weight: 600;
     border: 1px solid rgba(255,255,255,0.15);
     cursor: pointer;
   }
 
-  /* 品項網格區 */
+  /* 緊湊型多品項網格：電腦版一排 4~5 張，手機版一排 2 張 */
   .dm-body {
-    padding: 28px 32px;
+    padding: 18px 20px;
     background: var(--surface-soft);
-  }
-  @media (max-width: 640px) {
-    .dm-header { padding: 20px; }
-    .dm-body { padding: 18px; }
   }
   .dm-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 560px) {
+    .dm-body { padding: 12px; }
+    .dm-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
   }
 
-  /* 單品卡片 */
+  /* 精簡版磁磚卡片 */
   .tile-card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -484,25 +401,47 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
     box-shadow: var(--shadow-sm);
+    position: relative;
   }
-  .tile-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--line-strong);
+  /* 已淘汰/不想要的單品可在製作時點右上角 × 踢除 */
+  .remove-item-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 5;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(28, 25, 23, 0.65);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .tile-card:hover .remove-item-btn { opacity: 1; }
+  @media (hover: none) {
+    .remove-item-btn { opacity: 0.85; }
   }
 
-  /* 單片實際比例展示舞台 */
   .tile-stage {
-    height: 210px;
+    height: 148px;
     background: var(--surface-muted);
-    padding: 18px;
+    padding: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     border-bottom: 1px solid var(--line);
+  }
+  @media (max-width: 560px) {
+    .tile-stage { height: 126px; padding: 10px; }
   }
   .tile-stage img.piece-img {
     max-width: 100%;
@@ -511,301 +450,222 @@
     height: auto;
     object-fit: contain;
     display: block;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    border-radius: 2px;
     cursor: pointer;
   }
-  .stage-badges {
+
+  /* 產地國旗直接疊在圖片左下角 */
+  .origin-flag {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    bottom: 6px;
+    left: 8px;
+    font-size: 15px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
     pointer-events: none;
   }
-  .status-pill {
-    font-size: 11px;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 6px;
-    letter-spacing: 0.02em;
-  }
-  .status-pill.sleeper { background: var(--amber-bg); color: var(--amber); border: 1px solid #F3D4A0; }
-  .status-pill.disc { background: var(--red-bg); color: var(--red); border: 1px solid #F1B8B9; }
-  .status-pill.normal { background: var(--green-bg); color: var(--green); border: 1px solid #B7E1C7; }
-
-  .scene-mini-btn {
-    pointer-events: auto;
+  .scene-dot-btn {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
     background: rgba(28, 25, 23, 0.78);
     color: #fff;
     border: none;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
     font-weight: 700;
     cursor: pointer;
   }
 
+  /* 精簡版卡片資訊區 */
   .tile-info {
-    padding: 16px;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 4px;
     flex: 1;
   }
   .tile-head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: 4px;
   }
   .tile-code {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--ink);
-    letter-spacing: 0.02em;
-  }
-  .tile-size-badge {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-soft);
-    padding: 2px 8px;
-    border-radius: 6px;
-  }
-  .tile-series {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink-2);
-  }
-  .tile-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-  .meta-tag {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--muted);
-    background: var(--surface-soft);
-    border: 1px solid var(--line);
-    padding: 2px 7px;
-    border-radius: 6px;
-  }
-
-  /* 庫存與價格區塊 */
-  .stock-price-box {
-    margin-top: auto;
-    padding-top: 10px;
-    border-top: 1px dashed var(--line-strong);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .sp-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 13px;
-  }
-  .sp-lbl {
-    color: var(--muted);
-    font-weight: 600;
-  }
-  .sp-val-stock {
-    font-weight: 800;
-    color: var(--green);
-  }
-  .sp-val-price {
     font-size: 15px;
     font-weight: 800;
     color: var(--ink);
   }
-  .sp-val-price small {
+  .tile-size {
     font-size: 11.5px;
-    font-weight: 600;
-    color: var(--muted);
-  }
-
-  /* 案件坪數試算提示 */
-  .project-calc-bar {
-    background: var(--accent-soft);
-    color: var(--accent);
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 12px;
     font-weight: 700;
+    color: var(--accent);
+  }
+  .tile-series {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tile-stock-line {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--line-strong);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+  }
+  .stock-val {
+    font-weight: 800;
+    color: var(--green);
+  }
+  .price-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--accent);
   }
 
-  /* 卡片底部互動按鈕列 */
   .card-actions {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 6px;
-    padding: 10px 16px 14px;
+    gap: 4px;
+    padding: 7px 10px 9px;
     background: var(--surface-soft);
     border-top: 1px solid var(--line);
   }
   .card-btn {
-    height: 32px;
-    border-radius: 6px;
+    height: 27px;
+    border-radius: 5px;
     border: 1px solid var(--line-strong);
     background: var(--surface);
     color: var(--ink-2);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
     text-decoration: none;
-    transition: all 0.15s;
+    transition: all 0.12s;
   }
   .card-btn:hover { border-color: var(--ink); color: var(--ink); }
-  .card-btn:active { transform: scale(0.98); }
   .card-btn.accent {
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
   }
-  .card-btn.accent:hover { background: var(--accent-hover); }
 
-  /* DM 底部聯絡與 QR 資訊欄 */
+  /* DM 底部（含庫存有效時間與 QR Code） */
   .dm-footer {
-    padding: 20px 32px;
+    padding: 14px 22px;
     background: var(--surface);
     border-top: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
   }
-  .dm-footer-left {
+  .dm-valid-time {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-2);
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
   }
-  .dm-dealer-name {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--ink);
-  }
-  .dm-dealer-sub {
-    font-size: 12.5px;
+  .dm-valid-sub {
+    font-size: 11.5px;
     color: var(--muted);
+    font-weight: 500;
   }
   .dm-qr-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     background: var(--surface-soft);
-    padding: 8px 12px;
-    border-radius: var(--radius-ctrl);
+    padding: 6px 10px;
+    border-radius: 6px;
     border: 1px solid var(--line);
   }
   .dm-qr-box img {
-    width: 52px;
-    height: 52px;
-    border-radius: 4px;
+    width: 44px;
+    height: 44px;
     display: block;
   }
   .dm-qr-txt {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--ink-2);
-    font-weight: 600;
-    line-height: 1.35;
+    font-weight: 700;
+    line-height: 1.3;
   }
 
-  /* 骨架載入與空狀態 */
   .state-box {
-    padding: 64px 20px;
+    padding: 48px 20px;
     text-align: center;
     color: var(--muted);
+    font-size: 14px;
   }
-  .sk-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
-  }
-  .sk-card {
-    height: 340px;
-    border-radius: var(--radius-card);
-    background: linear-gradient(90deg, #ECE8DF 25%, #F5F2EB 50%, #ECE8DF 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.3s infinite;
-  }
-  @keyframes shimmer { to { background-position: -200% 0; } }
 
-  /* Toast 提示 */
+  /* Modal & Toast */
   .toast {
     position: fixed;
-    bottom: 24px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--ink);
     color: #fff;
-    padding: 10px 20px;
+    padding: 9px 18px;
     border-radius: var(--radius-ctrl);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
-    box-shadow: var(--shadow-md);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.22s ease;
+    transition: all 0.2s ease;
     z-index: 9999;
   }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* 圖片放大與單片 JPG 預覽 Modal */
   .modal-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(28, 25, 23, 0.78);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(4px);
     z-index: 3000;
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
   }
   .modal-backdrop.open { display: flex; }
   .modal-card {
     background: var(--surface);
     border-radius: var(--radius-card);
-    max-width: 540px;
+    max-width: 520px;
     width: 100%;
     max-height: 92vh;
     overflow-y: auto;
-    padding: 20px;
+    padding: 16px;
     box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
   }
-  .modal-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .modal-title {
-    font-size: 15px;
-    font-weight: 800;
-  }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 14.5px; font-weight: 800; }
   .modal-close {
     border: 1px solid var(--line-strong);
     background: var(--surface-soft);
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 800;
@@ -813,7 +673,7 @@
   .modal-preview-img {
     width: 100%;
     height: auto;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid var(--line);
     display: block;
   }
@@ -821,225 +681,163 @@
 </head>
 <body>
 
-<!-- 頂部權限與角色視角模擬器 -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand-wrap">
       <div class="brand-mark">EL</div>
-      <div>
-        <div class="brand-title">高雅瓷 · 智慧選材與文宣 DM 產生器</div>
-        <div class="brand-sub">零 Token 即時排版 · 串接磁磚百科向量標籤與即時庫存</div>
-      </div>
+      <div class="brand-title">高雅瓷 · 產品文宣 DM 產生器</div>
     </div>
 
-    <div class="role-switcher" role="group" aria-label="預覽權限視角">
-      <span class="role-lbl">登入視角模擬：</span>
-      <button type="button" class="role-btn active" data-role="dealer" onclick="setRole('dealer')">經銷商 / 業務（顯示底價+庫存）</button>
-      <button type="button" class="role-btn" data-role="quote" onclick="setRole('quote')">經銷商轉報價（自訂售價）</button>
-      <button type="button" class="role-btn" data-role="designer" onclick="setRole('designer')">設計師 / 屋主（隱藏單價）</button>
+    <div class="top-controls staff-only">
+      <label class="price-toggle">
+        <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
+        <span>顯示單價</span>
+      </label>
+      <button type="button" class="btn-act" onclick="toggleClientPreview()">
+        <span id="btnClientPreviewTxt">預覽客戶端畫面</span>
+      </button>
     </div>
   </div>
 </header>
 
 <main class="workspace">
-  <!-- 左側篩選與隨機控制面板 -->
+  <!-- 左側極簡控制欄（僅業務看得到） -->
   <aside class="ctrl-panel">
+    <!-- 1. 選擇模式（預設：單一系列） -->
     <div>
-      <div class="sec-head">
-        <span class="sec-title">1. 生成模式選擇</span>
+      <div class="sec-title">
+        <span>1. 選擇生成方式</span>
         <span class="sec-badge" id="poolCountBadge">載入中...</span>
       </div>
       <div class="mode-tabs">
-        <button type="button" class="mode-tab active" id="tabTheme" onclick="switchMode('theme')">尺寸 / 風格隨機抽</button>
-        <button type="button" class="mode-tab" id="tabSeries" onclick="switchMode('series')">指定單一系列</button>
+        <button type="button" class="mode-tab active" id="tabSeries" onclick="switchMode('series')">單一系列</button>
+        <button type="button" class="mode-tab" id="tabTheme" onclick="switchMode('theme')">尺寸 × 風格</button>
       </div>
     </div>
 
-    <!-- 產品身分分類 (睡美人 / 不續辦 / 正常品) -->
-    <div>
-      <div class="sec-head">
-        <span class="sec-title">2. 產品身分篩選</span>
-      </div>
-      <div class="chip-group" id="levelChips">
-        <button type="button" class="chip active" data-lv="all" onclick="setLevel('all')">全部現貨</button>
-        <button type="button" class="chip" data-lv="level1" onclick="setLevel('level1')">睡美人（專案特惠）</button>
-        <button type="button" class="chip" data-lv="level2" onclick="setLevel('level2')">不續辦（限量出清）</button>
-        <button type="button" class="chip" data-lv="normal" onclick="setLevel('normal')">正常主力品</button>
-      </div>
-    </div>
-
-    <!-- 主題篩選區塊 (尺寸 + 磚種風格 + AI 色階 + AI 空間) -->
-    <div id="themeFilterBox" style="display:flex;flex-direction:column;gap:16px;">
-      <div class="field-row">
-        <div class="field">
-          <label for="selSize">尺寸規格</label>
-          <select id="selSize" class="select" onchange="applyAndPick()">
-            <option value="">全部尺寸</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="selArea">磚種 / 紋理風格</label>
-          <select id="selArea" class="select" onchange="applyAndPick()">
-            <option value="">全部磚種風格</option>
-            <option value="木紋磚">木紋磚</option>
-            <option value="石紋磚">石紋磚</option>
-            <option value="大理石磚">大理石磚</option>
-            <option value="大版磚">大版磚</option>
-            <option value="六角磚">六角磚</option>
-            <option value="花磚">花磚</option>
-            <option value="水泥磚">水泥磚 / 清水模</option>
-            <option value="小品磚">小品磚 / 鐵道磚</option>
-            <option value="筷子磚">筷子磚 / 條磚</option>
-          </select>
-        </div>
-      </div>
-
+    <!-- 模式 A：單一系列（預設） -->
+    <div id="seriesFilterBox" style="display:flex;flex-direction:column;gap:10px;">
       <div>
-        <div class="sec-head">
-          <span class="sec-title">AI 向量色階（磁磚百科資料）</span>
-        </div>
-        <div class="chip-group" id="colorChips">
-          <button type="button" class="chip active" data-col="" onclick="setColor('')">不限色系</button>
-          <button type="button" class="chip" data-col="白" onclick="setColor('白')"><i class="color-dot" style="background:#F7F5F0"></i>白色系</button>
-          <button type="button" class="chip" data-col="米" onclick="setColor('米')"><i class="color-dot" style="background:#EAE0C8"></i>米黃系</button>
-          <button type="button" class="chip" data-col="灰" onclick="setColor('灰')"><i class="color-dot" style="background:#B0B0B0"></i>灰色系</button>
-          <button type="button" class="chip" data-col="棕" onclick="setColor('棕')"><i class="color-dot" style="background:#9C7A54"></i>木色 / 暖棕</button>
-          <button type="button" class="chip" data-col="黑" onclick="setColor('黑')"><i class="color-dot" style="background:#2B2B2B"></i>深黑系</button>
-          <button type="button" class="chip" data-col="綠" onclick="setColor('綠')"><i class="color-dot" style="background:#6E8562"></i>綠色系</button>
-          <button type="button" class="chip" data-col="藍" onclick="setColor('藍')"><i class="color-dot" style="background:#5E7896"></i>藍色系</button>
-        </div>
+        <div class="sec-title">搜尋系列名稱或編號</div>
+        <input type="text" id="seriesSearchInput" class="input" placeholder="輸入系列（例：沙丘、波特蘭）或編號..." oninput="filterSeriesSelect()">
       </div>
-
       <div>
-        <div class="sec-head">
-          <span class="sec-title">AI 實景空間標籤</span>
-        </div>
-        <div class="chip-group" id="spaceChips">
-          <button type="button" class="chip active" data-sp="" onclick="setSpace('')">不限空間</button>
-          <button type="button" class="chip" data-sp="客廳" onclick="setSpace('客廳')">客廳</button>
-          <button type="button" class="chip" data-sp="浴室" onclick="setSpace('浴室')">浴室</button>
-          <button type="button" class="chip" data-sp="廚房" onclick="setSpace('廚房')">廚房</button>
-          <button type="button" class="chip" data-sp="商業" onclick="setSpace('商業')">商業空間</button>
-          <button type="button" class="chip" data-sp="外牆" onclick="setSpace('外牆')">建築外牆</button>
-        </div>
-      </div>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="selCount">隨機抽取款數</label>
-          <select id="selCount" class="select" onchange="applyAndPick()">
-            <option value="4">一次排 4 款</option>
-            <option value="6" selected>一次排 6 款</option>
-            <option value="2">雙品對比 (2 款)</option>
-            <option value="1">單品巨幅海報 (1 款)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="minPingInput">最低現貨門檻 (坪)</label>
-          <input type="number" id="minPingInput" class="input" value="1" min="0" step="1" onchange="applyAndPick()" placeholder="例: 10">
-        </div>
-      </div>
-    </div>
-
-    <!-- 指定單一系列區塊 -->
-    <div id="seriesFilterBox" style="display:none;flex-direction:column;gap:12px;">
-      <div class="field">
-        <label for="seriesSearchInput">搜尋系列名稱或產品編號</label>
-        <input type="text" id="seriesSearchInput" class="input" placeholder="輸入系列如：沙丘、波特蘭、紐約客..." oninput="filterSeriesSelect()">
-      </div>
-      <div class="field">
-        <label for="selSeries">選擇系列（自動列出全系列型號）</label>
+        <div class="sec-title">選擇系列</div>
         <select id="selSeries" class="select" onchange="pickBySeries()"></select>
+      </div>
+    </div>
+
+    <!-- 模式 B：尺寸（±1cm 容差）× 風格 -->
+    <div id="themeFilterBox" style="display:none;flex-direction:column;gap:12px;">
+      <div>
+        <div class="sec-title">
+          <span>常用尺寸（自動含 ±1cm 規格）</span>
+        </div>
+        <div class="chip-group" id="sizeChips">
+          <button type="button" class="chip active" data-sz="60x120" onclick="selectSizeChip('60x120')">60×120</button>
+          <button type="button" class="chip" data-sz="45x90" onclick="selectSizeChip('45x90')">45×90</button>
+          <button type="button" class="chip" data-sz="30x60" onclick="selectSizeChip('30x60')">30×60</button>
+          <button type="button" class="chip" data-sz="120x120" onclick="selectSizeChip('120x120')">120×120</button>
+          <button type="button" class="chip" data-sz="20x120" onclick="selectSizeChip('20x120')">20×120</button>
+          <button type="button" class="chip" data-sz="" onclick="selectSizeChip('')">不限</button>
+        </div>
+        <input type="text" id="customSizeInput" class="input" style="margin-top:7px;" placeholder="或手打尺寸 (例: 7.5x25、20x20)" oninput="onCustomSizeInput()">
+      </div>
+
+      <div>
+        <div class="sec-title">磚種風格</div>
+        <div class="chip-group" id="styleChips">
+          <button type="button" class="chip active" data-st="" onclick="selectStyleChip('')">全部風格</button>
+          <button type="button" class="chip" data-st="石紋" onclick="selectStyleChip('石紋')">石紋 / 理石</button>
+          <button type="button" class="chip" data-st="木紋" onclick="selectStyleChip('木紋')">木紋磚</button>
+          <button type="button" class="chip" data-st="大版" onclick="selectStyleChip('大版')">大板磚</button>
+          <button type="button" class="chip" data-st="花磚" onclick="selectStyleChip('花磚')">花磚</button>
+          <button type="button" class="chip" data-st="六角" onclick="selectStyleChip('六角')">六角磚</button>
+          <button type="button" class="chip" data-st="地鐵" onclick="selectStyleChip('地鐵')">地鐵磚 / 條磚</button>
+        </div>
       </div>
     </div>
 
     <div class="divider"></div>
 
-    <!-- 加值神器：案件坪數試算 + 經銷商報價設定 -->
+    <!-- 2. 產品身分與顯示筆數 -->
     <div>
-      <div class="sec-head">
-        <span class="sec-title">3. 案件試算與經銷商聯名設定</span>
+      <div class="sec-title">2. 產品分類（睡美人 / 正常 / 不續辦）</div>
+      <div class="chip-group" id="levelChips">
+        <button type="button" class="chip active" data-lv="all" onclick="setLevel('all')">全部</button>
+        <button type="button" class="chip" data-lv="level1" onclick="setLevel('level1')">睡美人</button>
+        <button type="button" class="chip" data-lv="normal" onclick="setLevel('normal')">正常品</button>
+        <button type="button" class="chip" data-lv="level2" onclick="setLevel('level2')">不續辦</button>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="reqPingInput">客戶案件需求坪數 (選填)</label>
-          <input type="number" id="reqPingInput" class="input" placeholder="輸入坪數自動算片數" min="0" step="0.5" oninput="renderDM()">
-        </div>
-        <div class="field" id="markupField">
-          <label for="markupInput">報價倍率 (1.0=同行價)</label>
-          <input type="number" id="markupInput" class="input" value="1.0" min="0.5" max="5" step="0.05" oninput="renderDM()">
-        </div>
-      </div>
-      <div class="field" style="margin-top:10px;">
-        <label for="dealerSignInput">海報底部署名 (經銷商可改為自家名稱)</label>
-        <input type="text" id="dealerSignInput" class="input" value="ELITILE 高雅瓷進口磁磚 · 經銷夥伴專區" oninput="renderDM()">
-      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">3. 單頁排列數量上限</div>
+      <select id="selCount" class="select" onchange="applyAndPick()">
+        <option value="12" selected>一次排 12 款（標準總覽）</option>
+        <option value="16">一次排 16 款（高密度型錄）</option>
+        <option value="24">一次排 24 款（全系列大表）</option>
+        <option value="8">一次排 8 款（精選卡片）</option>
+      </select>
     </div>
 
     <button type="button" class="btn-random" onclick="randomizePick()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
-      <span>隨機換一組產品配搭</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+      <span id="btnRandomTxt">隨機換一個系列</span>
     </button>
   </aside>
 
-  <!-- 右側即時互動預覽與 JPG 下載區 -->
+  <!-- 右側 DM 畫布 -->
   <section class="preview-col">
     <div class="action-bar">
       <div class="stat-pill">
-        <span>符合條件池：<strong id="matchCountTxt">0</strong> 款</span>
-        <span>·</span>
-        <span>目前展示：<strong id="showingCountTxt">0</strong> 款</span>
+        <span>目前呈現：<strong id="showingCountTxt">0</strong> 款現貨</span>
+        <span class="staff-only" style="color:var(--muted);font-size:12px;margin-left:6px;">（點卡片右上角 × 可單獨移除該款）</span>
       </div>
       <div class="action-btns">
-        <button type="button" class="btn-act" onclick="copyShareLink()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          <span>複製互動 DM 連結</span>
+        <button type="button" class="btn-act staff-only" onclick="copyShareLink()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span>複製客戶專屬連結</span>
         </button>
-        <button type="button" class="btn-act primary" id="btnExportPoster" onclick="exportFullPosterJPG()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>下載整張海報 JPG</span>
+        <button type="button" class="btn-act primary" onclick="exportFullPosterJPG()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>下載整張 DM (JPG)</span>
         </button>
       </div>
     </div>
 
-    <!-- 互動式 DM 畫布 -->
     <div class="dm-sheet" id="dmSheet">
       <div class="dm-header">
         <div>
-          <div class="dm-eyebrow" id="dmEyebrow">ELITILE CURATED SELECTION</div>
-          <h1 class="dm-main-title" id="dmTitle">載入產品資料中...</h1>
-          <div class="dm-subtitle" id="dmSubtitle">正在同步 Supabase 型錄與即時庫存快照</div>
+          <div class="dm-eyebrow">ELITILE IMPORTED PORCELAIN TILES</div>
+          <h1 class="dm-main-title" id="dmTitle">載入中...</h1>
+          <div class="dm-subtitle" id="dmSubtitle">正在同步即時庫存</div>
         </div>
-        <div id="dmHeaderRight"></div>
       </div>
 
-      <!-- 若選中產品有實景圖，自動顯示實景主視覺 -->
+      <!-- 若該系列或主題有實景圖，頂部呈現實景主視覺 -->
       <div class="dm-scene-hero" id="dmSceneHero" style="display:none;">
-        <img id="dmSceneImg" alt="空間實景應用圖" onclick="openImageZoom(this.src, '空間實景應用圖')">
+        <img id="dmSceneImg" alt="空間實景圖" onclick="openImageZoom(this.src, '空間實景應用圖')">
         <div class="dm-scene-caption">
           <span class="scene-badge" id="dmSceneCaptionTxt">空間實景參考</span>
-          <button type="button" class="scene-badge" id="btnNextScene" onclick="cycleSceneHero()" style="display:none;">切換其他實景圖</button>
+          <button type="button" class="scene-badge" id="btnNextScene" onclick="cycleSceneHero()" style="display:none;">切換實景圖</button>
         </div>
       </div>
 
       <div class="dm-body" id="dmBody">
-        <div class="sk-grid">
-          <div class="sk-card"></div>
-          <div class="sk-card"></div>
-          <div class="sk-card"></div>
-        </div>
+        <div class="state-box">正在載入產品與庫存資料...</div>
       </div>
 
       <div class="dm-footer">
-        <div class="dm-footer-left">
-          <div class="dm-dealer-name" id="dmFooterTitle">ELITILE 高雅瓷進口磁磚 · 經銷夥伴專區</div>
-          <div class="dm-dealer-sub" id="dmFooterSub">點擊上方任一磁磚可查看高清大圖、開啟磁磚百科或直接帶入線上保留單</div>
+        <div class="dm-valid-time">
+          <div id="dmValidTimeTxt">庫存有效時間：載入中</div>
+          <div class="dm-valid-sub">現場庫存即時變動，如需鎖貨請直接點選卡片「保留」按鈕或洽負責業務</div>
         </div>
         <div class="dm-qr-box">
           <img id="dmQrImg" alt="QR Code" src="">
           <div class="dm-qr-txt">
-            <div>掃描開啟互動型錄</div>
-            <div style="color:var(--muted);font-size:10.5px;">即時查庫存 · 看實景</div>
+            <div>掃描開啟互動頁</div>
+            <div style="color:var(--muted);font-weight:500;font-size:10px;">點圖看大圖 · 直接下保留</div>
           </div>
         </div>
       </div>
@@ -1047,17 +845,17 @@
   </section>
 </main>
 
-<!-- 單片 JPG 產生與圖片預覽 Modal -->
+<!-- 單片預覽 / 海報下載 Modal -->
 <div class="modal-backdrop" id="previewModal" onclick="if(event.target===this)closeModal()">
   <div class="modal-card">
     <div class="modal-head">
-      <div class="modal-title" id="modalTitle">單片專屬 DM 圖卡預覽</div>
+      <div class="modal-title" id="modalTitle">預覽</div>
       <button type="button" class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <img id="modalImg" class="modal-preview-img" alt="預覽圖">
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button type="button" class="btn-act" onclick="closeModal()">關閉</button>
-      <a id="modalDownloadBtn" class="btn-act primary" download="ELITILE_DM.jpg" style="text-decoration:none;">下載高畫質 JPG</a>
+      <a id="modalDownloadBtn" class="btn-act primary" download="ELITILE_DM.jpg" style="text-decoration:none;">儲存 JPG 圖檔</a>
     </div>
   </div>
 </div>
@@ -1072,13 +870,72 @@ const GAS_API = "https://script.google.com/macros/s/AKfycbxB2wyCEt-0xeXL43Ak7Nvk
 let allProducts = [];
 let filteredPool = [];
 let currentPicked = [];
-let currentMode = "theme";   // 'theme' | 'series'
-let currentRole = "dealer";  // 'dealer' | 'quote' | 'designer'
-let currentLevel = "all";    // 'all' | 'level1' | 'level2' | 'normal'
-let currentColor = "";
-let currentSpace = "";
+let currentMode = "series";   // 預設直接進「單一系列」
+let currentLevel = "all";
+let selectedSize = "60x120";
+let selectedStyle = "";
 let heroScenes = [];
 let heroSceneIdx = 0;
+let snapshotTimeStr = "";
+
+const ORIGIN_FLAG_MAP = {
+  "義大利": "🇮🇹",
+  "西班牙": "🇪🇸",
+  "葡萄牙": "🇵🇹",
+  "台灣": "🇹🇼",
+  "馬來西亞": "🇲🇾",
+  "印度": "🇮🇳",
+  "越南": "🇻🇳",
+  "土耳其": "🇹🇷",
+  "巴西": "🇧🇷"
+};
+
+function getOriginFlag(origin) {
+  const s = String(origin || "").trim();
+  for (const [k, flag] of Object.entries(ORIGIN_FLAG_MAP)) {
+    if (s.includes(k)) return flag;
+  }
+  return "";
+}
+
+// 坪數無條件捨去（不加「約」字，例如 1.1 -> 1、4.8 -> 4.5、0.9 -> 0.5）
+function formatFloorPing(rawPing) {
+  const n = Number(rawPing) || 0;
+  if (n <= 0) return "0";
+  if (n < 1) {
+    return n >= 0.5 ? "0.5" : String(Math.floor(n * 10) / 10);
+  }
+  const flooredHalf = Math.floor(n * 2) / 2;
+  return Number.isInteger(flooredHalf) ? String(flooredHalf) : flooredHalf.toFixed(1);
+}
+
+// 解析尺寸字串為 [短邊, 長邊] 數值陣列，供 ±1cm 比對
+function parseSizeNums(sizeStr) {
+  const s = String(sizeStr || "").replace(/[×*＊Ｘ]/g, "x");
+  const m = s.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
+  if (!m) return null;
+  const a = parseFloat(m[1]);
+  const b = parseFloat(m[2]);
+  if (isNaN(a) || isNaN(b)) return null;
+  return [Math.min(a, b), Math.max(a, b)];
+}
+
+// 判斷兩個尺寸是否在 ±1cm 誤差內視為同一規格
+function isSizeMatchWithTolerance(itemSizeStr, targetSizeStr) {
+  if (!targetSizeStr) return true;
+  const targetNums = parseSizeNums(targetSizeStr);
+  const itemNums = parseSizeNums(itemSizeStr);
+  if (targetNums && itemNums) {
+    return Math.abs(itemNums[0] - targetNums[0]) <= 1.2 && Math.abs(itemNums[1] - targetNums[1]) <= 1.2;
+  }
+  return String(itemSizeStr || "").toLowerCase().includes(String(targetSizeStr || "").toLowerCase().trim());
+}
+
+function formatNowTime() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function showToast(msg) {
   const el = document.getElementById("toast");
@@ -1088,7 +945,6 @@ function showToast(msg) {
   el._t = setTimeout(() => el.classList.remove("show"), 2400);
 }
 
-// 將 Google Drive 連結轉為可直連 / Canvas 可繪製之網址
 function normalizeImgUrl(raw, forCanvas = false) {
   if (!raw) return "";
   let u = String(raw).split("#")[0].trim();
@@ -1103,7 +959,6 @@ function normalizeImgUrl(raw, forCanvas = false) {
   return u;
 }
 
-// 解析產品的單片圖與實景圖清單
 function extractProductMedia(p, stockSnap) {
   const scenes = [];
   const pieces = [];
@@ -1121,22 +976,10 @@ function extractProductMedia(p, stockSnap) {
   return { mainImg, scenes, pieces };
 }
 
-// 解析尺寸長寬比 (讓 20x120 木紋磚、60x120 石紋磚呈現真實比例)
-function parseSizeAspect(sizeStr) {
-  const s = String(sizeStr || "").replace(/[×*＊Ｘ]/g, "x");
-  const m = s.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/i);
-  if (!m) return { w: 1, h: 1 };
-  const a = parseFloat(m[1]) || 1;
-  const b = parseFloat(m[2]) || 1;
-  // 橫向擺放展示較美觀
-  return { w: Math.max(a, b), h: Math.min(a, b) };
-}
-
 async function initData() {
   try {
-    // 平行拉取 Supabase 產品表 (含 AI 色階、空間標籤、睡美人/不續辦分級、價格) 與 GAS 10分鐘即時庫存快照
     const sbPromise = fetch(
-      `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,color_base,space_tags&is_active=eq.true&order=code.asc&limit=1000`,
+      `${SB_URL}/rest/v1/products?select=code,title_zh,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
       { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } }
     ).then(r => r.ok ? r.json() : []);
 
@@ -1146,70 +989,46 @@ async function initData() {
 
     const [sbRows, gasData] = await Promise.all([sbPromise, gasPromise]);
     const stockCatalog = (gasData && gasData.catalog) || {};
+    snapshotTimeStr = formatNowTime();
 
     allProducts = (sbRows || []).map(p => {
       const code = String(p.code || "").toUpperCase().trim();
       const snap = stockCatalog[code] || null;
       const ratio = Number(p.ratio) || (snap && Number(snap.ratio)) || 36;
-      const pcsPerBox = Number(p.pieces_per_box) || (snap && Number(snap.pcsPerBox)) || 0;
       const availPcs = snap && snap.availPcs !== undefined
         ? Number(snap.availPcs)
-        : (p.stock_status === "in_stock" ? Math.round(ratio * 18) : 0);
-      const availPing = ratio > 0 ? Math.round((availPcs / ratio) * 10) / 10 : 0;
+        : (p.stock_status === "in_stock" ? Math.round(ratio * 15) : 0);
+      const rawPing = ratio > 0 ? availPcs / ratio : 0;
       const media = extractProductMedia(p, snap);
       const sizeClean = String(p.size || (snap && snap.size) || "").replace(/\s*cm$/i, "").replace(/[×*＊Ｘ]/g, "x").trim();
 
       return {
         code,
         series: String(p.title_zh || (snap && snap.series) || code).trim(),
-        seriesEn: String(p.title_en || "").trim(),
-        brand: String(p.brand || "").trim(),
         origin: String(p.origin || "").trim(),
+        flag: getOriginFlag(p.origin),
         size: sizeClean,
         color: String(p.color || (snap && snap.color) || "").trim(),
-        colorBase: String(p.color_base || p.color || "").trim(),
         style: String(p.style || "").trim(),
         area: String(p.area || "").trim(),
-        spaces: Array.isArray(p.space_tags) ? p.space_tags : [],
-        level: p.level || "normal", // level1=睡美人, level2=不續辦, normal=正常品
+        level: p.level || "normal",
         pricePcs: Number(p.price_num) || 0,
         pricePing: Number(p.price_per_pyeong) || (Number(p.price_num) && ratio ? Math.round(Number(p.price_num) * ratio) : 0),
         ratio,
-        pcsPerBox,
         availPcs,
-        availPing,
+        rawPing,
+        pingStr: formatFloorPing(rawPing),
         mainImg: media.mainImg,
-        scenes: media.scenes,
-        pieces: media.pieces
+        scenes: media.scenes
       };
-    }).filter(p => p.mainImg);
+    }).filter(p => p.mainImg && p.availPcs > 0);
 
-    populateFilterOptions();
+    renderSeriesOptions("");
     restoreFromUrl();
   } catch (err) {
     console.error(err);
-    document.getElementById("dmBody").innerHTML = `<div class="state-box">載入資料時發生錯誤，請重新整理頁面。</div>`;
+    document.getElementById("dmBody").innerHTML = `<div class="state-box">載入資料時發生錯誤，請重新整理。</div>`;
   }
-}
-
-function populateFilterOptions() {
-  // 統計常用尺寸
-  const sizeCounts = {};
-  const seriesSet = new Map();
-  allProducts.forEach(p => {
-    if (p.size) sizeCounts[p.size] = (sizeCounts[p.size] || 0) + 1;
-    if (p.series) {
-      const prev = seriesSet.get(p.series) || 0;
-      seriesSet.set(p.series, prev + 1);
-    }
-  });
-
-  const selSize = document.getElementById("selSize");
-  const sortedSizes = Object.keys(sizeCounts).sort((a, b) => sizeCounts[b] - sizeCounts[a]);
-  selSize.innerHTML = `<option value="">全部尺寸 (${allProducts.length} 款)</option>` +
-    sortedSizes.map(sz => `<option value="${sz}">${sz.replace(/x/gi, "×")} cm (${sizeCounts[sz]} 款)</option>`).join("");
-
-  renderSeriesOptions("");
 }
 
 function renderSeriesOptions(kw) {
@@ -1225,48 +1044,56 @@ function renderSeriesOptions(kw) {
     map.set(p.series, item);
   });
 
-  const entries = Array.from(map.entries()).sort((a, b) => b[1].count - a[1].count);
+  // 優先把款式較多且有實景圖的系列排前面
+  const entries = Array.from(map.entries()).sort((a, b) => {
+    if (a[1].hasScene !== b[1].hasScene) return b[1].hasScene ? 1 : -1;
+    return b[1].count - a[1].count;
+  });
+
   selSeries.innerHTML = entries.map(([ser, info]) =>
-    `<option value="${ser}">${ser} (${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.hasScene ? " · 含實景" : ""})</option>`
+    `<option value="${ser}">${ser}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款）</option>`
   ).join("");
 }
 
 function filterSeriesSelect() {
-  const kw = document.getElementById("seriesSearchInput").value;
-  renderSeriesOptions(kw);
+  renderSeriesOptions(document.getElementById("seriesSearchInput").value);
   pickBySeries();
-}
-
-function setRole(role) {
-  currentRole = role;
-  document.querySelectorAll(".role-btn").forEach(b => b.classList.toggle("active", b.dataset.role === role));
-  const markupField = document.getElementById("markupField");
-  if (role === "quote") {
-    markupField.style.display = "flex";
-    if (parseFloat(document.getElementById("markupInput").value) === 1.0) {
-      document.getElementById("markupInput").value = "1.35";
-    }
-  } else if (role === "dealer") {
-    markupField.style.display = "flex";
-    document.getElementById("markupInput").value = "1.0";
-  } else {
-    markupField.style.display = "none";
-  }
-  renderDM();
 }
 
 function switchMode(mode) {
   currentMode = mode;
-  document.getElementById("tabTheme").classList.toggle("active", mode === "theme");
   document.getElementById("tabSeries").classList.toggle("active", mode === "series");
-  document.getElementById("themeFilterBox").style.display = mode === "theme" ? "flex" : "none";
+  document.getElementById("tabTheme").classList.toggle("active", mode === "theme");
   document.getElementById("seriesFilterBox").style.display = mode === "series" ? "flex" : "none";
+  document.getElementById("themeFilterBox").style.display = mode === "theme" ? "flex" : "none";
+  document.getElementById("btnRandomTxt").textContent = mode === "series" ? "隨機換一個系列" : "隨機換一批產品";
+
   if (mode === "series") {
     renderSeriesOptions(document.getElementById("seriesSearchInput").value);
     pickBySeries();
   } else {
     applyAndPick();
   }
+}
+
+function selectSizeChip(sz) {
+  selectedSize = sz;
+  document.getElementById("customSizeInput").value = "";
+  document.querySelectorAll("#sizeChips .chip").forEach(b => b.classList.toggle("active", b.dataset.sz === sz));
+  applyAndPick();
+}
+
+function onCustomSizeInput() {
+  const val = document.getElementById("customSizeInput").value.trim();
+  selectedSize = val;
+  document.querySelectorAll("#sizeChips .chip").forEach(b => b.classList.remove("active"));
+  applyAndPick();
+}
+
+function selectStyleChip(st) {
+  selectedStyle = st;
+  document.querySelectorAll("#styleChips .chip").forEach(b => b.classList.toggle("active", b.dataset.st === st));
+  applyAndPick();
 }
 
 function setLevel(lv) {
@@ -1280,63 +1107,43 @@ function setLevel(lv) {
   }
 }
 
-function setColor(col) {
-  currentColor = col;
-  document.querySelectorAll("#colorChips .chip").forEach(b => b.classList.toggle("active", b.dataset.col === col));
-  applyAndPick();
-}
-
-function setSpace(sp) {
-  currentSpace = sp;
-  document.querySelectorAll("#spaceChips .chip").forEach(b => b.classList.toggle("active", b.dataset.sp === sp));
-  applyAndPick();
+function pickBySeries() {
+  const ser = document.getElementById("selSeries").value;
+  const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 12;
+  filteredPool = allProducts.filter(p => p.series === ser && (currentLevel === "all" || p.level === currentLevel));
+  document.getElementById("poolCountBadge").textContent = `共 ${filteredPool.length} 款`;
+  currentPicked = filteredPool.slice(0, maxCnt);
+  setupHeroScenes();
+  renderDM();
 }
 
 function applyAndPick() {
-  const size = document.getElementById("selSize").value;
-  const area = document.getElementById("selArea").value;
-  const minPing = parseFloat(document.getElementById("minPingInput").value) || 0;
-
+  if (currentMode === "series") {
+    return pickBySeries();
+  }
   filteredPool = allProducts.filter(p => {
     if (currentLevel !== "all" && p.level !== currentLevel) return false;
-    if (size && p.size.toLowerCase() !== size.toLowerCase()) return false;
-    if (area) {
-      const matchArea = p.area.includes(area.replace("磚", "")) || p.style.includes(area.replace("磚", ""));
-      if (!matchArea) return false;
+    if (selectedSize && !isSizeMatchWithTolerance(p.size, selectedSize)) return false;
+    if (selectedStyle) {
+      const hay = `${p.area} ${p.style} ${p.series} ${p.size}`.toLowerCase();
+      if (selectedStyle === "石紋") {
+        if (!hay.includes("石紋") && !hay.includes("大理石") && !hay.includes("水泥")) return false;
+      } else if (selectedStyle === "地鐵") {
+        const nums = parseSizeNums(p.size);
+        const isSmallStrip = nums && nums[0] <= 15 && nums[1] <= 50;
+        if (!hay.includes("小品") && !hay.includes("筷子") && !hay.includes("鐵道") && !isSmallStrip) return false;
+      } else if (!hay.includes(selectedStyle)) {
+        return false;
+      }
     }
-    if (currentColor) {
-      const colKwMap = {
-        "白": ["白", "象牙", "銀"],
-        "米": ["米", "杏", "奶油"],
-        "灰": ["灰", "水泥"],
-        "棕": ["棕", "木", "胡桃", "咖啡", "褐", "橡木"],
-        "黑": ["黑", "炭"],
-        "綠": ["綠", "青", "橄欖"],
-        "藍": ["藍", "海"]
-      };
-      const kws = colKwMap[currentColor] || [currentColor];
-      const text = (p.colorBase + " " + p.color + " " + p.style).toLowerCase();
-      if (!kws.some(k => text.includes(k))) return false;
-    }
-    if (currentSpace) {
-      const inSpace = p.spaces.some(s => s.includes(currentSpace)) || p.style.includes(currentSpace);
-      if (!inSpace) return false;
-    }
-    if (minPing > 0 && p.availPing < minPing) return false;
     return true;
   });
 
   document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
-  document.getElementById("matchCountTxt").textContent = filteredPool.length;
-  randomizePick();
-}
-
-function pickBySeries() {
-  const ser = document.getElementById("selSeries").value;
-  filteredPool = allProducts.filter(p => p.series === ser && (currentLevel === "all" || p.level === currentLevel));
-  document.getElementById("poolCountBadge").textContent = `系列共 ${filteredPool.length} 款`;
-  document.getElementById("matchCountTxt").textContent = filteredPool.length;
-  currentPicked = filteredPool.slice(0, 12);
+  const maxCnt = parseInt(document.getElementById("selCount").value, 10) || 12;
+  const shuffled = [...filteredPool].sort(() => Math.random() - 0.5);
+  shuffled.sort((a, b) => (b.scenes.length > 0 ? 1 : 0) - (a.scenes.length > 0 ? 1 : 0));
+  currentPicked = shuffled.slice(0, maxCnt);
   setupHeroScenes();
   renderDM();
 }
@@ -1345,17 +1152,16 @@ function randomizePick() {
   if (currentMode === "series") {
     const sel = document.getElementById("selSeries");
     if (sel.options.length > 0) {
-      const rndIdx = Math.floor(Math.random() * sel.options.length);
-      sel.selectedIndex = rndIdx;
+      sel.selectedIndex = Math.floor(Math.random() * sel.options.length);
       pickBySeries();
     }
     return;
   }
-  const count = parseInt(document.getElementById("selCount").value, 10) || 6;
-  const shuffled = [...filteredPool].sort(() => Math.random() - 0.5);
-  // 優先讓有實景圖的排前面，畫面更漂亮
-  shuffled.sort((a, b) => (b.scenes.length > 0 ? 1 : 0) - (a.scenes.length > 0 ? 1 : 0));
-  currentPicked = shuffled.slice(0, count);
+  applyAndPick();
+}
+
+function removePickedCard(code) {
+  currentPicked = currentPicked.filter(p => p.code !== code);
   setupHeroScenes();
   renderDM();
 }
@@ -1364,7 +1170,7 @@ function setupHeroScenes() {
   heroScenes = [];
   currentPicked.forEach(p => {
     p.scenes.forEach(sc => {
-      heroScenes.push({ url: sc, code: p.code, series: p.series, size: p.size });
+      heroScenes.push({ url: sc, code: p.code, series: p.series });
     });
   });
   heroSceneIdx = 0;
@@ -1375,36 +1181,26 @@ function cycleSceneHero() {
   heroSceneIdx = (heroSceneIdx + 1) % heroScenes.length;
   const cur = heroScenes[heroSceneIdx];
   document.getElementById("dmSceneImg").src = cur.url;
-  document.getElementById("dmSceneCaptionTxt").textContent = `實景應用：${cur.series} (${cur.code}) · 點擊放大 (${heroSceneIdx + 1}/${heroScenes.length})`;
+  document.getElementById("dmSceneCaptionTxt").textContent = `空間實景：${cur.series} (${cur.code}) · ${heroSceneIdx + 1}/${heroScenes.length}`;
 }
 
 function buildDynamicTitle() {
-  const lvNames = {
-    all: "精選現貨速覽",
-    level1: "專案特惠精選",
-    level2: "限量絕版出清",
-    normal: "主力常規現貨"
-  };
   if (currentMode === "series") {
-    const ser = document.getElementById("selSeries").value || "系列總覽";
+    const ser = document.getElementById("selSeries").value || (currentPicked[0] && currentPicked[0].series) || "精選系列";
     const first = currentPicked[0];
     const sz = first && first.size ? first.size.replace(/x/gi, "×") + " cm" : "";
     return {
-      title: `《${ser}系列》產品型錄與現貨明細`,
-      sub: `${sz ? "規格 " + sz + " · " : ""}全系列共 ${currentPicked.length} 款色號 · ${lvNames[currentLevel]}`
+      title: `${ser}系列`,
+      sub: `${sz ? "規格 " + sz + " · " : ""}現貨共 ${currentPicked.length} 款`
     };
   }
-  const size = document.getElementById("selSize").value;
-  const area = document.getElementById("selArea").value;
   const parts = [];
-  if (size) parts.push(size.replace(/x/gi, "×"));
-  if (currentColor) parts.push(currentColor + "色系");
-  if (area) parts.push(area);
-  if (currentSpace) parts.push(currentSpace + "適用");
-  const headStr = parts.length > 0 ? parts.join(" · ") : "全尺寸綜合";
+  if (selectedSize) parts.push(selectedSize.replace(/x/gi, "×") + " cm");
+  if (selectedStyle) parts.push(selectedStyle === "石紋" ? "石紋 / 理石磚" : selectedStyle === "地鐵" ? "地鐵磚 / 條磚" : selectedStyle + "磚");
+  const headStr = parts.length > 0 ? parts.join(" · ") : "精選磁磚";
   return {
-    title: `${headStr} · ${lvNames[currentLevel]}`,
-    sub: `共精選 ${currentPicked.length} 款歐洲進口磁磚 · 即時庫存與規格一覽`
+    title: headStr,
+    sub: `現貨共 ${currentPicked.length} 款`
   };
 }
 
@@ -1413,21 +1209,17 @@ function renderDM() {
   const { title, sub } = buildDynamicTitle();
   document.getElementById("dmTitle").textContent = title;
   document.getElementById("dmSubtitle").textContent = sub;
+  document.getElementById("dmValidTimeTxt").textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
 
-  const signText = document.getElementById("dealerSignInput").value.trim() || "ELITILE 高雅瓷進口磁磚";
-  document.getElementById("dmFooterTitle").textContent = signText;
-
-  // 更新 QR Code (帶入目前選中的產品代碼與視角)
   const shareUrl = getShareUrl();
-  document.getElementById("dmQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=4&data=${encodeURIComponent(shareUrl)}`;
+  document.getElementById("dmQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(shareUrl)}`;
 
-  // 實景主視覺
   const heroBox = document.getElementById("dmSceneHero");
   if (heroScenes.length > 0) {
     const cur = heroScenes[heroSceneIdx];
-    heroBox.style.display = "flex";
+    heroBox.style.display = "block";
     document.getElementById("dmSceneImg").src = cur.url;
-    document.getElementById("dmSceneCaptionTxt").textContent = `實景應用：${cur.series} (${cur.code}) · 點擊放大 (${heroSceneIdx + 1}/${heroScenes.length})`;
+    document.getElementById("dmSceneCaptionTxt").textContent = `空間實景：${cur.series} (${cur.code}) · ${heroSceneIdx + 1}/${heroScenes.length}`;
     document.getElementById("btnNextScene").style.display = heroScenes.length > 1 ? "inline-block" : "none";
   } else {
     heroBox.style.display = "none";
@@ -1435,103 +1227,51 @@ function renderDM() {
 
   const body = document.getElementById("dmBody");
   if (currentPicked.length === 0) {
-    body.innerHTML = `<div class="state-box">目前篩選條件下沒有符合庫存門檻的產品，請放寬條件或調低最低坪數。</div>`;
+    body.innerHTML = `<div class="state-box">沒有符合條件的現貨產品，請切換其他尺寸或系列。</div>`;
     return;
   }
 
-  const reqPing = parseFloat(document.getElementById("reqPingInput").value) || 0;
-  const markup = parseFloat(document.getElementById("markupInput").value) || 1.0;
-  const showPrice = currentRole !== "designer";
+  const showPrice = document.getElementById("chkShowPrice").checked;
 
   const cardsHtml = currentPicked.map(p => {
-    const lvBadge = p.level === "level1"
-      ? `<span class="status-pill sleeper">專案特惠</span>`
-      : p.level === "level2"
-      ? `<span class="status-pill disc">限量出清</span>`
-      : `<span class="status-pill normal">主力現貨</span>`;
-
     const sceneBtn = p.scenes.length > 0
-      ? `<button type="button" class="scene-mini-btn" onclick="openImageZoom('${p.scenes[0]}', '${p.code} 空間實景圖')">看實景 (${p.scenes.length})</button>`
-      : `<span></span>`;
+      ? `<button type="button" class="scene-dot-btn" onclick="openImageZoom('${p.scenes[0]}', '${p.code} 空間實景圖')">實景</button>`
+      : "";
 
-    const unitPcsPrice = Math.round(p.pricePcs * markup);
-    const unitPingPrice = Math.round(p.pricePing * markup);
+    const priceHtml = showPrice && (p.pricePcs > 0 || p.pricePing > 0)
+      ? `<div class="price-line">
+           <span>單價</span>
+           <span>${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""}${p.pricePing > 0 ? " · $" + p.pricePing.toLocaleString() + "/坪" : ""}</span>
+         </div>`
+      : "";
 
-    let priceRowHtml = "";
-    if (showPrice && (unitPcsPrice > 0 || unitPingPrice > 0)) {
-      const priceLabel = currentRole === "quote" ? "專案報價" : "經銷單價";
-      priceRowHtml = `
-        <div class="sp-row">
-          <span class="sp-lbl">${priceLabel}</span>
-          <span class="sp-val-price">
-            ${unitPcsPrice > 0 ? `$${unitPcsPrice.toLocaleString()} <small>/片</small>` : ""}
-            ${unitPingPrice > 0 ? ` · $${unitPingPrice.toLocaleString()} <small>/坪</small>` : ""}
-          </span>
-        </div>
-      `;
-    }
-
-    const stockStr = currentRole === "designer"
-      ? (p.availPcs > 0 ? `現貨供應中 (${p.availPing} 坪)` : `請洽詢貨況`)
-      : `${p.availPcs.toLocaleString()} 片 · 約 ${p.availPing} 坪`;
-
-    // 案件需求試算
-    let calcHtml = "";
-    if (reqPing > 0 && p.ratio > 0) {
-      const needPcs = Math.ceil(reqPing * 1.05 * p.ratio);
-      const needBoxes = p.pcsPerBox > 0 ? ` (${Math.ceil(needPcs / p.pcsPerBox)} 箱)` : "";
-      const estTotal = showPrice && unitPcsPrice > 0 ? ` · 預估 $${(needPcs * unitPcsPrice).toLocaleString()}` : "";
-      const enough = p.availPcs >= needPcs;
-      calcHtml = `
-        <div class="project-calc-bar" style="${enough ? "" : "background:#FBECEC;color:#9E2A2B;"}">
-          <span>${reqPing}坪(+5%) 需 ${needPcs}片${needBoxes}${estTotal}</span>
-          <span>${enough ? "現貨足夠" : "庫存不足"}</span>
-        </div>
-      `;
-    }
-
-    const tags = [
-      p.origin,
-      p.area,
-      p.color,
-      ...(p.spaces || []).slice(0, 2)
-    ].filter(Boolean);
-
-    const reserveQty = reqPing > 0 && p.ratio > 0 ? Math.ceil(reqPing * 1.05 * p.ratio) : "";
-    const reserveHref = `reservation_form.html?code=${encodeURIComponent(p.code)}${reserveQty ? "&qty=" + reserveQty : ""}`;
+    const reserveHref = `reservation_form.html?code=${encodeURIComponent(p.code)}`;
     const webHref = `https://bigt.cc/web/product.html?code=${encodeURIComponent(p.code)}`;
 
     return `
       <article class="tile-card">
+        <button type="button" class="remove-item-btn staff-only" title="從這張 DM 移除此款" onclick="removePickedCard('${p.code}')">✕</button>
         <div class="tile-stage">
-          <div class="stage-badges">
-            ${lvBadge}
-            ${sceneBtn}
-          </div>
-          <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series} (${p.size})')">
+          <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}')">
+          ${p.flag ? `<span class="origin-flag" title="${p.origin}">${p.flag}</span>` : ""}
+          ${sceneBtn}
         </div>
         <div class="tile-info">
           <div class="tile-head">
             <span class="tile-code">${p.code}</span>
-            <span class="tile-size-badge">${(p.size || "").replace(/x/gi, "×")} cm</span>
+            <span class="tile-size">${(p.size || "").replace(/x/gi, "×")}</span>
           </div>
-          <div class="tile-series">${p.series} ${p.seriesEn ? `<span style="color:var(--muted);font-weight:500;font-size:12.5px;">· ${p.seriesEn}</span>` : ""}</div>
-          <div class="tile-tags">
-            ${tags.map(t => `<span class="meta-tag">${t}</span>`).join("")}
+          <div class="tile-series">${p.series}</div>
+          <div class="tile-stock-line">
+            <span style="color:var(--muted);font-weight:600;">可用</span>
+            <span class="stock-val">${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪</span>
           </div>
-          <div class="stock-price-box">
-            <div class="sp-row">
-              <span class="sp-lbl">即時可用庫存</span>
-              <span class="sp-val-stock" style="${p.availPcs <= 0 ? "color:var(--red)" : ""}">${stockStr}</span>
-            </div>
-            ${priceRowHtml}
-            ${calcHtml}
-          </div>
+          ${priceHtml}
         </div>
         <div class="card-actions">
-          <a class="card-btn" href="${webHref}" target="_blank" rel="noopener">官網明細</a>
-          <a class="card-btn" href="${reserveHref}" target="_blank" rel="noopener">下保留單</a>
-          <button type="button" class="card-btn accent" onclick="exportSingleTileJPG('${p.code}')">單片 JPG</button>
+          <a class="card-btn" href="${webHref}" target="_blank" rel="noopener">明細</a>
+          <a class="card-btn" href="${reserveHref}" target="_blank" rel="noopener">下保留</a>
+          <button type="button" class="card-btn accent" onclick="exportSingleTileJPG('${p.code}')">單片圖</button>
         </div>
       </article>
     `;
@@ -1540,52 +1280,51 @@ function renderDM() {
   body.innerHTML = `<div class="dm-grid">${cardsHtml}</div>`;
 }
 
+function toggleClientPreview() {
+  const isClient = document.body.classList.toggle("client-view");
+  document.getElementById("btnClientPreviewTxt").textContent = isClient ? "返回業務編輯" : "預覽客戶端畫面";
+}
+
 function getShareUrl() {
   const codes = currentPicked.map(p => p.code).join(",");
   const u = new URL(window.location.href);
   u.search = "";
   if (codes) u.searchParams.set("codes", codes);
-  u.searchParams.set("role", currentRole);
-  const markup = parseFloat(document.getElementById("markupInput").value) || 1.0;
-  if (currentRole === "quote" && markup !== 1.0) u.searchParams.set("m", String(markup));
-  const reqPing = parseFloat(document.getElementById("reqPingInput").value) || 0;
-  if (reqPing > 0) u.searchParams.set("ping", String(reqPing));
+  if (document.getElementById("chkShowPrice").checked) u.searchParams.set("price", "1");
+  u.searchParams.set("view", "client");
   return u.toString();
 }
 
 function copyShareLink() {
   const url = getShareUrl();
   navigator.clipboard.writeText(url).then(() => {
-    showToast("已複製互動 DM 連結！對方點開即可互動查看並點擊單品。");
+    showToast("已複製客戶專屬連結！客戶點開只會看到乾淨的 DM 與下保留按鈕。");
   }).catch(() => {
-    showToast("複製成功：" + url);
+    showToast("連結：" + url);
   });
 }
 
 function restoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  const roleParam = params.get("role");
-  if (roleParam && ["dealer", "quote", "designer"].includes(roleParam)) {
-    setRole(roleParam);
+  if (params.get("price") === "1") {
+    document.getElementById("chkShowPrice").checked = true;
   }
-  const mParam = parseFloat(params.get("m"));
-  if (mParam > 0) document.getElementById("markupInput").value = String(mParam);
-  const pingParam = parseFloat(params.get("ping"));
-  if (pingParam > 0) document.getElementById("reqPingInput").value = String(pingParam);
-
+  if (params.get("view") === "client") {
+    document.body.classList.add("client-view");
+  }
   const codesParam = params.get("codes");
   if (codesParam) {
     const codeList = codesParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
     const matched = codeList.map(c => allProducts.find(p => p.code === c)).filter(Boolean);
     if (matched.length > 0) {
-      filteredPool = matched;
       currentPicked = matched;
       setupHeroScenes();
       renderDM();
       return;
     }
   }
-  applyAndPick();
+  // 預設直接載入第一個系列
+  pickBySeries();
 }
 
 function openImageZoom(src, title) {
@@ -1601,7 +1340,6 @@ function closeModal() {
   document.getElementById("previewModal").classList.remove("open");
 }
 
-// ── Canvas 工具函式：載入跨網域圖片 ──
 function loadImageForCanvas(url) {
   return new Promise(resolve => {
     if (!url) return resolve(null);
@@ -1609,7 +1347,6 @@ function loadImageForCanvas(url) {
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => {
-      // 退回 wsrv.nl CORS 代理再試一次
       if (!url.includes("wsrv.nl")) {
         const proxy = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=1000&output=jpg`;
         const img2 = new Image();
@@ -1635,11 +1372,11 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// ── 生成「單片專屬規格卡 JPG」(1080 x 1350 高清直式圖卡) ──
+// ── 匯出單片專屬規格卡 JPG (1080 x 1350) ──
 async function exportSingleTileJPG(code) {
   const p = allProducts.find(x => x.code === code);
   if (!p) return;
-  showToast(`正在繪製 ${p.code} 單片專屬 DM 圖卡...`);
+  showToast(`正在產生 ${p.code} 單片規格卡 JPG...`);
 
   const W = 1080, H = 1350;
   const cv = document.createElement("canvas");
@@ -1647,182 +1384,127 @@ async function exportSingleTileJPG(code) {
   cv.height = H;
   const ctx = cv.getContext("2d");
 
-  // 背景
   ctx.fillStyle = "#F5F2EB";
   ctx.fillRect(0, 0, W, H);
 
-  // 頂部深色品牌列
   ctx.fillStyle = "#1C1917";
-  ctx.fillRect(0, 0, W, 155);
+  ctx.fillRect(0, 0, W, 145);
   ctx.fillStyle = "#8C5A32";
-  ctx.fillRect(0, 155, W, 6);
+  ctx.fillRect(0, 145, W, 5);
 
   ctx.fillStyle = "#D6B392";
-  ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES · PRODUCT SPECIFICATION", 48, 56);
+  ctx.font = "700 17px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", 44, 52);
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "800 44px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`${p.series}  ${p.code}`, 48, 118);
+  ctx.font = "800 42px 'Noto Sans TC', sans-serif";
+  ctx.fillText(`${p.flag ? p.flag + " " : ""}${p.series}  ${p.code}`, 44, 110);
 
-  // 右上尺寸標籤
   const szTxt = `${(p.size || "").replace(/x/gi, "×")} cm`;
-  ctx.font = "800 28px 'Plus Jakarta Sans', sans-serif";
-  const szW = ctx.measureText(szTxt).width + 44;
+  ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
+  const szW = ctx.measureText(szTxt).width + 40;
   ctx.fillStyle = "#8C5A32";
-  roundRect(ctx, W - 48 - szW, 74, szW, 54, 10);
+  roundRect(ctx, W - 44 - szW, 68, szW, 50, 8);
   ctx.fill();
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillText(szTxt, W - 48 - szW + 22, 111);
+  ctx.fillText(szTxt, W - 44 - szW + 20, 102);
 
-  const pieceUrl = p.mainImg;
-  const sceneUrl = p.scenes[0] || "";
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent("https://bigt.cc/web/product.html?code=" + p.code)}`;
-
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=3&data=${encodeURIComponent("https://bigt.cc/web/product.html?code=" + p.code)}`;
   const [pieceImg, sceneImg, qrImg] = await Promise.all([
-    loadImageForCanvas(pieceUrl),
-    sceneUrl ? loadImageForCanvas(sceneUrl) : Promise.resolve(null),
+    loadImageForCanvas(p.mainImg),
+    p.scenes[0] ? loadImageForCanvas(p.scenes[0]) : Promise.resolve(null),
     loadImageForCanvas(qrUrl)
   ]);
 
-  let curY = 195;
-
-  // 若有實景圖：上半放實景圖，下半放實際比例單片圖；若無實景圖：大面積展示實際比例單片圖
+  let curY = 180;
   if (sceneImg) {
     ctx.save();
-    roundRect(ctx, 48, curY, W - 96, 430, 16);
+    roundRect(ctx, 44, curY, W - 88, 430, 14);
     ctx.clip();
-    const sRatio = Math.max((W - 96) / sceneImg.width, 430 / sceneImg.height);
+    const sRatio = Math.max((W - 88) / sceneImg.width, 430 / sceneImg.height);
     const sw = sceneImg.width * sRatio, sh = sceneImg.height * sRatio;
-    ctx.drawImage(sceneImg, 48 + ((W - 96) - sw) / 2, curY + (430 - sh) / 2, sw, sh);
+    ctx.drawImage(sceneImg, 44 + ((W - 88) - sw) / 2, curY + (430 - sh) / 2, sw, sh);
     ctx.restore();
-
-    ctx.fillStyle = "rgba(28,25,23,0.78)";
-    roundRect(ctx, 72, curY + 368, 220, 42, 8);
-    ctx.fill();
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "700 20px 'Noto Sans TC', sans-serif";
-    ctx.fillText("空間實景應用參考", 92, curY + 396);
-    curY += 455;
+    curY += 452;
   }
 
-  // 單片圖舞台
-  const stageH = sceneImg ? 320 : 680;
+  const stageH = sceneImg ? 350 : 720;
   ctx.fillStyle = "#FFFFFF";
-  roundRect(ctx, 48, curY, W - 96, stageH, 16);
+  roundRect(ctx, 44, curY, W - 88, stageH, 14);
   ctx.fill();
   ctx.strokeStyle = "#E5E0D5";
   ctx.lineWidth = 2;
   ctx.stroke();
 
   if (pieceImg) {
-    const pad = 42;
-    const maxW = W - 96 - pad * 2;
-    const maxH = stageH - pad * 2;
-    const ratio = Math.min(maxW / pieceImg.width, maxH / pieceImg.height);
-    const dw = pieceImg.width * ratio;
-    const dh = pieceImg.height * ratio;
-    const dx = 48 + (W - 96 - dw) / 2;
-    const dy = curY + (stageH - dh) / 2;
-
+    const pad = 38;
+    const ratio = Math.min((W - 88 - pad * 2) / pieceImg.width, (stageH - pad * 2) / pieceImg.height);
+    const dw = pieceImg.width * ratio, dh = pieceImg.height * ratio;
     ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.22)";
-    ctx.shadowBlur = 24;
-    ctx.shadowOffsetY = 8;
-    ctx.drawImage(pieceImg, dx, dy, dw, dh);
+    ctx.shadowColor = "rgba(0,0,0,0.2)";
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetY = 6;
+    ctx.drawImage(pieceImg, 44 + (W - 88 - dw) / 2, curY + (stageH - dh) / 2, dw, dh);
     ctx.restore();
   }
+  curY += stageH + 22;
 
-  ctx.fillStyle = "#78716C";
-  ctx.font = "600 19px 'Noto Sans TC', sans-serif";
-  ctx.fillText("單片樣品圖（實際長寬比例呈現）", 76, curY + stageH - 22);
-
-  curY += stageH + 26;
-
-  // 下方規格與庫存資訊卡
-  const infoH = H - curY - 42;
+  const infoH = H - curY - 38;
   ctx.fillStyle = "#FFFFFF";
-  roundRect(ctx, 48, curY, W - 96, infoH, 16);
+  roundRect(ctx, 44, curY, W - 88, infoH, 14);
   ctx.fill();
   ctx.strokeStyle = "#E5E0D5";
   ctx.stroke();
 
-  const markup = parseFloat(document.getElementById("markupInput").value) || 1.0;
-  const showPrice = currentRole !== "designer";
-  const unitPcsPrice = Math.round(p.pricePcs * markup);
-  const unitPingPrice = Math.round(p.pricePing * markup);
-
   ctx.fillStyle = "#1C1917";
-  ctx.font = "800 32px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`產品編號：${p.code}   ｜   系列：${p.series}`, 80, curY + 62);
+  ctx.font = "800 34px 'Noto Sans TC', sans-serif";
+  ctx.fillText(`${p.code} · ${p.series}（${(p.size || "").replace(/x/gi, "×")} cm）`, 76, curY + 68);
 
-  ctx.fillStyle = "#44403C";
-  ctx.font = "600 24px 'Noto Sans TC', sans-serif";
-  const specLine = [
-    `尺寸：${(p.size || "").replace(/x/gi, "×")} cm`,
-    p.origin ? `產地：${p.origin}` : "",
-    p.area ? `分類：${p.area}` : "",
-    p.color ? `色系：${p.color}` : ""
-  ].filter(Boolean).join("   ·   ");
-  ctx.fillText(specLine, 80, curY + 112);
-
-  // 庫存與單價醒目顯示
   ctx.fillStyle = "#1F5E3B";
-  ctx.font = "800 28px 'Noto Sans TC', sans-serif";
-  const stockTxt = currentRole === "designer"
-    ? `庫存狀態：現貨供應中（約 ${p.availPing} 坪）`
-    : `即時可用庫存：${p.availPcs.toLocaleString()} 片（約 ${p.availPing} 坪）`;
-  ctx.fillText(stockTxt, 80, curY + 168);
+  ctx.font = "800 30px 'Noto Sans TC', sans-serif";
+  ctx.fillText(`可用庫存：${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, 76, curY + 128);
 
-  if (showPrice && (unitPcsPrice > 0 || unitPingPrice > 0)) {
-    const lbl = currentRole === "quote" ? "專案報價" : "經銷單價";
+  const showPrice = document.getElementById("chkShowPrice").checked;
+  if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
     ctx.fillStyle = "#8C5A32";
     ctx.font = "800 30px 'Noto Sans TC', sans-serif";
     ctx.fillText(
-      `${lbl}：${unitPcsPrice > 0 ? "$" + unitPcsPrice.toLocaleString() + " / 片" : ""}   ${unitPingPrice > 0 ? "（$" + unitPingPrice.toLocaleString() + " / 坪）" : ""}`,
-      80,
-      curY + 220
+      `單價：${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "($" + p.pricePing.toLocaleString() + "/坪)" : ""}`,
+      76,
+      curY + 182
     );
   }
 
-  const signText = document.getElementById("dealerSignInput").value.trim() || "ELITILE 高雅瓷進口磁磚";
   ctx.fillStyle = "#78716C";
   ctx.font = "600 20px 'Noto Sans TC', sans-serif";
-  ctx.fillText(signText, 80, curY + infoH - 28);
+  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, 76, curY + infoH - 28);
 
-  // 右下角 QR Code
   if (qrImg) {
-    const qSize = 150;
-    ctx.drawImage(qrImg, W - 48 - qSize - 30, curY + (infoH - qSize) / 2 - 10, qSize, qSize);
-    ctx.fillStyle = "#44403C";
-    ctx.font = "700 16px 'Noto Sans TC', sans-serif";
-    ctx.fillText("掃描看官網大圖", W - 48 - qSize - 14, curY + (infoH + qSize) / 2 + 16);
+    const qSize = 148;
+    ctx.drawImage(qrImg, W - 44 - qSize - 28, curY + (infoH - qSize) / 2, qSize, qSize);
   }
 
-  const dataUrl = cv.toDataURL("image/jpeg", 0.92);
-  openImageZoom(dataUrl, `${p.code}_${p.series}_單片DM`);
+  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${p.code}_${p.series}_單片DM`);
 }
 
-// ── 生成「整張多品項主題/系列海報 JPG」(1080px 寬高畫質合成) ──
+// ── 匯出整張多品項海報 JPG（一排 3~4 欄高密度精簡排版） ──
 async function exportFullPosterJPG() {
   if (currentPicked.length === 0) return;
-  if (currentPicked.length === 1) {
-    return exportSingleTileJPG(currentPicked[0].code);
-  }
+  if (currentPicked.length === 1) return exportSingleTileJPG(currentPicked[0].code);
 
-  showToast("正在合成整張高清 DM 海報 JPG，請稍候 1~2 秒...");
-  const items = currentPicked.slice(0, 6);
-  const cols = 2;
+  showToast("正在合成高清 DM 海報 JPG...");
+  const items = currentPicked;
+  const cols = items.length >= 9 ? 4 : 3;
   const rows = Math.ceil(items.length / cols);
   const hasHero = heroScenes.length > 0;
 
-  const W = 1080;
-  const headerH = 175;
-  const heroH = hasHero ? 360 : 0;
-  const cardH = 440;
-  const gap = 24;
-  const pad = 44;
-  const footerH = 140;
+  const W = 1200;
+  const pad = 36;
+  const gap = 18;
+  const headerH = 145;
+  const heroH = hasHero ? 320 : 0;
+  const cardH = 315;
+  const footerH = 115;
   const bodyH = rows * cardH + (rows - 1) * gap + pad * 2;
   const H = headerH + heroH + bodyH + footerH;
 
@@ -1834,28 +1516,25 @@ async function exportFullPosterJPG() {
   ctx.fillStyle = "#F5F2EB";
   ctx.fillRect(0, 0, W, H);
 
-  // 1. Header
   ctx.fillStyle = "#1C1917";
   ctx.fillRect(0, 0, W, headerH);
   ctx.fillStyle = "#8C5A32";
-  ctx.fillRect(0, headerH - 5, W, 5);
+  ctx.fillRect(0, headerH - 4, W, 4);
 
   const { title, sub } = buildDynamicTitle();
   ctx.fillStyle = "#D6B392";
-  ctx.font = "700 17px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ELITILE CURATED SELECTION · LIVE INVENTORY DM", pad, 52);
+  ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("ELITILE IMPORTED PORCELAIN TILES", pad, 44);
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "800 38px 'Noto Sans TC', sans-serif";
-  ctx.fillText(title, pad, 106);
+  ctx.font = "800 36px 'Noto Sans TC', sans-serif";
+  ctx.fillText(title, pad, 94);
 
   ctx.fillStyle = "#D6D3CD";
-  ctx.font = "500 21px 'Noto Sans TC', sans-serif";
-  ctx.fillText(sub, pad, 146);
+  ctx.font = "600 20px 'Noto Sans TC', sans-serif";
+  ctx.fillText(sub, pad, 126);
 
   let curY = headerH;
-
-  // 2. 實景主圖 (若有)
   if (hasHero) {
     const heroImg = await loadImageForCanvas(heroScenes[heroSceneIdx].url);
     if (heroImg) {
@@ -1871,109 +1550,91 @@ async function exportFullPosterJPG() {
     curY += heroH;
   }
 
-  // 3. 平行載入各品項單片圖
   const pieceImgs = await Promise.all(items.map(p => loadImageForCanvas(p.mainImg)));
-  const markup = parseFloat(document.getElementById("markupInput").value) || 1.0;
-  const showPrice = currentRole !== "designer";
+  const showPrice = document.getElementById("chkShowPrice").checked;
+  const cardW = (W - pad * 2 - gap * (cols - 1)) / cols;
 
-  const cardW = (W - pad * 2 - gap) / 2;
   items.forEach((p, idx) => {
     const r = Math.floor(idx / cols);
     const c = idx % cols;
     const x = pad + c * (cardW + gap);
     const y = curY + pad + r * (cardH + gap);
 
-    // 卡片底
     ctx.fillStyle = "#FFFFFF";
-    roundRect(ctx, x, y, cardW, cardH, 14);
+    roundRect(ctx, x, y, cardW, cardH, 10);
     ctx.fill();
     ctx.strokeStyle = "#E5E0D5";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // 單片圖舞台底
-    const stH = 235;
+    const stH = 175;
     ctx.fillStyle = "#EFECE4";
-    roundRect(ctx, x + 2, y + 2, cardW - 4, stH, 12);
+    roundRect(ctx, x + 1.5, y + 1.5, cardW - 3, stH, 9);
     ctx.fill();
 
     const pImg = pieceImgs[idx];
     if (pImg) {
-      const maxW = cardW - 48;
-      const maxH = stH - 36;
+      const maxW = cardW - 28;
+      const maxH = stH - 24;
       const ratio = Math.min(maxW / pImg.width, maxH / pImg.height);
-      const dw = pImg.width * ratio;
-      const dh = pImg.height * ratio;
+      const dw = pImg.width * ratio, dh = pImg.height * ratio;
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.18)";
-      ctx.shadowBlur = 14;
-      ctx.shadowOffsetY = 5;
+      ctx.shadowColor = "rgba(0,0,0,0.16)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 4;
       ctx.drawImage(pImg, x + (cardW - dw) / 2, y + (stH - dh) / 2, dw, dh);
       ctx.restore();
     }
 
-    // 卡片文字
+    if (p.flag) {
+      ctx.font = "22px sans-serif";
+      ctx.fillText(p.flag, x + 10, y + stH - 10);
+    }
+
     ctx.fillStyle = "#1C1917";
-    ctx.font = "800 28px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
-    ctx.fillText(p.code, x + 22, y + stH + 44);
+    ctx.font = "800 22px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
+    ctx.fillText(p.code, x + 14, y + stH + 34);
 
-    // 尺寸標
-    const szStr = `${(p.size || "").replace(/x/gi, "×")} cm`;
-    ctx.font = "700 19px 'Plus Jakarta Sans', sans-serif";
+    const szStr = (p.size || "").replace(/x/gi, "×");
+    ctx.font = "700 16px 'Plus Jakarta Sans', sans-serif";
     ctx.fillStyle = "#8C5A32";
-    ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 22, y + stH + 42);
+    ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 14, y + stH + 33);
 
-    // 系列與顏色
     ctx.fillStyle = "#44403C";
-    ctx.font = "700 22px 'Noto Sans TC', sans-serif";
-    ctx.fillText(`${p.series} ${p.color ? "· " + p.color : ""}`, x + 22, y + stH + 82);
+    ctx.font = "700 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText(p.series, x + 14, y + stH + 64);
 
-    // 庫存
     ctx.fillStyle = "#1F5E3B";
-    ctx.font = "800 21px 'Noto Sans TC', sans-serif";
-    const stTxt = currentRole === "designer"
-      ? `現貨供應中 (${p.availPing} 坪)`
-      : `現貨：${p.availPcs.toLocaleString()} 片 / 約 ${p.availPing} 坪`;
-    ctx.fillText(stTxt, x + 22, y + stH + 126);
+    ctx.font = "800 18px 'Noto Sans TC', sans-serif";
+    ctx.fillText(`可用 ${p.availPcs.toLocaleString()}片 / ${p.pingStr}坪`, x + 14, y + stH + 98);
 
-    // 價格
-    const unitPcsPrice = Math.round(p.pricePcs * markup);
-    const unitPingPrice = Math.round(p.pricePing * markup);
-    if (showPrice && (unitPcsPrice > 0 || unitPingPrice > 0)) {
+    if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
       ctx.fillStyle = "#8C5A32";
-      ctx.font = "800 22px 'Noto Sans TC', sans-serif";
-      const pTxt = `${unitPcsPrice > 0 ? "$" + unitPcsPrice.toLocaleString() + "/片" : ""} ${unitPingPrice > 0 ? "($" + unitPingPrice.toLocaleString() + "/坪)" : ""}`;
-      ctx.fillText(pTxt.trim(), x + 22, y + stH + 166);
-    } else {
-      ctx.fillStyle = "#78716C";
-      ctx.font = "600 18px 'Noto Sans TC', sans-serif";
-      ctx.fillText(`${p.origin || "歐洲進口"} · ${p.area || "精選磁磚"}`, x + 22, y + stH + 166);
+      ctx.font = "800 17px 'Noto Sans TC', sans-serif";
+      ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 14, y + stH + 126);
     }
   });
 
-  // 4. Footer 與 QR Code
   const footY = H - footerH;
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, footY, W, footerH);
   ctx.fillStyle = "#E5E0D5";
-  ctx.fillRect(0, footY, W, 2);
+  ctx.fillRect(0, footY, W, 1.5);
 
-  const signText = document.getElementById("dealerSignInput").value.trim() || "ELITILE 高雅瓷進口磁磚 · 經銷夥伴專區";
   ctx.fillStyle = "#1C1917";
-  ctx.font = "800 26px 'Noto Sans TC', sans-serif";
-  ctx.fillText(signText, pad, footY + 60);
+  ctx.font = "800 21px 'Noto Sans TC', sans-serif";
+  ctx.fillText(`庫存有效時間：${snapshotTimeStr || formatNowTime()}`, pad, footY + 48);
 
   ctx.fillStyle = "#78716C";
-  ctx.font = "600 19px 'Noto Sans TC', sans-serif";
-  ctx.fillText("掃描右側 QR Code 可開啟線上互動型錄，點擊單品查看實景大圖與即時庫存", pad, footY + 98);
+  ctx.font = "600 17px 'Noto Sans TC', sans-serif";
+  ctx.fillText("現場庫存即時變動，掃描右側 QR Code 可開啟線上互動頁面查看實景大圖或直接下保留單", pad, footY + 80);
 
   const qrImg = await loadImageForCanvas(document.getElementById("dmQrImg").src);
   if (qrImg) {
-    ctx.drawImage(qrImg, W - pad - 104, footY + 18, 104, 104);
+    ctx.drawImage(qrImg, W - pad - 86, footY + 14, 86, 86);
   }
 
-  const dataUrl = cv.toDataURL("image/jpeg", 0.92);
-  openImageZoom(dataUrl, `${title}_DM海報`);
+  openImageZoom(cv.toDataURL("image/jpeg", 0.92), `${title}_DM`);
 }
 
 initData();
