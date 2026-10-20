@@ -2621,6 +2621,7 @@ function clearCurrentSeriesMemory() {
   const ser = sel.value;
   const memory = getAllSavedSeriesMemory();
   delete memory[ser];
+  delete memory[`ser_${ser}`];
   try {
     localStorage.setItem(SERIES_MEMORY_KEY, JSON.stringify(memory));
   } catch (e) {}
@@ -2808,14 +2809,18 @@ function onHeaderTextEdited(field, el) {
   saveSeriesCustomMemory();
 }
 
-function collectSeriesScenes() {
+function collectSeriesScenes(explicitSeries = null) {
   const seen = new Set();
   seriesScenePool = [];
-  const targetSeriesSet = new Set(currentPicked.map(p => p.series));
+  const ser = explicitSeries || (currentMode === "series" ? (document.getElementById("selSeries")?.value || "") : "");
+
   allProducts.forEach(p => {
-    if (currentMode === "series" && !targetSeriesSet.has(p.series)) return;
-    if (currentMode === "theme" && !currentPicked.some(cp => cp.code === p.code)) return;
-    p.scenes.forEach(sc => {
+    const isTarget = currentMode === "series"
+      ? (p.series === ser)
+      : currentPicked.some(cp => cp.code === p.code);
+    if (!isTarget) return;
+
+    (p.scenes || []).forEach(sc => {
       if (!seen.has(sc)) {
         seen.add(sc);
         seriesScenePool.push({ url: sc, code: p.code, series: p.series });
@@ -2884,17 +2889,54 @@ function openScenePickerModal(targetIdx, ev) {
     targetIdx >= 0 ? `更換第 ${targetIdx + 1} 張圖片` : "新增圖片";
   document.getElementById("customSceneUrlInput").value = "";
 
+  const currentSer = currentMode === "series"
+    ? (document.getElementById("selSeries")?.value || (currentPicked[0] && currentPicked[0].series) || "")
+    : "";
+
   const seen = new Set();
   const candidates = [];
-  seriesScenePool.forEach(s => {
-    if (!seen.has(s.url)) {
+
+  // 1. 第一優先：蒐集「當前系列（或當前篩選池）」的所有實景寫真，確保全列入「本系列」
+  allProducts.forEach(p => {
+    const isThisSeries = currentMode === "series"
+      ? (p.series === currentSer)
+      : currentPicked.some(cp => cp.code === p.code);
+    if (!isThisSeries) return;
+
+    (p.scenes || []).forEach(sc => {
+      if (!seen.has(sc)) {
+        seen.add(sc);
+        candidates.push({ url: sc, code: p.code, series: p.series, badge: "本系列" });
+      }
+    });
+  });
+
+  // 2. 第二優先：若當前畫面上 activeScenes 有已被選用的照片，確保其也在候選清單中
+  activeScenes.forEach(s => {
+    if (s.url && !seen.has(s.url)) {
       seen.add(s.url);
-      candidates.push({ ...s, badge: "本系列" });
+      candidates.push({ url: s.url, code: s.code || "自選", series: s.series || currentSer, badge: "目前使用" });
     }
   });
+
+  // 3. 第三優先：本系列各款的花色單片圖（供實景寫真較少時作特寫展示）
   allProducts.forEach(p => {
-    p.scenes.forEach(sc => {
-      if (!seen.has(sc) && candidates.length < 24) {
+    const isThisSeries = currentMode === "series"
+      ? (p.series === currentSer)
+      : currentPicked.some(cp => cp.code === p.code);
+    if (!isThisSeries) return;
+
+    if (p.mainImg && !seen.has(p.mainImg)) {
+      seen.add(p.mainImg);
+      candidates.push({ url: p.mainImg, code: p.code, series: p.series, badge: "本系列花色" });
+    }
+  });
+
+  // 4. 第四優先：全庫其他系列的精選實景作為通用備選圖庫（最多擴展至 48 張）
+  allProducts.forEach(p => {
+    if (candidates.length >= 48) return;
+    (p.scenes || []).forEach(sc => {
+      if (!seen.has(sc) && candidates.length < 48) {
         seen.add(sc);
         candidates.push({ url: sc, code: p.code, series: p.series, badge: p.series });
       }
@@ -2960,7 +3002,21 @@ function applySceneItem(newItem) {
 function applySavedMemoryToState(mem) {
   if (!mem) return;
   if (mem.pageScenesMap) {
-    pageScenesMap = JSON.parse(JSON.stringify(mem.pageScenesMap));
+    if (currentMode === "series") {
+      const selSer = document.getElementById("selSeries")?.value || "";
+      const thisSeriesCodes = new Set(allProducts.filter(p => p.series === selSer).map(p => p.code));
+      const cleanMap = {};
+      Object.keys(mem.pageScenesMap).forEach(k => {
+        const arr = (mem.pageScenesMap[k] || []).filter(s => {
+          if (!s.code || s.code === "自訂圖片" || s.code === "上傳圖片") return true;
+          return thisSeriesCodes.has(s.code);
+        });
+        if (arr.length > 0) cleanMap[k] = arr;
+      });
+      pageScenesMap = cleanMap;
+    } else {
+      pageScenesMap = JSON.parse(JSON.stringify(mem.pageScenesMap));
+    }
   }
   if (mem.productRotations) {
     productRotations = { ...productRotations, ...mem.productRotations };
@@ -3047,7 +3103,15 @@ function pickBySeries(preservePage = false) {
   const badge = document.getElementById("poolCountBadge");
   if (badge) badge.textContent = `共 ${filteredPool.length} 款`;
 
+  // 切換系列時，徹底重置實景與分頁，杜絕舊系列跨系列殘留
   pageScenesMap = {};
+  activeScenes = [];
+  seriesScenePool = [];
+  currentPageIndex = 0;
+
+  // 立即蒐集本系列所有實景圖
+  collectSeriesScenes(ser);
+
   const mem = loadSeriesCustomMemory(ser);
   if (mem) {
     applySavedMemoryToState(mem);
@@ -3058,8 +3122,16 @@ function pickBySeries(preservePage = false) {
   if (mem) {
     if (mem.customHeaderText) customHeaderText = { ...mem.customHeaderText };
     if (mem.activeScenes && mem.activeScenes.length > 0) {
-      activeScenes = mem.activeScenes.map(s => ({ ...s }));
-      pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+      // 驗證存檔實景圖是否屬於本系列（防舊版污染）
+      const thisSeriesCodes = new Set(allProducts.filter(p => p.series === ser).map(p => p.code));
+      const validScenes = mem.activeScenes.filter(s => {
+        if (!s.code || s.code === "自訂圖片" || s.code === "上傳圖片") return true;
+        return thisSeriesCodes.has(s.code);
+      });
+      if (validScenes.length > 0) {
+        activeScenes = validScenes.map(s => ({ ...s }));
+        pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+      }
     }
     renderDM();
   }
@@ -3090,10 +3162,13 @@ function applyAndPick(preservePage = false) {
   });
 
   document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
-  // 優先將有空間實景圖片的產品排在前面，以供頂部實景區展示
-  filteredPool.sort((a, b) => b.scenes.length - a.scenes.length);
+  filteredPool.sort((a, b) => (b.scenes ? b.scenes.length : 0) - (a.scenes ? a.scenes.length : 0));
 
   pageScenesMap = {};
+  activeScenes = [];
+  seriesScenePool = [];
+  currentPageIndex = 0;
+
   const mem = loadCurrentCustomMemory();
   if (mem) {
     applySavedMemoryToState(mem);
