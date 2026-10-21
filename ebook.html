@@ -3006,9 +3006,15 @@ function renderSeriesOptions(kw, targetSeriesVal = null) {
   });
 
   const entries = Array.from(map.entries()).sort((a, b) => {
+    // 避免將「石破天驚」排在預設第一位，優先排單頁精緻且具實景圖的系列
+    if (a[0] === "石破天驚" && b[0] !== "石破天驚") return 1;
+    if (b[0] === "石破天驚" && a[0] !== "石破天驚") return -1;
     const aRich = a[1].sceneCount >= 2 ? 2 : (a[1].sceneCount === 1 ? 1 : 0);
     const bRich = b[1].sceneCount >= 2 ? 2 : (b[1].sceneCount === 1 ? 1 : 0);
     if (aRich !== bRich) return bRich - aRich;
+    const aIdeal = (a[1].count >= 3 && a[1].count <= 8) ? 1 : 0;
+    const bIdeal = (b[1].count >= 3 && b[1].count <= 8) ? 1 : 0;
+    if (aIdeal !== bIdeal) return bIdeal - aIdeal;
     return b[1].count - a[1].count;
   });
 
@@ -3777,6 +3783,7 @@ function pickBySeries(preservePage = false) {
   const sel = document.getElementById("selSeries");
   if (!sel || !sel.value) return;
   const ser = sel.value;
+  try { localStorage.setItem("ebook_last_series", ser); } catch (e) {}
   const onlyInStock = document.getElementById("chkOnlyInStock") && document.getElementById("chkOnlyInStock").checked;
 
   filteredPool = allProducts.filter(p => {
@@ -4648,6 +4655,14 @@ function restoreFromUrl() {
     }
   }
 
+  const sel = document.getElementById("selSeries");
+  if (sel) {
+    let lastSer = "";
+    try { lastSer = localStorage.getItem("ebook_last_series") || ""; } catch (e) {}
+    if (lastSer && lastSer !== "石破天驚" && Array.from(sel.options).some(o => o.value === lastSer)) {
+      sel.value = lastSer;
+    }
+  }
   pickBySeries(false);
   if (decodedOv && decodedOv.h) {
     customHeaderText = { ...customHeaderText, ...decodedOv.h };
@@ -4721,11 +4736,20 @@ function renderWizardSeriesList(kw) {
   const map = new Map();
   allProducts.forEach(p => {
     if (q && !p.series.toUpperCase().includes(q) && !p.seriesEn.toUpperCase().includes(q) && !p.code.includes(q)) return;
-    const item = map.get(p.series) || { count: 0, size: p.size };
+    const item = map.get(p.series) || { count: 0, size: p.size, hasScene: 0 };
     item.count++;
+    if ((p.scenes || []).length > 0) item.hasScene++;
     map.set(p.series, item);
   });
-  const entries = Array.from(map.entries()).slice(0, 40);
+  const entries = Array.from(map.entries()).sort((a, b) => {
+    const aAvoid = a[0] === "石破天驚" ? 1 : 0;
+    const bAvoid = b[0] === "石破天驚" ? 1 : 0;
+    if (aAvoid !== bAvoid) return aAvoid - bAvoid;
+    const aIdeal = (a[1].hasScene >= 1 && a[1].count >= 3 && a[1].count <= 8) ? 1 : 0;
+    const bIdeal = (b[1].hasScene >= 1 && b[1].count >= 3 && b[1].count <= 8) ? 1 : 0;
+    if (bIdeal !== aIdeal) return bIdeal - aIdeal;
+    return b[1].count - a[1].count;
+  }).slice(0, 40);
   if (entries.length > 0 && (!wizSelectedSeries || !entries.some(([s]) => s === wizSelectedSeries))) {
     wizSelectedSeries = entries[0][0];
   }
