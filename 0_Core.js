@@ -200,6 +200,17 @@ function getFormCatalogSnapshot_() {
       const pcsPerBox = (typeof safeN === 'function') ? (safeN(row[priceMap['片/箱']]) || safeN(row[priceMap['P/C']]) || 1) : 1;
       const ratio = (typeof getPcsPerPingFallback_ === 'function') ? getPcsPerPingFallback_(row, priceMap) : 1;
       const avail = Math.max(0, total - reserved);
+      const rawDriveUrl = priceMap['FLEX圖卡'] !== undefined ? String(row[priceMap['FLEX圖卡']] || '').trim() : '';
+      let rawPdfUrl = priceMap['原廠目錄'] !== undefined ? String(row[priceMap['原廠目錄']] || '').trim() : '';
+      if (!rawPdfUrl && priceMap['FLEX快取'] !== undefined) {
+        const cStr = String(row[priceMap['FLEX快取']] || '').trim();
+        if (cStr && cStr.startsWith('{')) {
+          try {
+            const cObj = JSON.parse(cStr);
+            if (cObj.catalog) rawPdfUrl = String(cObj.catalog).trim();
+          } catch (e) {}
+        }
+      }
 
       catalog[code] = {
         code: code,
@@ -209,7 +220,9 @@ function getFormCatalogSnapshot_() {
         pcsPerBox: pcsPerBox,
         ratio: Math.round(ratio * 100) / 100,
         imgUrl: imgUrl,
-        availPcs: avail
+        availPcs: avail,
+        driveUrl: rawDriveUrl.indexOf('http') === 0 ? rawDriveUrl : '',
+        pdfUrl: rawPdfUrl.indexOf('http') === 0 ? rawPdfUrl : ''
       };
     }
   }

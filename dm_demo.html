@@ -439,7 +439,7 @@
   }
   .mode-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     background: var(--surface-muted);
     padding: 3px;
     border-radius: var(--radius-ctrl);
@@ -1653,6 +1653,310 @@
     white-space: nowrap;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── 分享給客戶專用唯讀鎖定（隱藏頂部返回編輯橫幅與預覽鈕） ── */
+  body.true-client-link .client-preview-banner,
+  body.true-client-link #btnClientPreview,
+  body.true-client-link .mob-canvas-bar,
+  body.true-client-link .mob-drawer-backdrop,
+  body.client-view .mob-canvas-bar,
+  body.client-view .mob-drawer-backdrop {
+    display: none !important;
+  }
+  body.client-view [contenteditable="true"] {
+    pointer-events: none;
+    user-select: text;
+    cursor: default;
+  }
+
+  /* ── 磁磚卡片內直接點擊編輯欄位 ── */
+  .tile-card [contenteditable="true"] {
+    user-select: text;
+    cursor: text;
+    padding: 0 2px;
+    margin: 0 -2px;
+    border-radius: 3px;
+  }
+  .price-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--dm-accent);
+    margin-top: 2px;
+    gap: 4px;
+  }
+  .price-val-edit {
+    flex: 1;
+    text-align: right;
+    min-width: 40px;
+  }
+
+  /* ── 原廠 PDF 下載與雲端圖庫連結列 (.dm-resource-bar) ── */
+  .dm-resource-bar {
+    padding: 12px 24px;
+    background: var(--dm-stage-bg);
+    border-top: 1px solid var(--dm-card-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .dm-sheet.hide-resources .dm-resource-bar {
+    display: none !important;
+  }
+  .res-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--dm-ink);
+  }
+  .res-bar-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .res-link-btn {
+    height: 32px;
+    padding: 0 13px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: 1px solid var(--dm-card-border);
+    background: var(--dm-card-bg);
+    color: var(--dm-ink);
+  }
+  .res-link-btn.primary {
+    background: var(--dm-accent);
+    border-color: var(--dm-accent);
+    color: #FFFFFF;
+  }
+  .res-link-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  /* ── 輸入編號模式：多編號標籤與建議清單 ── */
+  .picked-codes-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .code-chip-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--ink);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 6px;
+  }
+  .code-chip-tag button {
+    border: none;
+    background: transparent;
+    color: #FCA5A5;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+  }
+  .code-suggest-box {
+    max-height: 190px;
+    overflow-y: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface);
+    display: none;
+    flex-direction: column;
+  }
+  .code-suggest-box.open { display: flex; }
+  .code-suggest-item {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .code-suggest-item:last-child { border-bottom: none; }
+  .code-suggest-item:hover { background: var(--accent-soft); }
+
+  /* ════════════════════════════════════════════════════════════════
+     手機版引導式介面：第一頁「三選一」全螢幕引導 & 底部收納抽屜卡片
+     ════════════════════════════════════════════════════════════════ */
+  .wiz-choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .wiz-choice-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 18px;
+    border: 2px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--surface-soft);
+    cursor: pointer;
+    transition: all 0.16s ease;
+    text-align: left;
+    width: 100%;
+  }
+  .wiz-choice-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 4px 14px rgba(140, 90, 50, 0.16);
+  }
+  .wiz-check-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 2.5px solid var(--ink-2);
+    background: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 900;
+    color: transparent;
+    transition: all 0.15s;
+  }
+  .wiz-choice-card.selected .wiz-check-box {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #FFFFFF;
+  }
+  .wiz-choice-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .wiz-choice-desc {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .wiz-series-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 46vh;
+    overflow-y: auto;
+    padding: 2px;
+  }
+  .wiz-series-btn {
+    padding: 12px 10px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 9px;
+    background: var(--surface-soft);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .wiz-series-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .wiz-series-btn strong {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .wiz-series-btn span {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* 手機版畫布優先：底部收納工具列與卡片抽屜 */
+  .mob-canvas-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 600;
+    background: rgba(28, 25, 23, 0.97);
+    backdrop-filter: blur(10px);
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(255,255,255,0.14);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.28);
+  }
+  .mob-bar-btn {
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #FFFFFF;
+    font-size: 12.5px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mob-bar-btn.gold {
+    background: #C59B27;
+    border-color: #C59B27;
+    color: #141312;
+  }
+  .mob-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2800;
+    background: rgba(20, 18, 16, 0.65);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .mob-drawer-backdrop.open { display: flex; }
+  .mob-drawer-card {
+    width: 100%;
+    max-width: 600px;
+    max-height: 82vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.3);
+  }
+
+  @media (max-width: 960px) {
+    .bottom-dock { display: none !important; }
+    .mob-canvas-bar { display: grid; }
+    .mob-filter-toggle { display: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -1666,6 +1970,10 @@
     </div>
 
     <div class="top-controls">
+      <button type="button" class="btn-act staff-only btn-with-svg" onclick="openMobileWizard()" id="btnOpenWizardTop" style="font-weight:800;">
+        <span>三選一引導</span>
+      </button>
+
       <button type="button" class="btn-act staff-only btn-with-svg" onclick="openHelpModal()" id="btnHelpGuide">
         <span class="btn-ico-holder"></span><span>操作說明</span>
       </button>
@@ -1732,14 +2040,29 @@
         <span class="sec-badge" id="poolCountBadge">載入中...</span>
       </div>
       <div class="mode-tabs">
-        <button type="button" class="mode-tab active" id="tabSeries" onclick="switchMode('series')">單一系列</button>
-        <button type="button" class="mode-tab" id="tabTheme" onclick="switchMode('theme')">尺寸 × 風格</button>
+        <button type="button" class="mode-tab active" id="tabSeries" onclick="switchMode('series')">1. 單系列</button>
+        <button type="button" class="mode-tab" id="tabTheme" onclick="switchMode('theme')">2. 按照尺寸</button>
+        <button type="button" class="mode-tab" id="tabCodes" onclick="switchMode('codes')">3. 輸入編號</button>
       </div>
 
       <!-- 模式 A：單一系列 -->
       <div id="seriesFilterBox" style="display:flex;flex-direction:column;gap:8px;">
         <input type="text" id="seriesSearchInput" class="input" placeholder="搜尋系列（如：沙丘、波特蘭）或編號..." oninput="filterSeriesSelect()">
         <select id="selSeries" class="select" onchange="pickBySeries()"></select>
+      </div>
+
+      <!-- 模式 C：輸入編號（支援單一或多組編號自由組合提案） -->
+      <div id="codesFilterBox" style="display:none;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="codesSearchInput" class="input" placeholder="輸入編號 (如: 62R10、62M01，可多筆空白或逗號隔開)" oninput="onCodesSearchInput(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCodesFromInput();}">
+          <button type="button" class="btn-act primary" onclick="addCodesFromInput()">加入</button>
+        </div>
+        <div id="codesSuggestBox" class="code-suggest-box"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--muted);font-weight:700;">
+          <span>已選編號組合（點擊 × 可移除）：</span>
+          <button type="button" style="border:none;background:none;color:var(--accent);font-weight:800;cursor:pointer;font-size:11.5px;" onclick="clearPickedCodesList()">清空重選</button>
+        </div>
+        <div id="pickedCodesChipBox" class="picked-codes-chips"></div>
       </div>
 
       <!-- 模式 B：尺寸（±1cm）× 風格 -->
@@ -1925,6 +2248,18 @@
           <input type="checkbox" id="chkShowQrCode" checked onchange="toggleQrCode(this.checked)">
           <span>顯示 QR 碼</span>
         </label>
+        <label class="price-toggle">
+          <input type="checkbox" id="chkShowResources" checked onchange="toggleResourcesBar(this.checked)">
+          <span>原廠 PDF/圖庫</span>
+        </label>
+      </div>
+      <div style="margin-top:6px;display:flex;flex-direction:column;gap:5px;background:var(--surface-soft);padding:8px 10px;border-radius:7px;border:1px solid var(--line);">
+        <div style="font-size:11px;font-weight:800;color:var(--ink-2);display:flex;justify-content:space-between;">
+          <span>原廠型錄 PDF 與雲端圖庫連結</span>
+          <span style="color:var(--muted);font-weight:600;">(留空則自動帶入本系列預設)</span>
+        </div>
+        <input type="text" id="customPdfUrlInput" class="input" style="height:30px;font-size:11.5px;" placeholder="原廠 PDF 下載連結 URL..." onchange="onCustomResourceUrlChange()">
+        <input type="text" id="customDriveUrlInput" class="input" style="height:30px;font-size:11.5px;" placeholder="雲端硬碟圖庫資料夾 URL..." onchange="onCustomResourceUrlChange()">
       </div>
     </div>
 
@@ -1976,6 +2311,9 @@
           <div class="loader-sub">同步雲端資料庫中，請稍候</div>
         </div>
       </div>
+
+      <!-- 原廠 PDF 下載與雲端硬碟圖庫連結區 -->
+      <div class="dm-resource-bar" id="dmResourceBar" style="display:none;"></div>
 
       <div class="dm-footer" id="dmFooter">
         <div>
@@ -2074,30 +2412,152 @@
       </div>
 
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
-        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">3. 文字修改與自訂排版</div>
-        <p>• <b>直接點擊編輯</b>：畫報上的主標題、英文系列名、Slogan 短語皆可直接點擊打字修改。</p>
-        <p>• <b>浮動文字編輯器</b>：用滑鼠選取任何字體，會自動浮現泡泡工具列，可自訂粗體、斜體、字體大小與文字顏色。</p>
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">3. 全畫面文字、尺寸、編號與價格直接修改</div>
+        <p>• <b>標題與卡片皆可改</b>：畫報上的主標題、副標、短語，以及<b>每張磁磚卡片上的編號、尺寸、系列名稱、坪數、單價</b>，皆可直接點擊打字修改！</p>
+        <p>• <b>自訂客戶報價</b>：勾選「顯示單價」後，可直接點擊卡片上的價格欄位改為專案報價，匯出 PDF/JPG 與分享連結皆會同步呈現。</p>
         <p>• <b>實景更換與上傳</b>：點擊實景圖上的「換圖」可從圖庫挑選，或從手機/電腦上傳新完工照！</p>
       </div>
 
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
-        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">4. 多頁翻頁與自動記憶（免手動存檔）</div>
-        <p>• <b>多頁換圖與轉向獨立記憶</b>：第 1 頁與第 2 頁更換的圖片與轉向角度皆會妥善記憶，點擊「上一頁 / 下一頁」翻頁切換絕不會被重設！</p>
-        <p>• 系統會為您<b>自動記憶</b>每個系列與尺寸風格排版過的花色順序、自訂文案、挑選的實景照片、旋轉角度、版型與微調開關。下次再開啟時自動還原！</p>
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">4. 手機版三選一引導與卡片式收納工具</div>
+        <p>• <b>三選一引導</b>：手機開啟（或點頂部「三選一引導」）可直接勾選 <b>1. 單系列 / 2. 按照尺寸 / 3. 輸入編號</b> 快速進入畫布。</p>
+        <p>• <b>畫面優先</b>：手機版將版型、色彩、字體、情境與微調收納於底部抽屜卡片中，點開才選，讓型錄畫面最大化。</p>
       </div>
 
       <div style="background:var(--surface-soft);padding:12px 14px;border-radius:8px;border:1px solid var(--line);">
-        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">5. 分享給客戶與匯出 PDF</div>
-        <p>• <b>傳給客戶看</b>：點左側「複製型錄分享連結」，客戶點開會進入純淨的「客戶唯讀視角」（隱藏所有編輯面板與按鈕）。</p>
-        <p>• <b>下載單頁 A4 PDF / JPG</b>：點擊「下載單頁 A4 PDF」可直接下載直式單頁 A4 PDF，適合直接傳給客戶審閱。</p>
-        <p>• <b>生成雙頁型錄 PDF</b>：自動排版為一左一右雜誌跨頁（第 1 頁在左側並帶有完整系列大標題與精選花色，第 2 頁在右側延伸規格與實景）。</p>
-        <p>• <b>一鍵打包全尺寸型錄</b>：在尺寸模式點擊「一鍵打包本尺寸全型錄 PDF」，系統會依序排版每一頁，匯出成完整的雙頁跨頁雜誌 PDF！</p>
+        <div style="font-weight:800;color:var(--ink);margin-bottom:4px;">5. 分享給客戶（唯讀鎖定）與原廠 PDF / 雲端圖庫</div>
+        <p>• <b>傳給客戶看（唯讀）</b>：點「複製型錄分享連結」，客戶點開直接進入純淨唯讀型錄（不能修改內容，也不會出現業務按鈕）。</p>
+        <p>• <b>原廠 PDF 與雲端硬碟連結</b>：型錄下方自動附帶「下載原廠型錄 PDF」與「開啟雲端硬碟圖庫」按鈕，也可在細部微調中自訂網址或隱藏。</p>
       </div>
     </div>
 
     <div style="display:flex;justify-content:flex-end;margin-top:4px;">
       <button type="button" class="btn-act primary" onclick="closeHelpModal()">我知道了</button>
     </div>
+  </div>
+</div>
+
+<!-- 手機版（與快速引導）第一頁：三選一引導式 Modal -->
+<div class="modal-backdrop" id="mobileWizardModal" onclick="if(event.target===this)closeMobileWizard()">
+  <div class="modal-card" style="max-width:520px;padding:20px 18px;gap:14px;">
+    <div class="modal-head">
+      <div class="modal-title" style="font-size:18px;font-weight:900;" id="wizModalTitle">請選擇型錄製作方式</div>
+      <button type="button" class="modal-close" onclick="closeMobileWizard()" id="btnWizClose">×</button>
+    </div>
+
+    <!-- Step 1: 三選一大字勾選 -->
+    <div id="wizStep1" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="font-size:13.5px;color:var(--muted);font-weight:700;">請勾選一項開始（進入後畫面所有文字與價格皆可直接點擊修改）：</div>
+      <div class="wiz-choice-list">
+        <button type="button" class="wiz-choice-card selected" id="wizCardSeries" onclick="selectWizardMode('series')">
+          <span class="wiz-check-box">✓</span>
+          <div>
+            <div class="wiz-choice-title">1. 單系列</div>
+            <div class="wiz-choice-desc">搜尋或點選系列名稱，進入畫布自由編排</div>
+          </div>
+        </button>
+
+        <button type="button" class="wiz-choice-card" id="wizCardTheme" onclick="selectWizardMode('theme')">
+          <span class="wiz-check-box">✓</span>
+          <div>
+            <div class="wiz-choice-title">2. 按照尺寸</div>
+            <div class="wiz-choice-desc">先選磁磚尺寸，再挑選磚種風格與版面風格</div>
+          </div>
+        </button>
+
+        <button type="button" class="wiz-choice-card" id="wizCardCodes" onclick="selectWizardMode('codes')">
+          <span class="wiz-check-box">✓</span>
+          <div>
+            <div class="wiz-choice-title">3. 輸入編號</div>
+            <div class="wiz-choice-desc">輸入單一或多組產品編號，跨系列組合專屬提案單</div>
+          </div>
+        </button>
+      </div>
+
+      <button type="button" class="btn-random" style="height:48px;font-size:16px;margin-top:4px;" onclick="goWizardStep2()">
+        下一步：挑選內容 ▶
+      </button>
+    </div>
+
+    <!-- Step 2A: 單系列挑選 -->
+    <div id="wizStep2Series" style="display:none;flex-direction:column;gap:12px;">
+      <input type="text" id="wizSeriesSearch" class="input" style="height:44px;font-size:15px;" placeholder="輸入系列名稱搜尋（如：浮光月影、沙丘、馬約利卡）..." oninput="renderWizardSeriesList(this.value)">
+      <div class="wiz-series-grid" id="wizSeriesGrid"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button type="button" class="btn-act" style="height:44px;padding:0 16px;font-size:14px;" onclick="backToWizardStep1()">◀ 上一步</button>
+        <button type="button" class="btn-random" style="height:44px;font-size:15px;flex:1;" onclick="finishWizardAndEnter()">進入畫布開始編排</button>
+      </div>
+    </div>
+
+    <!-- Step 2B: 按照尺寸與風格 -->
+    <div id="wizStep2Theme" style="display:none;flex-direction:column;gap:12px;">
+      <div>
+        <div class="sec-title" style="font-size:14px;"><span>1. 選擇磁磚尺寸 (cm)</span></div>
+        <div class="chip-group" id="wizSizeChips" style="gap:8px;">
+          <button type="button" class="chip active" style="font-size:14px;padding:8px 13px;" data-sz="60x120" onclick="wizSelectSize('60x120')">60×120</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-sz="45x90" onclick="wizSelectSize('45x90')">45×90</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-sz="30x60" onclick="wizSelectSize('30x60')">30×60</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-sz="120x120" onclick="wizSelectSize('120x120')">120×120</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-sz="20x120" onclick="wizSelectSize('20x120')">20×120</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-sz="" onclick="wizSelectSize('')">不限尺寸</button>
+        </div>
+        <input type="text" id="wizCustomSizeInput" class="input" style="margin-top:8px;height:40px;font-size:14px;" placeholder="或手打其他尺寸 (例: 7.5x25、20x20)" oninput="wizCustomSizeChanged(this.value)">
+      </div>
+
+      <div>
+        <div class="sec-title" style="font-size:14px;"><span>2. 選擇磚種風格</span></div>
+        <div class="chip-group" id="wizStyleChips" style="gap:8px;">
+          <button type="button" class="chip active" style="font-size:14px;padding:8px 13px;" data-st="" onclick="wizSelectStyle('')">全部風格</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-st="石紋" onclick="wizSelectStyle('石紋')">石紋/理石</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-st="木紋" onclick="wizSelectStyle('木紋')">木紋磚</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-st="大版" onclick="wizSelectStyle('大版')">大板磚</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-st="花磚" onclick="wizSelectStyle('花磚')">花磚</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-st="六角" onclick="wizSelectStyle('六角')">六角磚</button>
+          <button type="button" class="chip" style="font-size:14px;padding:8px 13px;" data-st="地鐵" onclick="wizSelectStyle('地鐵')">地鐵磚</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button type="button" class="btn-act" style="height:44px;padding:0 16px;font-size:14px;" onclick="backToWizardStep1()">◀ 上一步</button>
+        <button type="button" class="btn-random" style="height:44px;font-size:15px;flex:1;" onclick="finishWizardAndEnter()">進入畫布選版面風格</button>
+      </div>
+    </div>
+
+    <!-- Step 2C: 輸入編號組合 -->
+    <div id="wizStep2Codes" style="display:none;flex-direction:column;gap:12px;">
+      <div style="font-size:13px;color:var(--muted);font-weight:700;">輸入產品編號（可點選下方建議，或一次輸入多個編號用空白隔開）：</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="wizCodesInput" class="input" style="height:44px;font-size:15px;" placeholder="例：62R10、62M01..." oninput="onWizCodesInput(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();addWizCodesFromInput();}">
+        <button type="button" class="btn-act primary" style="height:44px;padding:0 16px;font-size:14px;" onclick="addWizCodesFromInput()">加入</button>
+      </div>
+      <div id="wizCodesSuggestBox" class="code-suggest-box"></div>
+      <div style="font-size:12.5px;font-weight:800;color:var(--ink-2);">已加入的產品編號：</div>
+      <div id="wizPickedCodesBox" class="picked-codes-chips" style="min-height:36px;"></div>
+
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button type="button" class="btn-act" style="height:44px;padding:0 16px;font-size:14px;" onclick="backToWizardStep1()">◀ 上一步</button>
+        <button type="button" class="btn-random" style="height:44px;font-size:15px;flex:1;" onclick="finishWizardAndEnter()">進入畫布開始編排</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 手機版畫布優先：底部收納工具列（點開卡片才選字體/風格/主題/情境/分享） -->
+<div class="mob-canvas-bar staff-only" id="mobCanvasBar">
+  <button type="button" class="mob-bar-btn" onclick="openMobileWizard()">1. 重選款項</button>
+  <button type="button" class="mob-bar-btn" onclick="openMobDrawer('style')">2. 風格編排</button>
+  <button type="button" class="mob-bar-btn" onclick="openMobDrawer('tweak')">3. 價格/資源</button>
+  <button type="button" class="mob-bar-btn gold" onclick="openMobDrawer('share')">4. 分享/PDF</button>
+</div>
+
+<!-- 手機版展開抽屜卡片 -->
+<div class="mob-drawer-backdrop" id="mobDrawerBackdrop" onclick="if(event.target===this)closeMobDrawer()">
+  <div class="mob-drawer-card">
+    <div class="modal-head">
+      <div class="modal-title" id="mobDrawerTitle" style="font-size:16px;font-weight:900;">編排設定</div>
+      <button type="button" class="modal-close" onclick="closeMobDrawer()">×</button>
+    </div>
+    <div id="mobDrawerBody" style="display:flex;flex-direction:column;gap:12px;"></div>
   </div>
 </div>
 
@@ -2284,6 +2744,10 @@ let customHeaderText = {
   tagline: "",
   subtitle: ""
 };
+let customPickedCodes = []; // 3. 輸入編號模式的自選編號清單
+let cardOverrides = {}; // { [origCode]: { code, size, series, ping, price } }
+let customResourceUrls = { pdfUrl: "", driveUrl: "" };
+let wizardTempMode = "series";
 let taglineCursor = 0;
 let snapshotTimeStr = "";
 let pdfPagesQueue = [];
@@ -2352,9 +2816,23 @@ function normalizeImgUrl(raw, forCanvas = false) {
 function extractProductMedia(p, stockSnap) {
   const scenes = [];
   const pieces = [];
+  let pdfUrl = (stockSnap && stockSnap.pdfUrl) ? String(stockSnap.pdfUrl).trim() : "";
+  let driveUrl = (stockSnap && stockSnap.driveUrl) ? String(stockSnap.driveUrl).trim() : "";
+
   if (Array.isArray(p.images)) {
     p.images.forEach(item => {
-      const s = String(item || "");
+      const s = String(item || "").trim();
+      if (!s) return;
+      if (s.includes("#pdf")) {
+        const rawPdf = s.split("#")[0].trim();
+        if (rawPdf && !pdfUrl) pdfUrl = rawPdf;
+        return;
+      }
+      if (s.includes("#drive")) {
+        const rawDrive = s.split("#")[0].trim();
+        if (rawDrive && !driveUrl) driveUrl = rawDrive;
+        return;
+      }
       const clean = normalizeImgUrl(s, false);
       if (!clean) return;
       if (s.includes("#scene")) scenes.push(clean);
@@ -2363,7 +2841,7 @@ function extractProductMedia(p, stockSnap) {
   }
   const snapImg = stockSnap && stockSnap.imgUrl ? normalizeImgUrl(stockSnap.imgUrl, false) : "";
   const mainImg = snapImg || normalizeImgUrl(p.main_img_url, false) || pieces[0] || "";
-  return { mainImg, scenes, pieces };
+  return { mainImg, scenes, pieces, pdfUrl, driveUrl };
 }
 
 // 保留所有有效產品（不預先過濾庫存為0的款式，以便完整展示尺寸規格）
@@ -2399,7 +2877,9 @@ function processRawProducts(sbRows, stockCatalog = {}) {
       rawPing,
       pingStr: formatFloorPing(rawPing),
       mainImg: media.mainImg,
-      scenes: media.scenes
+      scenes: media.scenes,
+      pdfUrl: media.pdfUrl || "",
+      driveUrl: media.driveUrl || ""
     };
   }).filter(p => p.mainImg);
 }
@@ -2468,12 +2948,22 @@ async function initData() {
       let hasChange = false;
       allProducts.forEach(p => {
         const snap = cat[p.code];
-        if (snap && snap.availPcs !== undefined) {
-          const freshPcs = Number(snap.availPcs);
-          if (freshPcs !== p.availPcs) {
-            p.availPcs = freshPcs;
-            p.rawPing = p.ratio > 0 ? freshPcs / p.ratio : 0;
-            p.pingStr = formatFloorPing(p.rawPing);
+        if (snap) {
+          if (snap.availPcs !== undefined) {
+            const freshPcs = Number(snap.availPcs);
+            if (freshPcs !== p.availPcs) {
+              p.availPcs = freshPcs;
+              p.rawPing = p.ratio > 0 ? freshPcs / p.ratio : 0;
+              p.pingStr = formatFloorPing(p.rawPing);
+              hasChange = true;
+            }
+          }
+          if (snap.driveUrl && !p.driveUrl) {
+            p.driveUrl = String(snap.driveUrl).trim();
+            hasChange = true;
+          }
+          if (snap.pdfUrl && !p.pdfUrl) {
+            p.pdfUrl = String(snap.pdfUrl).trim();
             hasChange = true;
           }
         }
@@ -2484,6 +2974,8 @@ async function initData() {
           if (matched) {
             p.availPcs = matched.availPcs;
             p.pingStr = matched.pingStr;
+            if (matched.driveUrl) p.driveUrl = matched.driveUrl;
+            if (matched.pdfUrl) p.pdfUrl = matched.pdfUrl;
           }
         });
         renderDM();
@@ -2546,6 +3038,8 @@ function getCurrentMemoryKey() {
   if (currentMode === "series") {
     const sel = document.getElementById("selSeries");
     return (sel && sel.value) ? `ser_${sel.value}` : null;
+  } else if (currentMode === "codes") {
+    return customPickedCodes.length > 0 ? `codes_${customPickedCodes.join("_")}` : "codes_custom";
   } else {
     const sz = selectedSize || "all";
     const st = selectedStyle || "all";
@@ -2586,6 +3080,8 @@ function saveCurrentCustomMemory() {
     sceneLayout: currentSceneLayout,
     minPingRequirement: minPingRequirement,
     customHeaderText: { ...customHeaderText },
+    cardOverrides: JSON.parse(JSON.stringify(cardOverrides)),
+    customResourceUrls: { ...customResourceUrls },
     activeScenes: activeScenes.map(s => ({ ...s })),
     pageScenesMap: JSON.parse(JSON.stringify(pageScenesMap)),
     pickedCodes: currentPicked.map(p => p.code),
@@ -2596,6 +3092,7 @@ function saveCurrentCustomMemory() {
     showFlags: document.getElementById("chkShowFlags") ? document.getElementById("chkShowFlags").checked : true,
     cardSquare: document.getElementById("chkCardSquare") ? document.getElementById("chkCardSquare").checked : false,
     showQrCode: document.getElementById("chkShowQrCode") ? document.getElementById("chkShowQrCode").checked : true,
+    showResources: document.getElementById("chkShowResources") ? document.getElementById("chkShowResources").checked : true,
     updatedAt: Date.now()
   };
 
@@ -2698,20 +3195,158 @@ function toggleQrCode(show) {
   saveSeriesCustomMemory();
 }
 
+function toggleResourcesBar(show) {
+  const sheet = document.getElementById("dmSheet");
+  if (sheet) {
+    if (show) sheet.classList.remove("hide-resources");
+    else sheet.classList.add("hide-resources");
+  }
+  renderResourceBar();
+  saveSeriesCustomMemory();
+}
+
+function onCustomResourceUrlChange() {
+  const pdfInp = document.getElementById("customPdfUrlInput");
+  const driveInp = document.getElementById("customDriveUrlInput");
+  customResourceUrls.pdfUrl = pdfInp ? pdfInp.value.trim() : "";
+  customResourceUrls.driveUrl = driveInp ? driveInp.value.trim() : "";
+  renderResourceBar();
+  saveSeriesCustomMemory();
+}
+
 function switchMode(mode) {
   currentMode = mode;
-  document.getElementById("tabSeries").classList.toggle("active", mode === "series");
-  document.getElementById("tabTheme").classList.toggle("active", mode === "theme");
+  document.getElementById("tabSeries")?.classList.toggle("active", mode === "series");
+  document.getElementById("tabTheme")?.classList.toggle("active", mode === "theme");
+  document.getElementById("tabCodes")?.classList.toggle("active", mode === "codes");
   document.getElementById("seriesFilterBox").style.display = mode === "series" ? "flex" : "none";
   document.getElementById("themeFilterBox").style.display = mode === "theme" ? "flex" : "none";
+  const codesBox = document.getElementById("codesFilterBox");
+  if (codesBox) codesBox.style.display = mode === "codes" ? "flex" : "none";
   document.getElementById("btnRandomTxt").textContent = mode === "series" ? "隨機換一個系列" : "隨機換一批產品";
 
   if (mode === "series") {
     renderSeriesOptions(document.getElementById("seriesSearchInput").value);
     pickBySeries();
+  } else if (mode === "codes") {
+    if (customPickedCodes.length === 0 && currentPicked.length > 0) {
+      customPickedCodes = currentPicked.slice(0, 6).map(p => p.code);
+    }
+    renderPickedCodesChips();
+    applyAndPick();
   } else {
     applyAndPick();
   }
+}
+
+// ── 3. 輸入編號模式（支援單一或多組產品編號提案） ──
+function parseCodeTokens(raw) {
+  return String(raw || "")
+    .toUpperCase()
+    .split(/[\s,，、;；]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function onCodesSearchInput(val) {
+  const box = document.getElementById("codesSuggestBox");
+  if (!box) return;
+  const tokens = parseCodeTokens(val);
+  const lastKw = tokens[tokens.length - 1] || "";
+  if (!lastKw) {
+    box.classList.remove("open");
+    box.innerHTML = "";
+    return;
+  }
+  const matches = allProducts.filter(p =>
+    p.code.includes(lastKw) || p.series.toUpperCase().includes(lastKw)
+  ).slice(0, 10);
+  if (matches.length === 0) {
+    box.classList.remove("open");
+    box.innerHTML = "";
+    return;
+  }
+  box.innerHTML = matches.map(p => `
+    <div class="code-suggest-item" onclick="addSingleCodeToPick('${p.code}', false)">
+      <span><b>${p.code}</b> · ${p.series}</span>
+      <span style="color:var(--muted);font-size:11.5px;">${(p.size || "").replace(/x/gi, "×")} · ${p.availPcs > 0 ? p.pingStr + "坪" : "洽詢"}</span>
+    </div>
+  `).join("");
+  box.classList.add("open");
+}
+
+function addSingleCodeToPick(code, fromWizard = false) {
+  const c = String(code || "").toUpperCase().trim();
+  if (!c) return;
+  if (!customPickedCodes.includes(c)) {
+    customPickedCodes.push(c);
+  }
+  if (fromWizard) {
+    const inp = document.getElementById("wizCodesInput");
+    if (inp) inp.value = "";
+    const sBox = document.getElementById("wizCodesSuggestBox");
+    if (sBox) { sBox.classList.remove("open"); sBox.innerHTML = ""; }
+    renderPickedCodesChips();
+  } else {
+    const inp = document.getElementById("codesSearchInput");
+    if (inp) inp.value = "";
+    const sBox = document.getElementById("codesSuggestBox");
+    if (sBox) { sBox.classList.remove("open"); sBox.innerHTML = ""; }
+    renderPickedCodesChips();
+    applyAndPick();
+  }
+}
+
+function addCodesFromInput() {
+  const inp = document.getElementById("codesSearchInput");
+  if (!inp) return;
+  const tokens = parseCodeTokens(inp.value);
+  if (tokens.length === 0) return;
+  let added = 0;
+  tokens.forEach(tok => {
+    const exact = allProducts.find(p => p.code === tok) || allProducts.find(p => p.code.includes(tok));
+    if (exact && !customPickedCodes.includes(exact.code)) {
+      customPickedCodes.push(exact.code);
+      added++;
+    }
+  });
+  inp.value = "";
+  const sBox = document.getElementById("codesSuggestBox");
+  if (sBox) { sBox.classList.remove("open"); sBox.innerHTML = ""; }
+  renderPickedCodesChips();
+  if (added > 0) applyAndPick();
+  else showToast("找不到對應的產品編號");
+}
+
+function removePickedCodeChip(code, fromWizard = false) {
+  customPickedCodes = customPickedCodes.filter(c => c !== code);
+  renderPickedCodesChips();
+  if (!fromWizard && currentMode === "codes") {
+    applyAndPick();
+  }
+}
+
+function clearPickedCodesList() {
+  customPickedCodes = [];
+  renderPickedCodesChips();
+  if (currentMode === "codes") applyAndPick();
+}
+
+function renderPickedCodesChips() {
+  const html = customPickedCodes.map(c => {
+    const p = allProducts.find(x => x.code === c);
+    const label = p ? `${c} (${p.series})` : c;
+    return `
+      <span class="code-chip-tag">
+        <span>${label}</span>
+        <button type="button" onclick="removePickedCodeChip('${c}', false)" title="移除">${SVG.close}</button>
+      </span>
+    `;
+  }).join("");
+  const box1 = document.getElementById("pickedCodesChipBox");
+  if (box1) box1.innerHTML = html || `<span style="font-size:12px;color:var(--muted);">尚未加入編號，請在上方輸入</span>`;
+  const box2 = document.getElementById("wizPickedCodesBox");
+  if (box2) box2.innerHTML = html || `<span style="font-size:12px;color:var(--muted);">尚未加入編號，請在上方搜尋點選</span>`;
 }
 
 function selectSizeChip(sz) {
@@ -2781,6 +3416,11 @@ function initEditableHeaderForSelection() {
     customHeaderText.eyebrow = enParts.length > 0 ? enParts.join(" · ") : (sz || "ARCHITECTURAL SURFACE COLLECTION");
     customHeaderText.title = `${ser}系列`;
     customHeaderText.subtitle = `${sz ? "規格 " + sz + " · " : ""}全系列共 ${filteredPool.length} 款${pageTag}（本頁 ${currentPicked.length} 款）`;
+  } else if (currentMode === "codes") {
+    const uniqSeries = Array.from(new Set(currentPicked.map(p => p.series))).slice(0, 3);
+    customHeaderText.eyebrow = "BESPOKE MATERIAL PROPOSAL · 專屬選磚提案";
+    customHeaderText.title = uniqSeries.length === 1 ? `${uniqSeries[0]}系列` : (uniqSeries.join(" × ") || "專案精選配磚提案");
+    customHeaderText.subtitle = `精選編號組合共 ${filteredPool.length} 款${pageTag}（點擊畫面上任何文字與價格皆可直接修改）`;
   } else {
     const parts = [];
     if (selectedSize) parts.push(selectedSize.replace(/x/gi, "×") + " cm");
@@ -3095,6 +3735,30 @@ function applySavedMemoryToState(mem) {
     const chk = document.getElementById("chkShowQrCode");
     if (chk) { chk.checked = mem.showQrCode; toggleQrCode(mem.showQrCode); }
   }
+  if (mem.showResources !== undefined) {
+    const chk = document.getElementById("chkShowResources");
+    if (chk) {
+      chk.checked = mem.showResources;
+      const sheet = document.getElementById("dmSheet");
+      if (sheet) {
+        if (mem.showResources) sheet.classList.remove("hide-resources");
+        else sheet.classList.add("hide-resources");
+      }
+    }
+  }
+  if (mem.cardOverrides && typeof mem.cardOverrides === "object") {
+    cardOverrides = { ...cardOverrides, ...mem.cardOverrides };
+  }
+  if (mem.customResourceUrls && typeof mem.customResourceUrls === "object") {
+    customResourceUrls = {
+      pdfUrl: mem.customResourceUrls.pdfUrl || "",
+      driveUrl: mem.customResourceUrls.driveUrl || ""
+    };
+    const pdfInp = document.getElementById("customPdfUrlInput");
+    const driveInp = document.getElementById("customDriveUrlInput");
+    if (pdfInp) pdfInp.value = customResourceUrls.pdfUrl;
+    if (driveInp) driveInp.value = customResourceUrls.driveUrl;
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -3122,6 +3786,11 @@ function pickBySeries(preservePage = false) {
   activeScenes = [];
   seriesScenePool = [];
   currentPageIndex = 0;
+  customResourceUrls = { pdfUrl: "", driveUrl: "" };
+  const pdfInp = document.getElementById("customPdfUrlInput");
+  const driveInp = document.getElementById("customDriveUrlInput");
+  if (pdfInp) pdfInp.value = "";
+  if (driveInp) driveInp.value = "";
 
   // 立即蒐集本系列所有實景圖
   collectSeriesScenes(ser);
@@ -3155,28 +3824,35 @@ function applyAndPick(preservePage = false) {
   if (currentMode === "series") return pickBySeries(preservePage);
   const onlyInStock = document.getElementById("chkOnlyInStock") && document.getElementById("chkOnlyInStock").checked;
 
-  filteredPool = allProducts.filter(p => {
-    if (currentLevel !== "all" && p.level !== currentLevel) return false;
-    if (onlyInStock && p.availPcs <= 0) return false;
-    if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
-    if (selectedSize && !isSizeMatchWithTolerance(p.size, selectedSize)) return false;
-    if (selectedStyle) {
-      const hay = `${p.area} ${p.style} ${p.series} ${p.size}`.toLowerCase();
-      if (selectedStyle === "石紋") {
-        if (!hay.includes("石紋") && !hay.includes("大理石") && !hay.includes("水泥")) return false;
-      } else if (selectedStyle === "地鐵") {
-        const nums = parseSizeNums(p.size);
-        const isSmallStrip = nums && nums[0] <= 15 && nums[1] <= 50;
-        if (!hay.includes("小品") && !hay.includes("筷子") && !hay.includes("鐵道") && !isSmallStrip) return false;
-      } else if (!hay.includes(selectedStyle)) {
-        return false;
+  if (currentMode === "codes") {
+    filteredPool = customPickedCodes
+      .map(c => allProducts.find(p => p.code === c))
+      .filter(Boolean);
+    const badge = document.getElementById("poolCountBadge");
+    if (badge) badge.textContent = `已選 ${filteredPool.length} 款`;
+  } else {
+    filteredPool = allProducts.filter(p => {
+      if (currentLevel !== "all" && p.level !== currentLevel) return false;
+      if (onlyInStock && p.availPcs <= 0) return false;
+      if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
+      if (selectedSize && !isSizeMatchWithTolerance(p.size, selectedSize)) return false;
+      if (selectedStyle) {
+        const hay = `${p.area} ${p.style} ${p.series} ${p.size}`.toLowerCase();
+        if (selectedStyle === "石紋") {
+          if (!hay.includes("石紋") && !hay.includes("大理石") && !hay.includes("水泥")) return false;
+        } else if (selectedStyle === "地鐵") {
+          const nums = parseSizeNums(p.size);
+          const isSmallStrip = nums && nums[0] <= 15 && nums[1] <= 50;
+          if (!hay.includes("小品") && !hay.includes("筷子") && !hay.includes("鐵道") && !isSmallStrip) return false;
+        } else if (!hay.includes(selectedStyle)) {
+          return false;
+        }
       }
-    }
-    return true;
-  });
-
-  document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
-  filteredPool.sort((a, b) => (b.scenes ? b.scenes.length : 0) - (a.scenes ? a.scenes.length : 0));
+      return true;
+    });
+    document.getElementById("poolCountBadge").textContent = `符合 ${filteredPool.length} 款`;
+    filteredPool.sort((a, b) => (b.scenes ? b.scenes.length : 0) - (a.scenes ? a.scenes.length : 0));
+  }
 
   pageScenesMap = {};
   activeScenes = [];
@@ -3337,6 +4013,11 @@ function handleCardDragStart(e, idx) {
     e.preventDefault();
     return;
   }
+  const tgt = e.target;
+  if (tgt && (tgt.isContentEditable || (tgt.closest && tgt.closest('[contenteditable="true"]')))) {
+    e.preventDefault();
+    return;
+  }
   dragSrcCardIdx = idx;
   e.dataTransfer.effectAllowed = "move";
   e.dataTransfer.setData("text/plain", String(idx));
@@ -3443,6 +4124,36 @@ function buildSceneCollageHtml() {
   return `<div class="scene-collage count-${cnt} sc-layout-${currentSceneLayout}">${itemsHtml}</div>`;
 }
 
+function getCardDisplayData(p, overridesMap = null) {
+  const map = overridesMap || cardOverrides || {};
+  const ov = map[p.code] || {};
+  const defaultCode = p.code;
+  const defaultSize = (p.size || "").replace(/x/gi, "×");
+  const defaultSeries = p.series;
+  const defaultPing = p.availPcs > 0 ? p.pingStr + "坪" : (p.stock_status === "order" ? "期約" : "洽詢");
+  const defaultPrice = (p.pricePcs > 0 || p.pricePing > 0)
+    ? `${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""}${p.pricePing > 0 ? (p.pricePcs > 0 ? " · " : "") + "$" + p.pricePing.toLocaleString() + "/坪" : ""}`
+    : "$洽詢 (點此改價)";
+
+  return {
+    codeTxt: ov.code !== undefined && ov.code !== "" ? ov.code : defaultCode,
+    sizeTxt: ov.size !== undefined && ov.size !== "" ? ov.size : defaultSize,
+    seriesTxt: ov.series !== undefined && ov.series !== "" ? ov.series : defaultSeries,
+    pingTxt: ov.ping !== undefined && ov.ping !== "" ? ov.ping : defaultPing,
+    priceTxt: ov.price !== undefined && ov.price !== "" ? ov.price : defaultPrice
+  };
+}
+
+function onCardFieldEdited(origCode, field, el) {
+  if (!el || !origCode) return;
+  const val = (el.textContent || "").trim();
+  if (!cardOverrides[origCode]) cardOverrides[origCode] = {};
+  cardOverrides[origCode][field] = val;
+  saveCurrentCustomMemory();
+  const qrImg = document.getElementById("dmQrImg");
+  if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=3&data=${encodeURIComponent(getShareUrl())}`;
+}
+
 function buildPiecesGridHtml() {
   const showPrice = document.getElementById("chkShowPrice") && document.getElementById("chkShowPrice").checked;
   const showPing = document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true;
@@ -3450,15 +4161,17 @@ function buildPiecesGridHtml() {
 
   const cardsHtml = currentPicked.map((p, idx) => {
     const flagSvg = getOriginFlagSvg(p.origin);
-    const priceHtml = showPrice && (p.pricePcs > 0 || p.pricePing > 0)
+    const disp = getCardDisplayData(p);
+
+    const priceHtml = showPrice
       ? `<div class="price-line">
            <span>單價</span>
-           <span>${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""}${p.pricePing > 0 ? " · $" + p.pricePing.toLocaleString() + "/坪" : ""}</span>
+           <span class="price-val-edit" contenteditable="true" spellcheck="false" title="點擊可直接修改報價" onblur="onCardFieldEdited('${p.code}', 'price', this)">${disp.priceTxt}</span>
          </div>`
       : "";
 
     const pingHtml = showPing
-      ? `<span class="tile-ping">${p.availPcs > 0 ? p.pingStr + "坪" : (p.stock_status === 'order' ? '期約' : '洽詢')}</span>`
+      ? `<span class="tile-ping" contenteditable="true" spellcheck="false" title="點擊可修改庫存/坪數顯示" onblur="onCardFieldEdited('${p.code}', 'ping', this)">${disp.pingTxt}</span>`
       : "";
 
     const reserveHref = `reservation_form.html?code=${encodeURIComponent(p.code)}`;
@@ -3493,11 +4206,11 @@ function buildPiecesGridHtml() {
         <div class="tile-body-col">
           <div class="tile-info">
             <div class="tile-head">
-              <span class="tile-code">${p.code}</span>
-              <span class="tile-size">${(p.size || "").replace(/x/gi, "×")}</span>
+              <span class="tile-code" contenteditable="true" spellcheck="false" title="點擊可修改產品編號" onblur="onCardFieldEdited('${p.code}', 'code', this)">${disp.codeTxt}</span>
+              <span class="tile-size" contenteditable="true" spellcheck="false" title="點擊可修改尺寸" onblur="onCardFieldEdited('${p.code}', 'size', this)">${disp.sizeTxt}</span>
             </div>
             <div class="tile-row-2">
-              <span class="tile-series">${p.series}</span>
+              <span class="tile-series" contenteditable="true" spellcheck="false" title="點擊可修改系列/花色名稱" onblur="onCardFieldEdited('${p.code}', 'series', this)">${disp.seriesTxt}</span>
               ${pingHtml}
             </div>
             ${priceHtml}
@@ -3530,6 +4243,78 @@ function buildEditableHeaderHtml(extraClass = "header-split") {
   `;
 }
 
+function getResolvedResourceUrls() {
+  let pdfUrl = (customResourceUrls && customResourceUrls.pdfUrl) ? customResourceUrls.pdfUrl.trim() : "";
+  let driveUrl = (customResourceUrls && customResourceUrls.driveUrl) ? customResourceUrls.driveUrl.trim() : "";
+
+  const poolToSearch = currentPicked.length > 0 ? currentPicked : filteredPool;
+  for (const p of poolToSearch) {
+    if (!pdfUrl && p.pdfUrl) pdfUrl = p.pdfUrl;
+    if (!driveUrl && p.driveUrl) driveUrl = p.driveUrl;
+    if (pdfUrl && driveUrl) break;
+  }
+  return { pdfUrl, driveUrl };
+}
+
+function renderResourceBar() {
+  const bar = document.getElementById("dmResourceBar");
+  if (!bar) return;
+  const chk = document.getElementById("chkShowResources");
+  const showRes = chk ? chk.checked : true;
+  if (!showRes) {
+    bar.style.display = "none";
+    return;
+  }
+
+  const { pdfUrl, driveUrl } = getResolvedResourceUrls();
+  const isClient = document.body.classList.contains("client-view");
+
+  if (!pdfUrl && !driveUrl && isClient) {
+    bar.style.display = "none";
+    return;
+  }
+
+  bar.style.display = "flex";
+  const btns = [];
+  if (pdfUrl) {
+    btns.push(`<a class="res-link-btn primary" href="${pdfUrl}" target="_blank" rel="noopener">${SVG.download} 下載原廠型錄 PDF</a>`);
+  }
+  if (driveUrl) {
+    btns.push(`<a class="res-link-btn" href="${driveUrl}" target="_blank" rel="noopener">${SVG.folder} 開啟雲端高畫質圖庫</a>`);
+  }
+  if (!isClient) {
+    btns.push(`<button type="button" class="res-link-btn staff-only" onclick="promptEditResourceUrls()">${SVG.pencil} 設定原廠PDF/雲端連結</button>`);
+  }
+
+  bar.innerHTML = `
+    <div class="res-bar-left">
+      <span>${SVG.book} 原廠型錄與雲端高畫質資源</span>
+    </div>
+    <div class="res-bar-btns">
+      ${btns.join("")}
+    </div>
+  `;
+}
+
+function promptEditResourceUrls() {
+  const { pdfUrl, driveUrl } = getResolvedResourceUrls();
+  const newPdf = window.prompt("請輸入「原廠型錄 PDF」下載連結 URL（留空則使用系統預設）：", customResourceUrls.pdfUrl || pdfUrl || "");
+  if (newPdf !== null) {
+    customResourceUrls.pdfUrl = newPdf.trim();
+    const pdfInp = document.getElementById("customPdfUrlInput");
+    if (pdfInp) pdfInp.value = customResourceUrls.pdfUrl;
+  }
+  const newDrive = window.prompt("請輸入「雲端硬碟圖庫」資料夾連結 URL（留空則使用系統預設）：", customResourceUrls.driveUrl || driveUrl || "");
+  if (newDrive !== null) {
+    customResourceUrls.driveUrl = newDrive.trim();
+    const driveInp = document.getElementById("customDriveUrlInput");
+    if (driveInp) driveInp.value = customResourceUrls.driveUrl;
+  }
+  renderResourceBar();
+  saveCurrentCustomMemory();
+  showToast("已更新原廠 PDF 與雲端硬碟連結！");
+}
+
 function renderDM() {
   const showingEl = document.getElementById("showingCountTxt");
   if (showingEl) showingEl.textContent = currentPicked.length;
@@ -3541,6 +4326,8 @@ function renderDM() {
     validTimeEl.style.display = showPing ? "" : "none";
     if (showPing) validTimeEl.textContent = `庫存有效時間：${snapshotTimeStr || formatNowTime()}`;
   }
+
+  renderResourceBar();
 
   const shareUrl = getShareUrl();
   const qrImg = document.getElementById("dmQrImg");
@@ -3660,6 +4447,24 @@ function toggleClientPreview() {
   showToast(isClient ? "已切換至「客戶視角預覽」（再次點擊即可返回編輯）" : "已返回「業務編輯模式」");
 }
 
+function encodeUtf8Base64(obj) {
+  try {
+    const json = JSON.stringify(obj);
+    return btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode("0x" + p1)));
+  } catch (e) {
+    return "";
+  }
+}
+
+function decodeUtf8Base64(b64) {
+  try {
+    const str = decodeURIComponent(Array.from(atob(b64), c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    return JSON.parse(str);
+  } catch (e) {
+    return null;
+  }
+}
+
 function getShareUrl() {
   const isHttp = window.location.protocol.startsWith("http") && !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1");
   const baseUrl = isHttp
@@ -3672,6 +4477,12 @@ function getShareUrl() {
     const sel = document.getElementById("selSeries");
     const ser = (sel && sel.value) ? sel.value : (currentPicked[0] ? currentPicked[0].series : "");
     if (ser) u.searchParams.set("ser", ser);
+    const codes = currentPicked.map(p => p.code).join(",");
+    if (codes) u.searchParams.set("codes", codes);
+  } else if (currentMode === "codes") {
+    u.searchParams.set("mode", "codes");
+    const codes = currentPicked.map(p => p.code).join(",");
+    if (codes) u.searchParams.set("codes", codes);
   } else {
     if (selectedSize) u.searchParams.set("sz", selectedSize);
     if (selectedStyle) u.searchParams.set("styleFilter", selectedStyle);
@@ -3687,6 +4498,32 @@ function getShareUrl() {
   if (chkPrice && chkPrice.checked) u.searchParams.set("price", "1");
   const chkPing = document.getElementById("chkShowPing");
   if (chkPing && !chkPing.checked) u.searchParams.set("ping", "0");
+  const chkRes = document.getElementById("chkShowResources");
+  if (chkRes && !chkRes.checked) u.searchParams.set("res", "0");
+
+  // 將自訂標題、卡片修改(含自訂價格/編號/尺寸)、圖片轉向與原廠PDF/雲端連結編入分享參數
+  const pickedOverrideSubset = {};
+  const pickedRotSubset = {};
+  currentPicked.forEach(p => {
+    if (cardOverrides[p.code] && Object.keys(cardOverrides[p.code]).length > 0) {
+      pickedOverrideSubset[p.code] = cardOverrides[p.code];
+    }
+    if (productRotations[p.code]) {
+      pickedRotSubset[p.code] = productRotations[p.code];
+    }
+  });
+  const ovPayload = {};
+  if (customHeaderText && (customHeaderText.title || customHeaderText.eyebrow || customHeaderText.subtitle || customHeaderText.tagline)) {
+    ovPayload.h = customHeaderText;
+  }
+  if (Object.keys(pickedOverrideSubset).length > 0) ovPayload.c = pickedOverrideSubset;
+  if (Object.keys(pickedRotSubset).length > 0) ovPayload.r = pickedRotSubset;
+  if (customResourceUrls.pdfUrl || customResourceUrls.driveUrl) ovPayload.u = customResourceUrls;
+  if (Object.keys(ovPayload).length > 0) {
+    const b64 = encodeUtf8Base64(ovPayload);
+    if (b64 && b64.length < 1800) u.searchParams.set("ov", b64);
+  }
+
   u.searchParams.set("view", "client");
   return u.toString();
 }
@@ -3694,45 +4531,364 @@ function getShareUrl() {
 function copyShareLink() {
   const url = getShareUrl();
   navigator.clipboard.writeText(url).then(() => {
-    showToast("已複製專屬連結！客戶點開即呈現相同排版與設定。");
+    showToast("已複製客戶唯讀分享連結！客戶點開僅能瀏覽與下載原廠 PDF，無法修改內容。");
   }).catch(() => {
     showToast("連結：" + url);
   });
 }
 
+let hasShownInitialWizard = false;
+
 function restoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
+  const isClientLink = params.get("view") === "client";
+  if (isClientLink) {
+    document.body.classList.add("client-view");
+    document.body.classList.add("true-client-link");
+  }
+
   const chkPrice = document.getElementById("chkShowPrice");
   if (chkPrice && params.get("price") === "1") chkPrice.checked = true;
   const chkPing = document.getElementById("chkShowPing");
   if (chkPing && params.get("ping") === "0") chkPing.checked = false;
+  const chkRes = document.getElementById("chkShowResources");
+  if (chkRes && params.get("res") === "0") {
+    chkRes.checked = false;
+    document.getElementById("dmSheet")?.classList.add("hide-resources");
+  }
   if (params.get("style") && STYLE_PALETTES[params.get("style")]) setDmStyle(params.get("style"));
   if (params.get("fn")) setDmFont(params.get("fn"));
   if (params.get("ly")) setMagLayout(params.get("ly"));
   if (params.get("sc")) currentSceneLayout = params.get("sc");
-  if (params.get("view") === "client") document.body.classList.add("client-view");
+
+  let decodedOv = null;
+  if (params.get("ov")) {
+    decodedOv = decodeUtf8Base64(params.get("ov"));
+    if (decodedOv) {
+      if (decodedOv.c) cardOverrides = { ...cardOverrides, ...decodedOv.c };
+      if (decodedOv.r) productRotations = { ...productRotations, ...decodedOv.r };
+      if (decodedOv.u) customResourceUrls = { ...customResourceUrls, ...decodedOv.u };
+    }
+  }
 
   const serParam = params.get("ser");
+  const codesParam = params.get("codes");
+  const szParam = params.get("sz");
+
   if (serParam) {
     const sel = document.getElementById("selSeries");
     if (sel) {
       sel.value = serParam;
       pickBySeries(false);
+      if (codesParam) {
+        const codeList = codesParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+        const matched = codeList.map(c => allProducts.find(p => p.code === c)).filter(Boolean);
+        if (matched.length > 0) {
+          currentPicked = matched;
+        }
+      }
+      if (decodedOv && decodedOv.h) customHeaderText = { ...customHeaderText, ...decodedOv.h };
+      renderDM();
       return;
     }
   }
 
-  const codesParam = params.get("codes");
   if (codesParam) {
     const codeList = codesParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
     const matched = codeList.map(c => allProducts.find(p => p.code === c)).filter(Boolean);
     if (matched.length > 0) {
+      if (params.get("mode") === "codes" || !szParam) {
+        currentMode = "codes";
+        customPickedCodes = matched.map(p => p.code);
+        document.getElementById("tabSeries")?.classList.remove("active");
+        document.getElementById("tabTheme")?.classList.remove("active");
+        document.getElementById("tabCodes")?.classList.add("active");
+        document.getElementById("seriesFilterBox").style.display = "none";
+        document.getElementById("themeFilterBox").style.display = "none";
+        const cBox = document.getElementById("codesFilterBox");
+        if (cBox) cBox.style.display = "flex";
+        renderPickedCodesChips();
+      }
       filteredPool = matched;
       updatePaginationAndPick(false);
+      if (decodedOv && decodedOv.h) customHeaderText = { ...customHeaderText, ...decodedOv.h };
+      renderDM();
       return;
     }
   }
+
   pickBySeries(false);
+  if (decodedOv && decodedOv.h) {
+    customHeaderText = { ...customHeaderText, ...decodedOv.h };
+    renderDM();
+  }
+
+  // 若為手機版且非客戶唯讀連結，且網址未指定特定系列/編號，自動彈出第一頁「三選一引導介面」
+  if (!isClientLink && !hasShownInitialWizard && window.innerWidth <= 960 && !serParam && !codesParam && !szParam) {
+    hasShownInitialWizard = true;
+    openMobileWizard();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 手機版引導式三選一介面 & 底部卡片式收納抽屜
+// ════════════════════════════════════════════════════════════════
+function openMobileWizard() {
+  if (document.body.classList.contains("client-view")) return;
+  wizardTempMode = currentMode || "series";
+  selectWizardMode(wizardTempMode);
+  backToWizardStep1();
+  document.getElementById("mobileWizardModal")?.classList.add("open");
+}
+
+function closeMobileWizard() {
+  document.getElementById("mobileWizardModal")?.classList.remove("open");
+}
+
+function selectWizardMode(mode) {
+  wizardTempMode = mode;
+  document.getElementById("wizCardSeries")?.classList.toggle("selected", mode === "series");
+  document.getElementById("wizCardTheme")?.classList.toggle("selected", mode === "theme");
+  document.getElementById("wizCardCodes")?.classList.toggle("selected", mode === "codes");
+}
+
+function backToWizardStep1() {
+  document.getElementById("wizModalTitle").textContent = "請選擇型錄製作方式";
+  document.getElementById("wizStep1").style.display = "flex";
+  document.getElementById("wizStep2Series").style.display = "none";
+  document.getElementById("wizStep2Theme").style.display = "none";
+  document.getElementById("wizStep2Codes").style.display = "none";
+}
+
+function goWizardStep2() {
+  document.getElementById("wizStep1").style.display = "none";
+  if (wizardTempMode === "series") {
+    document.getElementById("wizModalTitle").textContent = "1. 單系列：搜尋或點選系列";
+    document.getElementById("wizStep2Series").style.display = "flex";
+    const inp = document.getElementById("wizSeriesSearch");
+    if (inp) inp.value = "";
+    renderWizardSeriesList("");
+  } else if (wizardTempMode === "theme") {
+    document.getElementById("wizModalTitle").textContent = "2. 按照尺寸：選擇尺寸與磚種風格";
+    document.getElementById("wizStep2Theme").style.display = "flex";
+  } else {
+    document.getElementById("wizModalTitle").textContent = "3. 輸入編號：組合多款產品提案";
+    document.getElementById("wizStep2Codes").style.display = "flex";
+    if (customPickedCodes.length === 0 && currentPicked.length > 0) {
+      customPickedCodes = currentPicked.slice(0, 4).map(p => p.code);
+    }
+    renderPickedCodesChips();
+  }
+}
+
+function renderWizardSeriesList(kw) {
+  const grid = document.getElementById("wizSeriesGrid");
+  if (!grid) return;
+  const q = String(kw || "").trim().toUpperCase();
+  const map = new Map();
+  allProducts.forEach(p => {
+    if (q && !p.series.toUpperCase().includes(q) && !p.seriesEn.toUpperCase().includes(q) && !p.code.includes(q)) return;
+    const item = map.get(p.series) || { count: 0, size: p.size };
+    item.count++;
+    map.set(p.series, item);
+  });
+  const curSer = document.getElementById("selSeries")?.value || "";
+  const entries = Array.from(map.entries()).slice(0, 40);
+  grid.innerHTML = entries.map(([ser, info]) => `
+    <button type="button" class="wiz-series-btn ${ser === curSer ? 'active' : ''}" onclick="wizPickSeries('${ser}')">
+      <strong>${ser}</strong>
+      <span>${info.size ? info.size.replace(/x/gi, "×") + " cm · " : ""}${info.count} 款</span>
+    </button>
+  `).join("");
+}
+
+function wizPickSeries(ser) {
+  const sel = document.getElementById("selSeries");
+  if (sel) {
+    renderSeriesOptions("");
+    sel.value = ser;
+  }
+  switchMode("series");
+  closeMobileWizard();
+  showToast(`已載入「${ser}」系列！點擊畫面任何文字或價格即可直接修改`);
+}
+
+function wizSelectSize(sz) {
+  selectedSize = sz;
+  const customInp = document.getElementById("wizCustomSizeInput");
+  if (customInp) customInp.value = "";
+  document.querySelectorAll("#wizSizeChips .chip").forEach(b => b.classList.toggle("active", b.dataset.sz === sz));
+  document.querySelectorAll("#sizeChips .chip").forEach(b => b.classList.toggle("active", b.dataset.sz === sz));
+}
+
+function wizCustomSizeChanged(val) {
+  selectedSize = val.trim();
+  document.querySelectorAll("#wizSizeChips .chip").forEach(b => b.classList.remove("active"));
+  const dInp = document.getElementById("customSizeInput");
+  if (dInp) dInp.value = selectedSize;
+}
+
+function wizSelectStyle(st) {
+  selectedStyle = st;
+  document.querySelectorAll("#wizStyleChips .chip").forEach(b => b.classList.toggle("active", b.dataset.st === st));
+  document.querySelectorAll("#styleChips .chip").forEach(b => b.classList.toggle("active", b.dataset.st === st));
+}
+
+function onWizCodesInput(val) {
+  const box = document.getElementById("wizCodesSuggestBox");
+  if (!box) return;
+  const tokens = parseCodeTokens(val);
+  const lastKw = tokens[tokens.length - 1] || "";
+  if (!lastKw) {
+    box.classList.remove("open");
+    box.innerHTML = "";
+    return;
+  }
+  const matches = allProducts.filter(p =>
+    p.code.includes(lastKw) || p.series.toUpperCase().includes(lastKw)
+  ).slice(0, 8);
+  if (matches.length === 0) {
+    box.classList.remove("open");
+    box.innerHTML = "";
+    return;
+  }
+  box.innerHTML = matches.map(p => `
+    <div class="code-suggest-item" onclick="addSingleCodeToPick('${p.code}', true)">
+      <span><b>${p.code}</b> · ${p.series}</span>
+      <span style="color:var(--muted);font-size:11.5px;">${(p.size || "").replace(/x/gi, "×")}</span>
+    </div>
+  `).join("");
+  box.classList.add("open");
+}
+
+function addWizCodesFromInput() {
+  const inp = document.getElementById("wizCodesInput");
+  if (!inp) return;
+  const tokens = parseCodeTokens(inp.value);
+  tokens.forEach(tok => {
+    const exact = allProducts.find(p => p.code === tok) || allProducts.find(p => p.code.includes(tok));
+    if (exact && !customPickedCodes.includes(exact.code)) {
+      customPickedCodes.push(exact.code);
+    }
+  });
+  inp.value = "";
+  const sBox = document.getElementById("wizCodesSuggestBox");
+  if (sBox) { sBox.classList.remove("open"); sBox.innerHTML = ""; }
+  renderPickedCodesChips();
+}
+
+function finishWizardAndEnter() {
+  if (wizardTempMode === "codes") {
+    const inp = document.getElementById("wizCodesInput");
+    if (inp && inp.value.trim()) addWizCodesFromInput();
+  }
+  switchMode(wizardTempMode);
+  closeMobileWizard();
+  showToast("已進入畫布！所有文字、尺寸、編號與價格皆可直接點擊修改");
+}
+
+function openMobDrawer(type) {
+  const backdrop = document.getElementById("mobDrawerBackdrop");
+  const titleEl = document.getElementById("mobDrawerTitle");
+  const bodyEl = document.getElementById("mobDrawerBody");
+  if (!backdrop || !titleEl || !bodyEl) return;
+
+  if (type === "style") {
+    titleEl.textContent = "編排風格（版型 / 色彩 / 字體 / 情境）";
+    bodyEl.innerHTML = `
+      <div class="ctrl-sub-label">雜誌排版風格（8種）：</div>
+      <div class="chip-group">
+        ${[
+          ["bento", "當代藝廊"], ["cover", "滿版焦點"], ["sidebar", "建築雙欄"], ["museum", "策展巡禮"],
+          ["minimal", "極簡留白"], ["split", "左右對話"], ["cascade", "幾何錯落"], ["monograph", "高訂專題"]
+        ].map(([k, lbl]) => `<button type="button" class="style-pill ${currentMagLayout === k ? 'active' : ''}" data-ly="${k}" onclick="setMagLayout('${k}')">${lbl}</button>`).join("")}
+      </div>
+
+      <div class="ctrl-sub-label" style="margin-top:4px;">色彩主題風格（8種）：</div>
+      <div class="chip-group">
+        ${[
+          ["warm", "#8C5A32", "現代暖米"], ["editorial", "#9E582F", "義式大地"], ["luxury", "#D4AF37", "奢石黑金"], ["minimal", "#1F4D3A", "北歐極簡"],
+          ["wabisabi", "#726558", "京都侘寂"], ["riviera", "#1B4472", "蔚藍海岸"], ["modern", "#1E3B2F", "英倫摩登"], ["cement", "#404040", "清水建築"]
+        ].map(([k, dot, lbl]) => `<button type="button" class="style-pill ${currentDmStyle === k ? 'active' : ''}" data-st="${k}" onclick="setDmStyle('${k}')"><i class="swatch-dot" style="background:${dot}"></i>${lbl}</button>`).join("")}
+      </div>
+
+      <div class="ctrl-sub-label" style="margin-top:4px;">字體風格（8種）：</div>
+      <div class="chip-group">
+        ${[
+          ["serif", "經典宋體"], ["sans", "現代黑體"], ["display", "典雅襯線"], ["geometric", "幾何現代"],
+          ["humanist", "人文開闊"], ["couture", "頂級訂製"], ["organic", "藝文手作"], ["industrial", "現代工藝"]
+        ].map(([k, lbl]) => `<button type="button" class="style-pill ${currentDmFont === k ? 'active' : ''}" data-fn="${k}" onclick="setDmFont('${k}')">${lbl}</button>`).join("")}
+      </div>
+
+      <div class="ctrl-sub-label" style="margin-top:4px;">實景情境圖排版（8種）：</div>
+      <div class="chip-group">
+        ${[
+          ["auto", "智慧自適"], ["1", "單幅全景"], ["2", "經典雙拼"], ["3", "雜誌三分"],
+          ["4", "四格矩陣"], ["cinematic", "電影寬畫"], ["focus", "階梯聚焦"], ["0", "純磚展示"]
+        ].map(([k, lbl]) => `<button type="button" class="style-pill ${currentSceneLayout === k ? 'active' : ''}" data-sc="${k}" onclick="setSceneLayout('${k}')">${lbl}</button>`).join("")}
+      </div>
+      <button type="button" class="btn-act primary" style="height:40px;justify-content:center;margin-top:4px;" onclick="closeMobDrawer();openScenePickerModal(-1)">
+        ${SVG.plus} 新增 / 更換實景情境圖
+      </button>
+    `;
+  } else if (type === "tweak") {
+    titleEl.textContent = "顯示微調、價格修改與原廠資源";
+    const showPrice = document.getElementById("chkShowPrice")?.checked;
+    const showPing = document.getElementById("chkShowPing")?.checked;
+    const showQr = document.getElementById("chkShowQrCode")?.checked;
+    const showRes = document.getElementById("chkShowResources")?.checked;
+    bodyEl.innerHTML = `
+      <div style="font-size:12.5px;color:var(--accent);font-weight:800;background:var(--accent-soft);padding:8px 10px;border-radius:7px;">
+        提示：勾選「顯示單價」後，直接點擊畫面卡片上的價格即可打字改價！所有編號、尺寸、系列名皆可直接點擊修改。
+      </div>
+      <div class="toggle-grid">
+        <label class="price-toggle">
+          <input type="checkbox" ${showPrice ? 'checked' : ''} onchange="document.getElementById('chkShowPrice').checked=this.checked;renderDM();">
+          <span>顯示單價 (可改價)</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" ${showPing ? 'checked' : ''} onchange="document.getElementById('chkShowPing').checked=this.checked;renderDM();">
+          <span>顯示庫存坪數</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" ${showQr ? 'checked' : ''} onchange="document.getElementById('chkShowQrCode').checked=this.checked;toggleQrCode(this.checked);">
+          <span>顯示 QR 碼</span>
+        </label>
+        <label class="price-toggle">
+          <input type="checkbox" ${showRes ? 'checked' : ''} onchange="document.getElementById('chkShowResources').checked=this.checked;toggleResourcesBar(this.checked);">
+          <span>原廠 PDF/雲端圖庫</span>
+        </label>
+      </div>
+      <button type="button" class="btn-act" style="height:38px;justify-content:center;" onclick="promptEditResourceUrls()">
+        ${SVG.pencil} 自訂原廠 PDF 下載與雲端硬碟連結
+      </button>
+    `;
+  } else {
+    titleEl.textContent = "分享給客戶（唯讀）與下載 PDF";
+    bodyEl.innerHTML = `
+      <div style="font-size:12.5px;color:var(--ink-2);font-weight:600;">
+        複製連結傳給客戶後，對方打開<b>僅能瀏覽與點選下方原廠 PDF / 雲端硬碟連結，無法操作或修改任何內容</b>。
+      </div>
+      <button type="button" class="btn-random" style="height:44px;font-size:15px;" onclick="copyShareLink();closeMobDrawer();">
+        ${SVG.link} 複製客戶唯讀分享連結
+      </button>
+      <button type="button" class="btn-act primary" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();exportSinglePagePdf();">
+        ${SVG.download} 下載直式單頁 PDF (A4)
+      </button>
+      <button type="button" class="btn-act gold" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();generateSpreadPDF();">
+        ${SVG.book} 生成左右雙頁跨頁型錄 PDF
+      </button>
+      <button type="button" class="btn-act" style="height:40px;justify-content:center;font-size:13.5px;" onclick="closeMobDrawer();exportFullPosterJPG();">
+        ${SVG.download} 下載單頁高畫質 JPG 圖檔
+      </button>
+    `;
+  }
+
+  backdrop.classList.add("open");
+}
+
+function closeMobDrawer() {
+  document.getElementById("mobDrawerBackdrop")?.classList.remove("open");
 }
 
 function openImageZoom(src, title, rot = 0) {
@@ -4027,6 +5183,7 @@ async function renderPortraitPageToCanvas(pageState) {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
+      const disp = getCardDisplayData(p, pageState.cardOverrides);
       const isHorizontalCard = cols === 1 && items.length <= 3;
       if (isHorizontalCard) {
         const stW = Math.round(cardW * 0.46);
@@ -4052,26 +5209,26 @@ async function renderPortraitPageToCanvas(pageState) {
         const tx = x + stW + 20;
         ctx.fillStyle = pal.ink;
         ctx.font = "800 24px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
-        ctx.fillText(p.code, tx, y + 48);
+        ctx.fillText(disp.codeTxt, tx, y + 48);
 
         ctx.fillStyle = pal.accent;
         ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillText((p.size || "").replace(/x/gi, "×") + " cm", tx, y + 80);
+        ctx.fillText(disp.sizeTxt.includes("cm") ? disp.sizeTxt : disp.sizeTxt + " cm", tx, y + 80);
 
         ctx.fillStyle = pal.ink2;
         ctx.font = "700 19px 'Noto Sans TC', sans-serif";
-        ctx.fillText(p.series, tx, y + 114);
+        ctx.fillText(disp.seriesTxt, tx, y + 114);
 
         if (showPing) {
           ctx.fillStyle = pal.stock;
           ctx.font = "800 19px 'Noto Sans TC', sans-serif";
-          ctx.fillText(p.availPcs > 0 ? `${p.pingStr}坪` : "洽詢", tx + cardW - stW - 100, y + 114);
+          ctx.fillText(disp.pingTxt, tx + cardW - stW - 100, y + 114);
         }
 
-        if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
+        if (showPrice && disp.priceTxt) {
           ctx.fillStyle = pal.accent;
           ctx.font = "800 18px 'Noto Sans TC', sans-serif";
-          ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), tx, y + 152);
+          ctx.fillText(disp.priceTxt.replace(" (點此改價)", ""), tx, y + 152);
         }
         return;
       }
@@ -4106,9 +5263,9 @@ async function renderPortraitPageToCanvas(pageState) {
       // 第 1 行：編號 + 尺寸
       ctx.fillStyle = pal.ink;
       ctx.font = "800 19px 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif";
-      ctx.fillText(p.code, x + 12, y + stH + 28);
+      ctx.fillText(disp.codeTxt, x + 12, y + stH + 28);
 
-      const szStr = (p.size || "").replace(/x/gi, "×");
+      const szStr = disp.sizeTxt;
       ctx.font = "700 14px 'Plus Jakarta Sans', sans-serif";
       ctx.fillStyle = pal.accent;
       ctx.fillText(szStr, x + cardW - ctx.measureText(szStr).width - 12, y + stH + 27);
@@ -4116,19 +5273,19 @@ async function renderPortraitPageToCanvas(pageState) {
       // 第 2 行：系列 + 坪數直接放右側（無「可用」）
       ctx.fillStyle = pal.ink2;
       ctx.font = "700 15px 'Noto Sans TC', sans-serif";
-      ctx.fillText(p.series, x + 12, y + stH + 54);
+      ctx.fillText(disp.seriesTxt, x + 12, y + stH + 54);
 
       if (showPing) {
         ctx.fillStyle = pal.stock;
         ctx.font = "800 15px 'Noto Sans TC', sans-serif";
-        const pingTxt = p.availPcs > 0 ? `${p.pingStr}坪` : "洽詢";
+        const pingTxt = disp.pingTxt;
         ctx.fillText(pingTxt, x + cardW - ctx.measureText(pingTxt).width - 12, y + stH + 54);
       }
 
-      if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
+      if (showPrice && disp.priceTxt) {
         ctx.fillStyle = pal.accent;
         ctx.font = "800 14px 'Noto Sans TC', sans-serif";
-        ctx.fillText(`${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "$" + p.pricePing.toLocaleString() + "/坪" : ""}`.trim(), x + 12, y + stH + 78);
+        ctx.fillText(disp.priceTxt.replace(" (點此改價)", ""), x + 12, y + stH + 78);
       }
     });
   }
@@ -4384,6 +5541,7 @@ function getCurrentPageStateSnapshot() {
     items: [...currentPicked],
     scenes: activeScenes.map(s => ({ ...s })),
     headerText: { ...customHeaderText },
+    cardOverrides: JSON.parse(JSON.stringify(cardOverrides)),
     dmStyle: currentDmStyle,
     dmFont: currentDmFont,
     magLayout: currentMagLayout,
@@ -4480,6 +5638,7 @@ async function exportAllPagesToPdf() {
       dmStyle: currentDmStyle,
       dmFont: currentDmFont,
       magLayout: currentMagLayout,
+      cardOverrides: JSON.parse(JSON.stringify(cardOverrides)),
       productRotations: { ...productRotations },
       showPrice: document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false,
       showPing: document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true,
@@ -4648,11 +5807,12 @@ async function exportSingleTileJPG(code) {
   ctx.font = "700 17px 'Cormorant Garamond', 'Plus Jakarta Sans', sans-serif";
   ctx.fillText((customHeaderText.eyebrow || `${p.seriesEn || ""} ${p.brand || ""}`.trim() || "PORCELAIN SURFACE").replace(/<[^>]*>/g, ""), 44, 52);
 
+  const disp = getCardDisplayData(p);
   ctx.fillStyle = pal.headerText;
   ctx.font = "800 42px 'Noto Serif TC', 'Noto Sans TC', sans-serif";
-  ctx.fillText(`${p.series}  ${p.code}`, 44, 110);
+  ctx.fillText(`${disp.seriesTxt}  ${disp.codeTxt}`, 44, 110);
 
-  const szTxt = `${(p.size || "").replace(/x/gi, "×")} cm`;
+  const szTxt = disp.sizeTxt.includes("cm") ? disp.sizeTxt : `${disp.sizeTxt} cm`;
   ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
   const szW = ctx.measureText(szTxt).width + 40;
   ctx.fillStyle = pal.accent;
@@ -4715,20 +5875,20 @@ async function exportSingleTileJPG(code) {
 
   ctx.fillStyle = pal.ink;
   ctx.font = "800 34px 'Noto Sans TC', sans-serif";
-  ctx.fillText(`${p.code} · ${p.series}（${(p.size || "").replace(/x/gi, "×")} cm）`, 76, curY + 68);
+  ctx.fillText(`${disp.codeTxt} · ${disp.seriesTxt}（${szTxt}）`, 76, curY + 68);
 
   if (showPing) {
     ctx.fillStyle = pal.stock;
     ctx.font = "800 30px 'Noto Sans TC', sans-serif";
-    ctx.fillText(`${p.availPcs > 0 ? p.pingStr + "坪" : "洽詢"}`, 76, curY + 128);
+    ctx.fillText(disp.pingTxt, 76, curY + 128);
   }
 
   const showPrice = document.getElementById("chkShowPrice") ? document.getElementById("chkShowPrice").checked : false;
-  if (showPrice && (p.pricePcs > 0 || p.pricePing > 0)) {
+  if (showPrice && disp.priceTxt) {
     ctx.fillStyle = pal.accent;
     ctx.font = "800 30px 'Noto Sans TC', sans-serif";
     ctx.fillText(
-      `單價：${p.pricePcs > 0 ? "$" + p.pricePcs.toLocaleString() + "/片" : ""} ${p.pricePing > 0 ? "($" + p.pricePing.toLocaleString() + "/坪)" : ""}`,
+      `單價：${disp.priceTxt.replace(" (點此改價)", "")}`,
       76,
       curY + (showPing ? 182 : 128)
     );
