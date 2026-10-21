@@ -2984,8 +2984,10 @@ async function initData() {
   });
 }
 
-function renderSeriesOptions(kw) {
+function renderSeriesOptions(kw, targetSeriesVal = null) {
   const selSeries = document.getElementById("selSeries");
+  if (!selSeries) return;
+  const prevVal = targetSeriesVal || selSeries.value || "";
   const q = String(kw || "").trim().toUpperCase();
   const map = new Map();
   allProducts.forEach(p => {
@@ -3013,6 +3015,10 @@ function renderSeriesOptions(kw) {
   selSeries.innerHTML = entries.map(([ser, info]) =>
     `<option value="${ser}">${ser}${info.en ? " " + info.en : ""}（${info.size ? info.size.replace(/x/gi, "×") + " · " : ""}${info.count}款${info.sceneCount ? " · 圖片" + info.sceneCount + "張" : " · 無圖片"}）</option>`
   ).join("");
+
+  if (prevVal && entries.some(([ser]) => ser === prevVal)) {
+    selSeries.value = prevVal;
+  }
 }
 
 function filterSeriesSelect() {
@@ -3162,47 +3168,47 @@ function setSceneLayout(sc) {
   renderDM();
 }
 
-function toggleReserveBtns(show) {
+function toggleReserveBtns(show, skipSave = false) {
   const sheet = document.getElementById("dmSheet");
   if (sheet) {
     if (show) sheet.classList.remove("hide-reserve-btns");
     else sheet.classList.add("hide-reserve-btns");
   }
-  saveSeriesCustomMemory();
+  if (!skipSave) saveSeriesCustomMemory();
 }
 
-function toggleOriginFlags(show) {
+function toggleOriginFlags(show, skipSave = false) {
   const sheet = document.getElementById("dmSheet");
   if (sheet) {
     if (show) sheet.classList.remove("hide-origin-flags");
     else sheet.classList.add("hide-origin-flags");
   }
-  saveSeriesCustomMemory();
+  if (!skipSave) saveSeriesCustomMemory();
 }
 
-function toggleCardCorner(square) {
+function toggleCardCorner(square, skipSave = false) {
   const sheet = document.getElementById("dmSheet");
   if (sheet) {
     if (square) sheet.classList.add("card-style-square");
     else sheet.classList.remove("card-style-square");
   }
-  saveSeriesCustomMemory();
+  if (!skipSave) saveSeriesCustomMemory();
 }
 
-function toggleQrCode(show) {
+function toggleQrCode(show, skipSave = false) {
   const qrBox = document.getElementById("dmQrBox");
   if (qrBox) qrBox.style.display = show ? "" : "none";
-  saveSeriesCustomMemory();
+  if (!skipSave) saveSeriesCustomMemory();
 }
 
-function toggleResourcesBar(show) {
+function toggleResourcesBar(show, skipSave = false) {
   const sheet = document.getElementById("dmSheet");
   if (sheet) {
     if (show) sheet.classList.remove("hide-resources");
     else sheet.classList.add("hide-resources");
   }
   renderResourceBar();
-  saveSeriesCustomMemory();
+  if (!skipSave) saveSeriesCustomMemory();
 }
 
 function onCustomResourceUrlChange() {
@@ -3214,7 +3220,7 @@ function onCustomResourceUrlChange() {
   saveSeriesCustomMemory();
 }
 
-function switchMode(mode) {
+function switchMode(mode, targetSeries = null) {
   currentMode = mode;
   document.getElementById("tabSeries")?.classList.toggle("active", mode === "series");
   document.getElementById("tabTheme")?.classList.toggle("active", mode === "theme");
@@ -3226,16 +3232,19 @@ function switchMode(mode) {
   document.getElementById("btnRandomTxt").textContent = mode === "series" ? "隨機換一個系列" : "隨機換一批產品";
 
   if (mode === "series") {
-    renderSeriesOptions(document.getElementById("seriesSearchInput").value);
-    pickBySeries();
-  } else if (mode === "codes") {
-    if (customPickedCodes.length === 0 && currentPicked.length > 0) {
-      customPickedCodes = currentPicked.slice(0, 6).map(p => p.code);
+    const sInp = document.getElementById("seriesSearchInput");
+    if (targetSeries && sInp) sInp.value = "";
+    renderSeriesOptions(sInp ? sInp.value : "", targetSeries);
+    if (targetSeries) {
+      const sel = document.getElementById("selSeries");
+      if (sel) sel.value = targetSeries;
     }
+    pickBySeries(false);
+  } else if (mode === "codes") {
     renderPickedCodesChips();
-    applyAndPick();
+    applyAndPick(false);
   } else {
-    applyAndPick();
+    applyAndPick(false);
   }
 }
 
@@ -3721,19 +3730,19 @@ function applySavedMemoryToState(mem) {
   }
   if (mem.showReserveBtn !== undefined) {
     const chk = document.getElementById("chkShowReserveBtn");
-    if (chk) { chk.checked = mem.showReserveBtn; toggleReserveBtns(mem.showReserveBtn); }
+    if (chk) { chk.checked = mem.showReserveBtn; toggleReserveBtns(mem.showReserveBtn, true); }
   }
   if (mem.showFlags !== undefined) {
     const chk = document.getElementById("chkShowFlags");
-    if (chk) { chk.checked = mem.showFlags; toggleOriginFlags(mem.showFlags); }
+    if (chk) { chk.checked = mem.showFlags; toggleOriginFlags(mem.showFlags, true); }
   }
   if (mem.cardSquare !== undefined) {
     const chk = document.getElementById("chkCardSquare");
-    if (chk) { chk.checked = mem.cardSquare; toggleCardCorner(mem.cardSquare); }
+    if (chk) { chk.checked = mem.cardSquare; toggleCardCorner(mem.cardSquare, true); }
   }
   if (mem.showQrCode !== undefined) {
     const chk = document.getElementById("chkShowQrCode");
-    if (chk) { chk.checked = mem.showQrCode; toggleQrCode(mem.showQrCode); }
+    if (chk) { chk.checked = mem.showQrCode; toggleQrCode(mem.showQrCode, true); }
   }
   if (mem.showResources !== undefined) {
     const chk = document.getElementById("chkShowResources");
@@ -3800,10 +3809,21 @@ function pickBySeries(preservePage = false) {
     applySavedMemoryToState(mem);
   }
 
+  if (!preservePage) {
+    customHeaderText = { eyebrow: "", title: "", tagline: "", subtitle: "" };
+  }
+
   updatePaginationAndPick(preservePage);
 
   if (mem) {
-    if (mem.customHeaderText) customHeaderText = { ...mem.customHeaderText };
+    if (mem.customHeaderText && mem.customHeaderText.title && mem.customHeaderText.title.replace(/<[^>]*>/g, "").trim() !== "") {
+      customHeaderText = {
+        eyebrow: mem.customHeaderText.eyebrow || customHeaderText.eyebrow,
+        title: mem.customHeaderText.title || customHeaderText.title,
+        subtitle: mem.customHeaderText.subtitle || customHeaderText.subtitle,
+        tagline: mem.customHeaderText.tagline || customHeaderText.tagline
+      };
+    }
     if (mem.activeScenes && mem.activeScenes.length > 0) {
       // 驗證存檔實景圖是否屬於本系列（防舊版污染）
       const thisSeriesCodes = new Set(allProducts.filter(p => p.series === ser).map(p => p.code));
@@ -3859,6 +3879,10 @@ function applyAndPick(preservePage = false) {
   seriesScenePool = [];
   currentPageIndex = 0;
 
+  if (!preservePage) {
+    customHeaderText = { eyebrow: "", title: "", tagline: "", subtitle: "" };
+  }
+
   const mem = loadCurrentCustomMemory();
   if (mem) {
     applySavedMemoryToState(mem);
@@ -3867,7 +3891,14 @@ function applyAndPick(preservePage = false) {
   updatePaginationAndPick(preservePage);
 
   if (mem) {
-    if (mem.customHeaderText) customHeaderText = { ...mem.customHeaderText };
+    if (mem.customHeaderText && mem.customHeaderText.title && mem.customHeaderText.title.replace(/<[^>]*>/g, "").trim() !== "") {
+      customHeaderText = {
+        eyebrow: mem.customHeaderText.eyebrow || customHeaderText.eyebrow,
+        title: mem.customHeaderText.title || customHeaderText.title,
+        subtitle: mem.customHeaderText.subtitle || customHeaderText.subtitle,
+        tagline: mem.customHeaderText.tagline || customHeaderText.tagline
+      };
+    }
     if (mem.activeScenes && mem.activeScenes.length > 0) {
       activeScenes = mem.activeScenes.map(s => ({ ...s }));
       pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
@@ -4660,6 +4691,8 @@ function backToWizardStep1() {
   document.getElementById("wizStep2Codes").style.display = "none";
 }
 
+let wizSelectedSeries = "";
+
 function goWizardStep2() {
   document.getElementById("wizStep1").style.display = "none";
   if (wizardTempMode === "series") {
@@ -4667,6 +4700,7 @@ function goWizardStep2() {
     document.getElementById("wizStep2Series").style.display = "flex";
     const inp = document.getElementById("wizSeriesSearch");
     if (inp) inp.value = "";
+    wizSelectedSeries = document.getElementById("selSeries")?.value || "";
     renderWizardSeriesList("");
   } else if (wizardTempMode === "theme") {
     document.getElementById("wizModalTitle").textContent = "2. 按照尺寸：選擇尺寸與磚種風格";
@@ -4674,9 +4708,8 @@ function goWizardStep2() {
   } else {
     document.getElementById("wizModalTitle").textContent = "3. 輸入編號：組合多款產品提案";
     document.getElementById("wizStep2Codes").style.display = "flex";
-    if (customPickedCodes.length === 0 && currentPicked.length > 0) {
-      customPickedCodes = currentPicked.slice(0, 4).map(p => p.code);
-    }
+    const inp = document.getElementById("wizCodesInput");
+    if (inp) inp.value = "";
     renderPickedCodesChips();
   }
 }
@@ -4692,10 +4725,12 @@ function renderWizardSeriesList(kw) {
     item.count++;
     map.set(p.series, item);
   });
-  const curSer = document.getElementById("selSeries")?.value || "";
   const entries = Array.from(map.entries()).slice(0, 40);
+  if (entries.length > 0 && (!wizSelectedSeries || !entries.some(([s]) => s === wizSelectedSeries))) {
+    wizSelectedSeries = entries[0][0];
+  }
   grid.innerHTML = entries.map(([ser, info]) => `
-    <button type="button" class="wiz-series-btn ${ser === curSer ? 'active' : ''}" onclick="wizPickSeries('${ser}')">
+    <button type="button" class="wiz-series-btn ${ser === wizSelectedSeries ? 'active' : ''}" onclick="wizPickSeries('${ser}')">
       <strong>${ser}</strong>
       <span>${info.size ? info.size.replace(/x/gi, "×") + " cm · " : ""}${info.count} 款</span>
     </button>
@@ -4703,14 +4738,23 @@ function renderWizardSeriesList(kw) {
 }
 
 function wizPickSeries(ser) {
-  const sel = document.getElementById("selSeries");
-  if (sel) {
-    renderSeriesOptions("");
-    sel.value = ser;
+  wizSelectedSeries = ser;
+  // 若目前篩選條件（如等級或最低坪數）導致該系列被過濾，自動放寬為全部以確保必定帶入
+  const hasMatchInCurrentFilter = allProducts.some(p => {
+    if (p.series !== ser) return false;
+    if (currentLevel !== "all" && p.level !== currentLevel) return false;
+    if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
+    return true;
+  });
+  if (!hasMatchInCurrentFilter) {
+    currentLevel = "all";
+    minPingRequirement = 0;
+    document.querySelectorAll("#levelChips .chip").forEach(b => b.classList.toggle("active", b.dataset.lv === "all"));
+    document.querySelectorAll("#minPingChips .chip").forEach(b => b.classList.toggle("active", Number(b.dataset.ping) === 0));
   }
-  switchMode("series");
+  switchMode("series", ser);
   closeMobileWizard();
-  showToast(`已載入「${ser}」系列！點擊畫面任何文字或價格即可直接修改`);
+  showToast(`已帶入「${ser}」系列！點擊畫面任何文字或價格即可直接修改`);
 }
 
 function wizSelectSize(sz) {
@@ -4778,13 +4822,25 @@ function addWizCodesFromInput() {
 }
 
 function finishWizardAndEnter() {
-  if (wizardTempMode === "codes") {
+  if (wizardTempMode === "series") {
+    if (wizSelectedSeries) {
+      wizPickSeries(wizSelectedSeries);
+      return;
+    }
+    switchMode("series");
+  } else if (wizardTempMode === "codes") {
     const inp = document.getElementById("wizCodesInput");
     if (inp && inp.value.trim()) addWizCodesFromInput();
+    if (customPickedCodes.length === 0) {
+      showToast("請至少輸入或點選一個產品編號！");
+      return;
+    }
+    switchMode("codes");
+  } else {
+    switchMode("theme");
   }
-  switchMode(wizardTempMode);
   closeMobileWizard();
-  showToast("已進入畫布！所有文字、尺寸、編號與價格皆可直接點擊修改");
+  showToast("已帶入所選內容！畫面所有文字、尺寸、編號與價格皆可直接點擊修改");
 }
 
 function openMobDrawer(type) {
