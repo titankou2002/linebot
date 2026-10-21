@@ -2131,7 +2131,7 @@
 
     <div class="top-controls">
       <button type="button" class="btn-share-cta staff-only btn-with-svg" onclick="copyShareLink()" id="btnTopShareLink">
-        <span class="btn-ico-holder"></span><span>複製客戶分享連結</span>
+        <span class="btn-ico-holder"></span><span>分享</span>
       </button>
 
       <button type="button" class="btn-act staff-only btn-with-svg" onclick="openMobileWizard()" id="btnOpenWizardTop" style="font-weight:800;">
@@ -2435,7 +2435,7 @@
       <div class="sec-title"><span>5. 分享給客戶與型錄輸出</span></div>
       <div style="display:flex;flex-direction:column;gap:8px;">
         <button type="button" class="btn-share-cta btn-with-svg" style="height:42px;font-size:14px;width:100%;" onclick="copyShareLink()" id="btnCopyShare">
-          <span class="btn-ico-holder"></span>一鍵複製客戶唯讀分享連結
+          <span class="btn-ico-holder"></span>分享
         </button>
         <button type="button" class="btn-act primary btn-with-svg" onclick="exportSinglePagePdf()" id="btnDownloadSinglePdf">
           <span class="btn-ico-holder"></span>下載直式單頁 PDF (A4)
@@ -2455,15 +2455,12 @@
 
   <!-- 右側直式預覽區（電腦版視覺全開） -->
   <section class="preview-col">
-    <!-- 多頁分頁切換列 + 醒目分享按鈕 -->
+    <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-stat-info">
         <span>本頁：<strong id="showingCountTxt">0</strong> 款 · 實景 <strong id="sceneCountTxt">0</strong> 張 · 共 <strong id="totalPoolCountTxt">0</strong> 款 · <strong id="totalPagesTxt">1</strong> 頁</span>
       </div>
       <div class="page-nav-btns">
-        <button type="button" class="btn-share-cta staff-only btn-with-svg" style="height:33px;font-size:12.5px;" onclick="copyShareLink()" id="btnCanvasShare">
-          <span class="btn-ico-holder"></span><span>分享給客戶(複製唯讀連結)</span>
-        </button>
         <button type="button" class="btn-act" id="btnPrevPage" onclick="goToPrevPage()">◀ 上一頁</button>
         <span class="page-indicator" id="pageIndicatorTxt">第 1 / 1 頁</span>
         <button type="button" class="btn-act" id="btnNextPage" onclick="goToNextPage()">下一頁 ▶</button>
@@ -2526,7 +2523,7 @@
     </div>
     <div class="dock-btns">
       <button type="button" class="dock-btn share btn-with-svg" onclick="copyShareLink()" id="btnDockShare">
-        <span class="btn-ico-holder"></span>複製客戶唯讀分享連結
+        <span class="btn-ico-holder"></span>分享
       </button>
       <button type="button" class="dock-btn btn-with-svg" onclick="exportSinglePagePdf()" id="btnDockSinglePdf">
         <span class="btn-ico-holder"></span>下載單頁 A4 PDF
@@ -2827,7 +2824,6 @@ function setupStaticSvgIcons() {
   qBtn("btnCycleTagline", SVG.pencil);
   qBtn("btnCopyShare", SVG.link);
   qBtn("btnTopShareLink", SVG.link);
-  qBtn("btnCanvasShare", SVG.link);
   qBtn("btnDockShare", SVG.link);
   qBtn("btnClientSwipePrev", SVG.chevronLeft);
   qBtn("btnClientSwipeNext", SVG.chevronRight);
