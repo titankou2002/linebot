@@ -557,6 +557,105 @@
     padding: 8px 14px;
     background: var(--surface-soft);
   }
+  body.client-view .pagination-bar {
+    display: none !important;
+  }
+
+  /* 客戶專用左右滑動翻頁提示列 */
+  .client-swipe-bar {
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    user-select: none;
+  }
+  body.client-view .client-swipe-bar.has-pages {
+    display: flex;
+  }
+  .swipe-hint-pill {
+    background: #1C1917;
+    color: #F5F2EB;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 99px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .swipe-arrow-anim {
+    display: inline-flex;
+    align-items: center;
+    color: #C5A059;
+  }
+  .swipe-arrow-anim.left {
+    animation: swipePulseLeft 1.5s infinite ease-in-out;
+  }
+  .swipe-arrow-anim.right {
+    animation: swipePulseRight 1.5s infinite ease-in-out;
+  }
+  @keyframes swipePulseLeft {
+    0%, 100% { transform: translateX(0); opacity: 0.45; }
+    50% { transform: translateX(-4px); opacity: 1; }
+  }
+  @keyframes swipePulseRight {
+    0%, 100% { transform: translateX(0); opacity: 0.45; }
+    50% { transform: translateX(4px); opacity: 1; }
+  }
+  .swipe-dots {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .swipe-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.22s;
+  }
+  .swipe-dot.active {
+    width: 16px;
+    border-radius: 99px;
+    background: #C5A059;
+  }
+  .swipe-nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s;
+  }
+  .swipe-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* DM 畫布切換頁平滑滑動動畫 */
+  .dm-sheet {
+    transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease;
+  }
+  .dm-sheet.slide-out-left {
+    transform: translateX(-30px);
+    opacity: 0.35;
+  }
+  .dm-sheet.slide-out-right {
+    transform: translateX(30px);
+    opacity: 0.35;
+  }
   .page-stat-info {
     font-size: 12.5px;
     font-weight: 700;
@@ -2371,6 +2470,23 @@
       </div>
     </div>
 
+    <!-- 客戶專用左右滑動翻頁提示列 -->
+    <div class="client-swipe-bar" id="clientSwipeBar">
+      <button type="button" class="swipe-nav-btn prev" onclick="goToPrevPage()" id="btnClientSwipePrev" title="上一頁">
+        <span class="btn-ico-holder"></span>
+      </button>
+      <div class="swipe-hint-pill">
+        <span class="swipe-arrow-anim left" id="swipeIconLeft"></span>
+        <span class="swipe-hint-text">左右滑動翻頁</span>
+        <div class="swipe-dots" id="clientSwipeDots"></div>
+        <span class="swipe-page-label" id="clientSwipePageLabel">第 1 / 1 頁</span>
+        <span class="swipe-arrow-anim right" id="swipeIconRight"></span>
+      </div>
+      <button type="button" class="swipe-nav-btn next" onclick="goToNextPage()" id="btnClientSwipeNext" title="下一頁">
+        <span class="btn-ico-holder"></span>
+      </button>
+    </div>
+
     <!-- 直式雜誌 DM 畫布本體 -->
     <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento" data-font="serif">
       <div id="dmDynamicMount">
@@ -2713,6 +2829,10 @@ function setupStaticSvgIcons() {
   qBtn("btnTopShareLink", SVG.link);
   qBtn("btnCanvasShare", SVG.link);
   qBtn("btnDockShare", SVG.link);
+  qBtn("btnClientSwipePrev", SVG.chevronLeft);
+  qBtn("btnClientSwipeNext", SVG.chevronRight);
+  setHtml("swipeIconLeft", SVG.chevronLeft);
+  setHtml("swipeIconRight", SVG.chevronRight);
   qBtn("btnDownloadSinglePdf", SVG.download);
   qBtn("btnDockSinglePdf", SVG.download);
   qBtn("btnDownloadJpg", SVG.download);
@@ -4044,28 +4164,103 @@ function updatePaginationAndPick(preservePage = false) {
   renderDM();
 }
 
+function triggerPageTransition(dir, callback) {
+  const sheet = document.getElementById("dmSheet");
+  if (!sheet) {
+    if (callback) callback();
+    return;
+  }
+  const slideClass = dir === "next" ? "slide-out-left" : "slide-out-right";
+  sheet.classList.add(slideClass);
+  setTimeout(() => {
+    if (callback) callback();
+    sheet.classList.remove(slideClass);
+  }, 140);
+}
+
 function goToPrevPage() {
   if (currentPageIndex > 0) {
-    if (activeScenes.length > 0) {
-      pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
-    }
-    currentPageIndex--;
-    updatePaginationAndPick(true);
-    saveCurrentCustomMemory();
-    showToast(`切換至第 ${currentPageIndex + 1} 頁`);
+    triggerPageTransition("prev", () => {
+      if (activeScenes.length > 0) {
+        pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+      }
+      currentPageIndex--;
+      updatePaginationAndPick(true);
+      saveCurrentCustomMemory();
+    });
   }
 }
 
 function goToNextPage() {
   if (currentPageIndex < totalPages - 1) {
+    triggerPageTransition("next", () => {
+      if (activeScenes.length > 0) {
+        pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
+      }
+      currentPageIndex++;
+      updatePaginationAndPick(true);
+      saveCurrentCustomMemory();
+    });
+  }
+}
+
+function goToSpecificPage(idx) {
+  if (idx === currentPageIndex || idx < 0 || idx >= totalPages) return;
+  const dir = idx > currentPageIndex ? "next" : "prev";
+  triggerPageTransition(dir, () => {
     if (activeScenes.length > 0) {
       pageScenesMap[currentPageIndex] = activeScenes.map(s => ({ ...s }));
     }
-    currentPageIndex++;
+    currentPageIndex = idx;
     updatePaginationAndPick(true);
     saveCurrentCustomMemory();
-    showToast(`切換至第 ${currentPageIndex + 1} 頁`);
-  }
+  });
+}
+
+function setupSwipeGestureListeners() {
+  const sheet = document.getElementById("dmSheet");
+  if (!sheet || sheet._swipeAttached) return;
+  sheet._swipeAttached = true;
+
+  let startX = 0, startY = 0, endX = 0, endY = 0;
+  sheet.addEventListener("touchstart", e => {
+    if (e.touches && e.touches.length === 1) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      endX = startX;
+      endY = startY;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener("touchmove", e => {
+    if (e.touches && e.touches.length === 1) {
+      endX = e.touches[0].clientX;
+      endY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener("touchend", () => {
+    if (totalPages <= 1) return;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    // 左右滑動超過 38px 且橫向移動比縱向明顯時觸發翻頁
+    if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      if (dx < 0) {
+        if (currentPageIndex < totalPages - 1) goToNextPage();
+        else showToast("已是最後一頁");
+      } else {
+        if (currentPageIndex > 0) goToPrevPage();
+        else showToast("已是第一頁");
+      }
+    }
+  }, { passive: true });
+
+  // 電腦鍵盤左右方向鍵亦可翻頁
+  window.addEventListener("keydown", e => {
+    if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.isContentEditable)) return;
+    if (e.key === "ArrowLeft") goToPrevPage();
+    if (e.key === "ArrowRight") goToNextPage();
+  });
 }
 
 function renderPaginationBar() {
@@ -4096,6 +4291,26 @@ function renderPaginationBar() {
     btnNext.style.opacity = currentPageIndex >= totalPages - 1 ? "0.4" : "1";
     btnNext.style.cursor = currentPageIndex >= totalPages - 1 ? "not-allowed" : "pointer";
   }
+
+  // 客戶唯讀專用滑動翻頁提示列 (左右滑動提示 + 圓點)
+  const clientBar = document.getElementById("clientSwipeBar");
+  if (clientBar) {
+    clientBar.classList.toggle("has-pages", totalPages > 1);
+    const lbl = document.getElementById("clientSwipePageLabel");
+    if (lbl) lbl.textContent = `第 ${currentPageIndex + 1} / ${totalPages} 頁`;
+    const dotsWrap = document.getElementById("clientSwipeDots");
+    if (dotsWrap && totalPages > 1) {
+      dotsWrap.innerHTML = Array.from({ length: totalPages }).map((_, i) => `
+        <span class="swipe-dot ${i === currentPageIndex ? 'active' : ''}" onclick="goToSpecificPage(${i})" title="第 ${i + 1} 頁"></span>
+      `).join("");
+    }
+    const cPrev = document.getElementById("btnClientSwipePrev");
+    if (cPrev) cPrev.disabled = currentPageIndex === 0;
+    const cNext = document.getElementById("btnClientSwipeNext");
+    if (cNext) cNext.disabled = currentPageIndex >= totalPages - 1;
+  }
+
+  setupSwipeGestureListeners();
 
   const exportAllBtn = document.getElementById("btnExportAllSizePages");
   const exportAllTxt = document.getElementById("btnExportAllTxt");
