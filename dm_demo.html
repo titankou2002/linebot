@@ -4588,14 +4588,19 @@ function buildEditableHeaderHtml(extraClass = "header-split") {
   `;
 }
 
+function cleanResourceUrl(u) {
+  if (!u) return "";
+  return String(u).split("#")[0].trim();
+}
+
 function getResolvedResourceUrls() {
-  let pdfUrl = (customResourceUrls && customResourceUrls.pdfUrl) ? customResourceUrls.pdfUrl.trim() : "";
-  let driveUrl = (customResourceUrls && customResourceUrls.driveUrl) ? customResourceUrls.driveUrl.trim() : "";
+  let pdfUrl = cleanResourceUrl(customResourceUrls && customResourceUrls.pdfUrl);
+  let driveUrl = cleanResourceUrl(customResourceUrls && customResourceUrls.driveUrl);
 
   const poolToSearch = currentPicked.length > 0 ? currentPicked : filteredPool;
   for (const p of poolToSearch) {
-    if (!pdfUrl && p.pdfUrl) pdfUrl = p.pdfUrl;
-    if (!driveUrl && p.driveUrl) driveUrl = p.driveUrl;
+    if (!pdfUrl && p.pdfUrl) pdfUrl = cleanResourceUrl(p.pdfUrl);
+    if (!driveUrl && p.driveUrl) driveUrl = cleanResourceUrl(p.driveUrl);
     if (pdfUrl && driveUrl) break;
   }
   return { pdfUrl, driveUrl };
@@ -4631,9 +4636,13 @@ function renderResourceBar() {
     btns.push(`<button type="button" class="res-link-btn staff-only" onclick="promptEditResourceUrls()">${SVG.pencil} 設定原廠PDF/雲端連結</button>`);
   }
 
+  const labelText = (pdfUrl && driveUrl)
+    ? "原廠型錄 PDF 與雲端圖庫"
+    : (pdfUrl ? "原廠型錄 PDF 下載" : (driveUrl ? "雲端高畫質圖庫" : "原廠資源設定"));
+
   bar.innerHTML = `
     <div class="res-bar-left">
-      <span>${SVG.book} 原廠型錄與雲端高畫質資源</span>
+      <span>${SVG.book} ${labelText}</span>
     </div>
     <div class="res-bar-btns">
       ${btns.join("")}
