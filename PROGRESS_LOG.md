@@ -887,3 +887,18 @@
         - `~/Desktop/Ebook電子型錄/` 及 `~/Desktop/Ebook電子型錄.html`
       - 解決 macOS 缺少 Xcode Command Line Tools 導致 `/usr/bin/git` 報錯之困境，採用 Node.js + `isomorphic-git` 搭配 macOS Keychain 自動提取 GitHub 憑證完成 Commit 與 Push。
       - 線上版本同步部署發布至正式站點：`https://bigt.cc/line/ebook.html` (與 `index.html`, `dm_demo.html`)。
+
+46. **手機版完整自適應、橫向破版修復、頂部導覽防溢流與 R2 圖片 CORS 徹底解決 (2026-10-22)**：
+    - **手機版橫向溢流（Horizontal Overflow）徹底根治**：
+      - **問題根源**：頂部導覽列 `.topbar` 之操作按鈕群總寬度超過 500px，且未設定手機自適應，導致在手機螢幕（如 iPhone 16 的 393px）下強制將整體網頁撐開，使右側產品卡片、實景圖片被腰斬裁切約 1/3，無法完整瀏覽。
+      - **全域視窗約束**：於 `html, body` 注入 `width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box;` 徹底鎖死水平溢流。
+      - **頂部導覽自適應收納**：於 `@media (max-width: 768px)` 啟用彈性滾動收納，壓縮按鈕尺寸與字級，並將「操作說明」於手機端簡化為單純圖標按鈕，確保頂部控制列永不撐大頁面。
+    - **畫布與卡片手機版（<= 600px）極致緊湊微調**：
+      - `.dm-sheet` 與 `.mag-content` 手機端內距由 28px 精簡為 8px/6px，釋放寶貴水平寬度。
+      - 磁磚卡片（`.tile-card`）之操作按鈕（明細、下保留、單片圖）、文字標籤（編號、尺寸、系列、坪數）、旋轉手把全部進行手機端微型化適配，確保 2 欄並排在 360px~393px 手機螢幕上 100% 完美呈現、不裁切、不破版。
+    - **徹底解決 Cloudflare R2 圖片 CORS 跨域報錯（22 個紅字錯誤）**：
+      - **問題根源**：Supabase 資料庫中存放於 Cloudflare R2（`pub-...r2.dev`）之高解析圖片未配置 `Access-Control-Allow-Origin: *`，當程式呼叫 Canvas / `loadImageForCanvas` 繪圖並帶有 `crossOrigin = "anonymous"` 時，遭 Chrome 瀏覽器依據 CORS 安全原則全數攔截阻擋。
+      - **修復方案**：修改 `normalizeImgUrl` 與 `loadImageForCanvas`，解除先前針對 `r2.dev` 的例外排除，當用於 Canvas 繪製截圖與 PDF 打包時，一律由全球 CDN 快取代理 `wsrv.nl` 帶出標準 CORS 標頭，100% 消除控制台紅字報錯，確保單片圖、全頁 JPG 與跨頁 PDF 順暢匯出。
+    - **手機端專屬底部 4 鍵工具列與抽屜面板正常常駐**：
+      - 業務模式在小螢幕自動於底部浮現「1. 重選款項」、「2. 風格編排」、「3. 價格/資源」、「4. 分享/PDF」，點擊流暢拉出底部抽屜，在手機上亦具備 100% 完整之系列挑選、版型色彩切換與匯出功能。
+      - 頁面底部自動預留 `safe-area-inset-bottom` 安全間距，內容滾動到底部永不被工具列遮擋。
