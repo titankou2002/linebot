@@ -181,6 +181,12 @@
   .dm-sheet[data-font="industrial"] { --font-title-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif; }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
   body {
     font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
@@ -317,6 +323,61 @@
     .mob-filter-toggle { display: inline-flex; }
     .hide-on-mob { display: none !important; }
   }
+  @media (max-width: 768px) {
+    .topbar {
+      padding: 8px 10px;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .topbar-inner {
+      width: 100%;
+      max-width: 100%;
+      gap: 6px;
+      min-width: 0;
+    }
+    .brand-wrap {
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .brand-title {
+      font-size: 17px;
+      letter-spacing: 0.02em;
+    }
+    .brand-logo-ico {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+    }
+    .brand-logo-ico svg {
+      width: 14px;
+      height: 14px;
+    }
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 1;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 2px 0;
+    }
+    .top-controls::-webkit-scrollbar { display: none; }
+    .top-controls .btn-act,
+    .top-controls .btn-share-cta,
+    .top-controls .view-mode-btn {
+      height: 32px;
+      padding: 0 8px;
+      font-size: 11.5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .top-controls .btn-with-svg { gap: 4px; }
+    .top-controls .btn-with-svg svg { width: 13px; height: 13px; }
+  }
 
   .client-preview-banner {
     display: none;
@@ -383,8 +444,21 @@
   }
 
   @media (max-width: 960px) {
-    .workspace { grid-template-columns: 1fr; gap: 14px; padding: 0 12px 80px; }
+    .workspace {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 0 8px calc(76px + env(safe-area-inset-bottom, 0px));
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+      min-width: 0;
+    }
     .ctrl-panel { display: none !important; }
+    .preview-col {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
   }
   .ctrl-sec {
     display: flex;
@@ -1303,11 +1377,177 @@
   @media (max-width: 640px) {
     .sidebar-editorial,
     .split-editorial,
-    .cascade-editorial-top { grid-template-columns: 1fr; }
+    .cascade-editorial-top { grid-template-columns: 1fr !important; }
     .pieces-grid,
     .pieces-grid.pcount-many {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 8px;
+      gap: 6px !important;
+      min-width: 0 !important;
+    }
+    .pieces-grid.pcount-1 {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .dm-sheet {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      border-radius: 8px;
+    }
+    .mag-content {
+      padding: 8px 6px 12px !important;
+      gap: 8px !important;
+      min-width: 0 !important;
+    }
+    .mag-header {
+      padding: 12px 10px 8px !important;
+    }
+    .mag-title {
+      font-size: clamp(18px, 5.5vw, 24px) !important;
+    }
+    .mag-eyebrow {
+      font-size: 11px !important;
+      letter-spacing: 0.12em !important;
+    }
+    .mag-subtitle, .mag-tagline {
+      font-size: 11.5px !important;
+      line-height: 1.35 !important;
+    }
+    .scene-collage {
+      gap: 6px !important;
+      min-width: 0 !important;
+    }
+    .scene-collage.count-1 { height: 190px !important; }
+    .scene-collage.count-2 { height: 160px !important; }
+    .scene-collage.count-3 { height: 180px !important; }
+    .scene-collage.count-4 { height: 190px !important; }
+    .sc-ctrl-bar {
+      top: 3px !important;
+      right: 3px !important;
+      gap: 2px !important;
+    }
+    .sc-btn {
+      padding: 2px 5px !important;
+      font-size: 9.5px !important;
+      gap: 2px !important;
+    }
+    .sc-btn svg {
+      width: 10px !important;
+      height: 10px !important;
+    }
+    .sc-tag-num {
+      font-size: 10px !important;
+      padding: 1px 4px !important;
+      bottom: 4px !important;
+      left: 4px !important;
+    }
+    .tile-card {
+      min-width: 0 !important;
+      border-radius: 6px;
+    }
+    .tile-stage {
+      height: 128px !important;
+      padding: 6px !important;
+    }
+    .tile-stage .piece-img {
+      max-height: 116px !important;
+    }
+    .tile-info {
+      padding: 5px 6px 6px !important;
+      gap: 2px !important;
+      min-width: 0 !important;
+    }
+    .tile-head {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 2px;
+      min-width: 0;
+    }
+    .tile-code {
+      font-size: 11.5px !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tile-size {
+      font-size: 9.5px !important;
+      white-space: nowrap;
+    }
+    .tile-series {
+      font-size: 10.5px !important;
+    }
+    .tile-ping {
+      font-size: 10.5px !important;
+    }
+    .price-line {
+      font-size: 10.5px !important;
+    }
+    .card-actions {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px !important;
+      padding: 4px 4px 5px !important;
+    }
+    .card-btn {
+      height: 22px !important;
+      font-size: 9px !important;
+      padding: 0 1px !important;
+    }
+    .card-ctrl-bar {
+      top: 3px !important;
+      right: 3px !important;
+      padding: 1px 2px !important;
+      gap: 2px !important;
+    }
+    .card-ctrl-btn {
+      width: 18px !important;
+      height: 18px !important;
+    }
+    .card-ctrl-btn svg {
+      width: 10px !important;
+      height: 10px !important;
+    }
+    .pagination-bar {
+      padding: 8px 10px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 6px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .page-stat-info {
+      text-align: center !important;
+      font-size: 11.5px !important;
+    }
+    .page-nav-btns {
+      justify-content: center !important;
+      width: 100% !important;
+    }
+    .page-nav-btns .btn-act {
+      height: 30px !important;
+      padding: 0 10px !important;
+      font-size: 12px !important;
+    }
+    .dm-footer {
+      padding: 10px 10px !important;
+      gap: 8px !important;
+    }
+    .dm-valid-time {
+      font-size: 10.5px !important;
+    }
+    .dm-qr-box {
+      padding: 4px 8px !important;
+      gap: 6px !important;
+    }
+    .dm-qr-box img {
+      width: 60px !important;
+      height: 60px !important;
+    }
+    .dm-qr-txt {
+      font-size: 10px !important;
     }
   }
 
@@ -2051,31 +2291,39 @@
     z-index: 600;
     background: rgba(28, 25, 23, 0.97);
     backdrop-filter: blur(10px);
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid rgba(255,255,255,0.14);
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    gap: 5px;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.28);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100vw;
   }
   .mob-bar-btn {
-    height: 40px;
+    height: 38px;
     border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.08);
     color: #FFFFFF;
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
     cursor: pointer;
     white-space: nowrap;
+    padding: 0 2px;
+  }
+  .mob-bar-btn:active {
+    background: rgba(255,255,255,0.22);
+    transform: scale(0.97);
   }
   .mob-bar-btn.gold {
-    background: #C59B27;
-    border-color: #C59B27;
-    color: #141312;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #FFFFFF;
   }
   .mob-drawer-backdrop {
     position: fixed;
@@ -2104,7 +2352,7 @@
 
   @media (max-width: 960px) {
     .bottom-dock { display: none !important; }
-    .mob-canvas-bar { display: grid; }
+    body:not(.client-view) .mob-canvas-bar { display: grid !important; }
     .mob-filter-toggle { display: none !important; }
   }
 </style>
@@ -2138,8 +2386,8 @@
         <span>三選一引導</span>
       </button>
 
-      <button type="button" class="btn-act staff-only btn-with-svg" onclick="openHelpModal()" id="btnHelpGuide">
-        <span class="btn-ico-holder"></span><span>操作說明</span>
+      <button type="button" class="btn-act staff-only btn-with-svg" onclick="openHelpModal()" id="btnHelpGuide" title="操作說明">
+        <span class="btn-ico-holder"></span><span class="hide-on-mob">操作說明</span>
       </button>
 
       <button type="button" class="mob-filter-toggle staff-only" onclick="toggleMobileFilter()">
@@ -3017,7 +3265,9 @@ function normalizeImgUrl(raw, forCanvas = false) {
   if (u.startsWith("data:")) return u;
   const idMatch = u.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{15,})/);
   if (idMatch) u = `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1200`;
-  if (forCanvas && !u.includes("r2.dev") && !u.includes("qrserver.com") && !u.startsWith("data:")) {
+  // 注意：Cloudflare R2 與 Google Drive 圖片未配置開放式 Access-Control-Allow-Origin
+  // Canvas / 截圖 / 匯出時必須走 wsrv.nl 取得 Access-Control-Allow-Origin: * 以免遭到瀏覽器 CORS 攔截
+  if (forCanvas && !u.includes("qrserver.com") && !u.startsWith("data:") && !u.includes("wsrv.nl")) {
     return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=1200&output=jpg`;
   }
   return u;
@@ -5370,12 +5620,13 @@ function closeModal() {
 function loadImageForCanvas(url) {
   return new Promise(resolve => {
     if (!url) return resolve(null);
+    const targetUrl = normalizeImgUrl(url, true);
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => {
-      if (!url.includes("wsrv.nl") && !url.startsWith("data:")) {
-        const proxy = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=1200&output=jpg`;
+      if (!targetUrl.includes("wsrv.nl") && !targetUrl.startsWith("data:")) {
+        const proxy = `https://wsrv.nl/?url=${encodeURIComponent(targetUrl)}&w=1200&output=jpg`;
         const img2 = new Image();
         img2.crossOrigin = "anonymous";
         img2.onload = () => resolve(img2);
@@ -5385,7 +5636,7 @@ function loadImageForCanvas(url) {
         resolve(null);
       }
     };
-    img.src = normalizeImgUrl(url, true);
+    img.src = targetUrl;
   });
 }
 
