@@ -924,3 +924,18 @@
       3. 產品卡片網格（`.sidebar-right`）順應正常文檔流自然順延於實景圖正下方，徹底杜絕任何跨區重疊現象。
     - **浮動托盤滾動緩衝安全保護（`body.tray-open`）**：
       開啟底部風格調整盤時自動為頁面注入 `body.tray-open`，將 `padding-bottom` 擴增至 180px，保證使用者即使滑動至型錄最底端，最後一排磁磚卡片與頁尾資訊也能 100% 完整推升至托盤之上，絕不遮掩任何內容。
+
+49. **真實雜誌型錄「等比例全頁縮放（Scale-to-Fit）」所見即所得核心引擎重構 (2026-10-22)**：
+    - **使用者痛點徹底根治**：
+      - 原先透過 CSS 響應式媒體查詢（`@media max-width: 600px`）將建築雙欄、當代藝廊、左右對話等精品雜誌排版全部強制折疊拆解為單欄直排，導致手機預覽變成普通的直排列表，業務與客戶完全無法看出原本精心挑選的精品雜誌海報整體視覺風格（「所見所得，不是像這樣直排，我怎麼看的懂排好的效果(字小沒關係，等比例縮小)」）。
+    - **畫布本體永不折疊（780px Fixed Magazine Poster Architecture）**：
+      - 徹底移除對 `.sidebar-editorial`、`.split-editorial`、`.pieces-grid`、`.scene-collage`、`.mag-header` 的破壞性單欄直排媒體查詢。畫布永遠維持標準 780px 寬度之多欄雜誌版型、雙欄對話、藝廊拼貼、真實字級與嚴謹間距。
+    - **外層縮放視窗容器與動態比例計算引擎（`dm-stage-wrap` & `updateDmSheetScale()`）**：
+      1. 新增外層縮放視窗容器 `<div class="dm-stage-wrap" id="dmStageWrap">`，配置 `width: 100%; overflow: hidden; justify-content: center;`。
+      2. 引入動態縮放引擎 `updateDmSheetScale()`，根據手機視窗即時寬度（如 iPhone 螢幕寬度 393px，扣除左右安全邊距後約 377px），動態計算縮放比例 S = Math.min(1, availWidth / 780) ≈ 0.483。
+      3. 透過 CSS 自訂屬性 `--dm-scale` 與 `transform: scale(var(--dm-scale, 1)) translateX(var(--dm-tx, 0px))` 實施無損硬體加速縮放，並動態設定外層容器高度為 `Math.ceil(sheet.offsetHeight * scale)`，零空白間隙、零重疊、零水平滾動條。
+      4. 整合 `ResizeObserver` 監控畫布尺寸變更，於圖片非同步載入、切換風格版型、頁面翻頁或螢幕旋轉時自動精確重新計算。
+      5. 優化切換頁動畫（`slide-out-left` / `slide-out-right`），將平移位移融合至 `--dm-tx`，在縮放狀態下平滑翻頁不閃爍跳動。
+      6. 左右滑動手勢（Swipe Gesture）監聽擴展至 `dmStageWrap` 全區域，小螢幕滑動翻頁極致順暢。
+    - **本機與多目錄全端同步發布**：
+      - 程式碼無損同步至 `dm_demo.html`、`../EBOOK電子目錄/`、`~/Projects/Ebook電子目錄/`、`~/Desktop/Ebook電子型錄/` 與 `~/Desktop/Ebook電子型錄.html`。

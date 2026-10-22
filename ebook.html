@@ -718,16 +718,20 @@
     cursor: not-allowed;
   }
 
-  /* DM 畫布切換頁平滑滑動動畫 */
+  /* DM 畫布切換頁平滑滑動動畫與等比例縮放 */
   .dm-sheet {
-    transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease;
+    --dm-scale: 1;
+    --dm-tx: 0px;
+    transform: scale(var(--dm-scale, 1)) translateX(var(--dm-tx, 0px));
+    transform-origin: top center;
+    transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
   }
   .dm-sheet.slide-out-left {
-    transform: translateX(-30px);
+    --dm-tx: -40px;
     opacity: 0.35;
   }
   .dm-sheet.slide-out-right {
-    transform: translateX(30px);
+    --dm-tx: 40px;
     opacity: 0.35;
   }
   .page-stat-info {
@@ -949,9 +953,21 @@
   /* ════════════════════════════════════════════════════════════════
      直式雜誌型錄單頁畫布
      ════════════════════════════════════════════════════════════════ */
-  .dm-sheet {
+  /* ── 畫布外層縮放視窗：等比例縮小實現真正的所見即所得，絕不折疊直排 ── */
+  .dm-stage-wrap {
     width: 100%;
-    max-width: 780px;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .dm-sheet {
+    width: 780px !important;
+    min-width: 780px !important;
+    max-width: 780px !important;
     min-height: 1060px;
     background: var(--dm-bg);
     border: 1px solid var(--dm-card-border);
@@ -963,9 +979,9 @@
     justify-content: space-between;
     transition: background 0.2s ease, color 0.2s ease;
     position: relative;
-  }
-  @media (max-width: 560px) {
-    .dm-sheet { min-height: auto; border-radius: 10px; }
+    box-sizing: border-box;
+    transform-origin: top center;
+    flex-shrink: 0;
   }
 
   [contenteditable="true"] {
@@ -987,9 +1003,6 @@
     padding: 26px 28px 18px;
     position: relative;
   }
-  @media (max-width: 560px) {
-    .mag-header { padding: 18px 16px 12px; }
-  }
 
   .mag-header.header-split {
     display: grid;
@@ -997,9 +1010,6 @@
     gap: 18px;
     align-items: end;
     border-bottom: 1.5px solid var(--dm-card-border);
-  }
-  @media (max-width: 600px) {
-    .mag-header.header-split { grid-template-columns: 1fr; gap: 8px; }
   }
 
   .mag-eyebrow {
@@ -1036,9 +1046,6 @@
     border-left: 2px solid var(--dm-accent);
     padding-left: 14px;
   }
-  @media (max-width: 600px) {
-    .mag-tagline-wrap { align-items: flex-start; }
-  }
   .mag-tagline {
     font-family: var(--font-title-family);
     font-size: 13.5px;
@@ -1046,9 +1053,6 @@
     line-height: 1.55;
     color: var(--dm-ink-2);
     text-align: right;
-  }
-  @media (max-width: 600px) {
-    .mag-tagline { text-align: left; }
   }
 
   .sc-item {
@@ -1132,9 +1136,6 @@
     flex-direction: column;
     gap: 18px;
   }
-  @media (max-width: 560px) {
-    .mag-content { padding: 14px 14px 18px; gap: 14px; }
-  }
 
   .scene-collage { display: grid; gap: 10px; }
   .scene-collage.count-1 { grid-template-columns: 1fr; height: 340px; }
@@ -1152,12 +1153,6 @@
   }
   .scene-collage.count-4 .sc-item:first-child { grid-row: 1 / span 2; }
   .scene-collage.count-4 .sc-item:nth-child(2) { grid-column: 2 / span 2; }
-  @media (max-width: 560px) {
-    .scene-collage.count-1 { height: 230px; }
-    .scene-collage.count-2 { height: 210px; gap: 7px; }
-    .scene-collage.count-3 { height: 250px; gap: 7px; }
-    .scene-collage.count-4 { height: 260px; gap: 7px; }
-  }
 
   .pieces-grid {
     display: grid;
@@ -1374,191 +1369,30 @@
     height: 100%;
   }
 
-  @media (max-width: 640px) {
-    .sidebar-editorial,
-    .split-editorial,
-    .cascade-editorial-top {
-      grid-template-columns: 1fr !important;
-      gap: 12px !important;
-    }
-    .sidebar-left,
-    .split-left {
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-    .sidebar-left .scene-collage,
-    .split-left .scene-collage {
-      grid-template-columns: 1fr !important;
-      grid-template-rows: auto !important;
-      height: auto !important;
-      max-height: none !important;
-      overflow: visible !important;
-      gap: 8px !important;
-    }
-    .sidebar-left .sc-item,
-    .split-left .sc-item {
-      height: 180px !important;
-      min-height: 180px !important;
-      grid-row: auto !important;
-      grid-column: auto !important;
-    }
-    .sidebar-left .scene-collage.count-2,
-    .split-left .scene-collage.count-2 {
-      grid-template-columns: 1fr 1fr !important;
-      height: 160px !important;
-    }
-    .sidebar-left .scene-collage.count-2 .sc-item,
-    .split-left .scene-collage.count-2 .sc-item {
-      height: 100% !important;
-      min-height: 0 !important;
-    }
-    .sidebar-right,
-    .split-right {
-      width: 100% !important;
-      min-width: 0 !important;
-      margin-top: 4px;
-    }
-    .pieces-grid,
-    .pieces-grid.pcount-many {
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 6px !important;
-      min-width: 0 !important;
-    }
-    .pieces-grid.pcount-1 {
-      grid-template-columns: 1fr !important;
-    }
-  }
-
   @media (max-width: 600px) {
-    .dm-sheet {
+    .pagination-bar {
+      padding: 8px 10px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 6px !important;
       width: 100% !important;
       max-width: 100% !important;
-      min-width: 0 !important;
-      border-radius: 8px;
+      box-sizing: border-box !important;
     }
-    .mag-content {
-      padding: 8px 6px 12px !important;
-      gap: 8px !important;
-      min-width: 0 !important;
-    }
-    .mag-header {
-      padding: 12px 10px 8px !important;
-    }
-    .mag-title {
-      font-size: clamp(18px, 5.5vw, 24px) !important;
-    }
-    .mag-eyebrow {
-      font-size: 11px !important;
-      letter-spacing: 0.12em !important;
-    }
-    .mag-subtitle, .mag-tagline {
+    .page-stat-info {
+      text-align: center !important;
       font-size: 11.5px !important;
-      line-height: 1.35 !important;
     }
-    .scene-collage {
-      gap: 6px !important;
-      min-width: 0 !important;
+    .page-nav-btns {
+      justify-content: center !important;
+      width: 100% !important;
     }
-    .scene-collage.count-1 { height: 190px !important; }
-    .scene-collage.count-2 { height: 160px !important; }
-    .scene-collage.count-3 { height: 180px !important; }
-    .scene-collage.count-4 { height: 190px !important; }
-    .sidebar-left .scene-collage,
-    .split-left .scene-collage {
-      height: auto !important;
-      overflow: visible !important;
+    .page-nav-btns .btn-act {
+      height: 30px !important;
+      padding: 0 10px !important;
+      font-size: 12px !important;
     }
-    .sidebar-left .scene-collage.count-2,
-    .split-left .scene-collage.count-2 {
-      height: 160px !important;
-      grid-template-columns: 1fr 1fr !important;
-    }
-    .sc-ctrl-bar {
-      top: 3px !important;
-      right: 3px !important;
-      gap: 2px !important;
-    }
-    .sc-btn {
-      padding: 2px 5px !important;
-      font-size: 9.5px !important;
-      gap: 2px !important;
-    }
-    .sc-btn svg {
-      width: 10px !important;
-      height: 10px !important;
-    }
-    .sc-tag-num {
-      font-size: 10px !important;
-      padding: 1px 4px !important;
-      bottom: 4px !important;
-      left: 4px !important;
-    }
-    .tile-card {
-      min-width: 0 !important;
-      border-radius: 6px;
-    }
-    .tile-stage {
-      height: 128px !important;
-      padding: 6px !important;
-    }
-    .tile-stage .piece-img {
-      max-height: 116px !important;
-    }
-    .tile-info {
-      padding: 5px 6px 6px !important;
-      gap: 2px !important;
-      min-width: 0 !important;
-    }
-    .tile-head {
-      flex-direction: row;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 2px;
-      min-width: 0;
-    }
-    .tile-code {
-      font-size: 11.5px !important;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .tile-size {
-      font-size: 9.5px !important;
-      white-space: nowrap;
-    }
-    .tile-series {
-      font-size: 10.5px !important;
-    }
-    .tile-ping {
-      font-size: 10.5px !important;
-    }
-    .price-line {
-      font-size: 10.5px !important;
-    }
-    .card-actions {
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 2px !important;
-      padding: 4px 4px 5px !important;
-    }
-    .card-btn {
-      height: 22px !important;
-      font-size: 9px !important;
-      padding: 0 1px !important;
-    }
-    .card-ctrl-bar {
-      top: 3px !important;
-      right: 3px !important;
-      padding: 1px 2px !important;
-      gap: 2px !important;
-    }
-    .card-ctrl-btn {
-      width: 18px !important;
-      height: 18px !important;
-    }
-    .card-ctrl-btn svg {
-      width: 10px !important;
-      height: 10px !important;
-    }
+  }
     .pagination-bar {
       padding: 8px 10px !important;
       flex-direction: column !important;
@@ -2914,29 +2748,31 @@
       </button>
     </div>
 
-    <!-- 直式雜誌 DM 畫布本體 -->
-    <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento" data-font="serif">
-      <div id="dmDynamicMount">
-        <div class="loader-box">
-          <div class="tile-spinner"><span></span><span></span><span></span><span></span></div>
-          <div class="loader-title">正在載入產品型錄與即時庫存...</div>
-          <div class="loader-sub">同步雲端資料庫中，請稍候</div>
+    <!-- 直式雜誌 DM 畫布本體（外層縮放視窗：等比例縮小所見即所得，保證小螢幕不折疊直排） -->
+    <div class="dm-stage-wrap" id="dmStageWrap">
+      <div class="dm-sheet" id="dmSheet" data-style="warm" data-layout="bento" data-font="serif">
+        <div id="dmDynamicMount">
+          <div class="loader-box">
+            <div class="tile-spinner"><span></span><span></span><span></span><span></span></div>
+            <div class="loader-title">正在載入產品型錄與即時庫存...</div>
+            <div class="loader-sub">同步雲端資料庫中，請稍候</div>
+          </div>
         </div>
-      </div>
 
-      <!-- 原廠 PDF 下載與雲端硬碟圖庫連結區 -->
-      <div class="dm-resource-bar" id="dmResourceBar" style="display:none;"></div>
+        <!-- 原廠 PDF 下載與雲端硬碟圖庫連結區 -->
+        <div class="dm-resource-bar" id="dmResourceBar" style="display:none;"></div>
 
-      <div class="dm-footer" id="dmFooter">
-        <div>
-          <div class="dm-valid-time" id="dmValidTimeTxt">庫存有效時間：載入中</div>
-        </div>
-        <div class="dm-qr-box" id="dmQrBox" onclick="openQrShareModal()" title="點擊放大 QR 碼或複製分享連結">
-          <img id="dmQrImg" alt="QR Code" src="">
-          <div class="dm-qr-txt">
-            <div>手機掃描型錄</div>
-            <div style="color:#15803D;font-weight:800;">線上看大圖</div>
-            <div class="staff-only" style="color:#78716C;font-size:9.5px;font-weight:600;margin-top:2px;">(點擊放大/分享)</div>
+        <div class="dm-footer" id="dmFooter">
+          <div>
+            <div class="dm-valid-time" id="dmValidTimeTxt">庫存有效時間：載入中</div>
+          </div>
+          <div class="dm-qr-box" id="dmQrBox" onclick="openQrShareModal()" title="點擊放大 QR 碼或複製分享連結">
+            <img id="dmQrImg" alt="QR Code" src="">
+            <div class="dm-qr-txt">
+              <div>手機掃描型錄</div>
+              <div style="color:#15803D;font-weight:800;">線上看大圖</div>
+              <div class="staff-only" style="color:#78716C;font-size:9.5px;font-weight:600;margin-top:2px;">(點擊放大/分享)</div>
+            </div>
           </div>
         </div>
       </div>
@@ -3534,6 +3370,8 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 async function initData() {
   setupStaticSvgIcons();
   setupFloatingToolbarListener();
+  setupDmSheetScaleObserver();
+  setupSwipeGestureListeners();
 
   let hasRenderedFromCache = false;
   try {
@@ -4646,12 +4484,12 @@ function goToSpecificPage(idx) {
 }
 
 function setupSwipeGestureListeners() {
-  const sheet = document.getElementById("dmSheet");
-  if (!sheet || sheet._swipeAttached) return;
-  sheet._swipeAttached = true;
+  const target = document.getElementById("dmStageWrap") || document.getElementById("dmSheet");
+  if (!target || target._swipeAttached) return;
+  target._swipeAttached = true;
 
   let startX = 0, startY = 0, endX = 0, endY = 0;
-  sheet.addEventListener("touchstart", e => {
+  target.addEventListener("touchstart", e => {
     if (e.touches && e.touches.length === 1) {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
@@ -4660,14 +4498,14 @@ function setupSwipeGestureListeners() {
     }
   }, { passive: true });
 
-  sheet.addEventListener("touchmove", e => {
+  target.addEventListener("touchmove", e => {
     if (e.touches && e.touches.length === 1) {
       endX = e.touches[0].clientX;
       endY = e.touches[0].clientY;
     }
   }, { passive: true });
 
-  sheet.addEventListener("touchend", () => {
+  target.addEventListener("touchend", () => {
     if (totalPages <= 1) return;
     const dx = endX - startX;
     const dy = endY - startY;
@@ -4683,12 +4521,15 @@ function setupSwipeGestureListeners() {
     }
   }, { passive: true });
 
-  // 電腦鍵盤左右方向鍵亦可翻頁
-  window.addEventListener("keydown", e => {
-    if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.isContentEditable)) return;
-    if (e.key === "ArrowLeft") goToPrevPage();
-    if (e.key === "ArrowRight") goToNextPage();
-  });
+  if (!window._swipeKeyAttached) {
+    window._swipeKeyAttached = true;
+    // 電腦鍵盤左右方向鍵亦可翻頁
+    window.addEventListener("keydown", e => {
+      if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.isContentEditable)) return;
+      if (e.key === "ArrowLeft") goToPrevPage();
+      if (e.key === "ArrowRight") goToNextPage();
+    });
+  }
 }
 
 function renderPaginationBar() {
@@ -5227,6 +5068,60 @@ function renderDM() {
       </div>
     `;
   }
+
+  // 渲染完成後即刻等比例縮放雜誌畫布以完全適應手機與各種視窗螢幕
+  requestAnimationFrame(updateDmSheetScale);
+  setTimeout(updateDmSheetScale, 80);
+  setTimeout(updateDmSheetScale, 320);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 畫布等比例縮放引擎（保證手機版真正所見即所得，絕不折疊直排）
+// ════════════════════════════════════════════════════════════════
+let isScalingDmSheet = false;
+let dmSheetResizeObserver = null;
+
+function updateDmSheetScale() {
+  if (isScalingDmSheet) return;
+  isScalingDmSheet = true;
+  requestAnimationFrame(() => {
+    try {
+      const wrap = document.getElementById("dmStageWrap");
+      const sheet = document.getElementById("dmSheet");
+      if (!wrap || !sheet) return;
+
+      const parentWidth = wrap.clientWidth || (wrap.parentElement ? wrap.parentElement.clientWidth : window.innerWidth);
+      const availWidth = Math.min(parentWidth, window.innerWidth - 8);
+      const baseWidth = 780;
+
+      if (availWidth < baseWidth && availWidth > 0) {
+        const scale = availWidth / baseWidth;
+        sheet.style.setProperty("--dm-scale", scale.toFixed(4));
+        const scaledH = Math.ceil(sheet.offsetHeight * scale);
+        wrap.style.height = `${scaledH}px`;
+        wrap.style.minHeight = `${scaledH}px`;
+      } else {
+        sheet.style.removeProperty("--dm-scale");
+        wrap.style.height = "";
+        wrap.style.minHeight = "";
+      }
+    } finally {
+      isScalingDmSheet = false;
+    }
+  });
+}
+
+function setupDmSheetScaleObserver() {
+  const sheet = document.getElementById("dmSheet");
+  if (!sheet) return;
+  if (window.ResizeObserver && !dmSheetResizeObserver) {
+    dmSheetResizeObserver = new ResizeObserver(() => {
+      updateDmSheetScale();
+    });
+    dmSheetResizeObserver.observe(sheet);
+  }
+  window.addEventListener("resize", updateDmSheetScale, { passive: true });
+  window.addEventListener("orientationchange", updateDmSheetScale, { passive: true });
 }
 
 function toggleClientPreview() {
