@@ -1377,7 +1377,47 @@
   @media (max-width: 640px) {
     .sidebar-editorial,
     .split-editorial,
-    .cascade-editorial-top { grid-template-columns: 1fr !important; }
+    .cascade-editorial-top {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+    .sidebar-left,
+    .split-left {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    .sidebar-left .scene-collage,
+    .split-left .scene-collage {
+      grid-template-columns: 1fr !important;
+      grid-template-rows: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      gap: 8px !important;
+    }
+    .sidebar-left .sc-item,
+    .split-left .sc-item {
+      height: 180px !important;
+      min-height: 180px !important;
+      grid-row: auto !important;
+      grid-column: auto !important;
+    }
+    .sidebar-left .scene-collage.count-2,
+    .split-left .scene-collage.count-2 {
+      grid-template-columns: 1fr 1fr !important;
+      height: 160px !important;
+    }
+    .sidebar-left .scene-collage.count-2 .sc-item,
+    .split-left .scene-collage.count-2 .sc-item {
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+    .sidebar-right,
+    .split-right {
+      width: 100% !important;
+      min-width: 0 !important;
+      margin-top: 4px;
+    }
     .pieces-grid,
     .pieces-grid.pcount-many {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1423,6 +1463,16 @@
     .scene-collage.count-2 { height: 160px !important; }
     .scene-collage.count-3 { height: 180px !important; }
     .scene-collage.count-4 { height: 190px !important; }
+    .sidebar-left .scene-collage,
+    .split-left .scene-collage {
+      height: auto !important;
+      overflow: visible !important;
+    }
+    .sidebar-left .scene-collage.count-2,
+    .split-left .scene-collage.count-2 {
+      height: 160px !important;
+      grid-template-columns: 1fr 1fr !important;
+    }
     .sc-ctrl-bar {
       top: 3px !important;
       right: 3px !important;
@@ -2485,6 +2535,8 @@
   @media (max-width: 960px) {
     .bottom-dock { display: none !important; }
     body:not(.client-view) .mob-canvas-bar { display: grid !important; }
+    body:not(.client-view) { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    body.tray-open:not(.client-view) { padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px)) !important; }
     .mob-filter-toggle { display: none !important; }
   }
 </style>
@@ -5810,11 +5862,17 @@ function openMobDrawer(type) {
     }
   }
 
+  if (type === "style" || type === "tweak") {
+    document.body.classList.add("tray-open");
+  } else {
+    document.body.classList.remove("tray-open");
+  }
   backdrop.classList.add("open");
   updateMobCanvasBarActive();
 }
 
 function closeMobDrawer() {
+  document.body.classList.remove("tray-open");
   const backdrop = document.getElementById("mobDrawerBackdrop");
   if (backdrop) {
     backdrop.classList.remove("open", "transparent-mode");
