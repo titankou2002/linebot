@@ -2320,6 +2320,12 @@
     background: rgba(255,255,255,0.22);
     transform: scale(0.97);
   }
+  .mob-bar-btn.active {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.4);
+  }
   .mob-bar-btn.gold {
     background: var(--accent);
     border-color: var(--accent);
@@ -2329,25 +2335,151 @@
     position: fixed;
     inset: 0;
     z-index: 2800;
-    background: rgba(20, 18, 16, 0.65);
-    backdrop-filter: blur(3px);
+    background: rgba(20, 18, 16, 0.6);
+    backdrop-filter: blur(2px);
     display: none;
     align-items: flex-end;
     justify-content: center;
+    transition: background 0.15s ease;
   }
   .mob-drawer-backdrop.open { display: flex; }
+
+  /* 所見即所得模式：無遮罩、無模糊、事件穿透至上方畫布 */
+  .mob-drawer-backdrop.transparent-mode {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    pointer-events: none !important;
+  }
+  .mob-drawer-backdrop.transparent-mode .mob-drawer-card {
+    pointer-events: auto !important;
+  }
+
   .mob-drawer-card {
     width: 100%;
     max-width: 600px;
-    max-height: 82vh;
+    max-height: 75vh;
     overflow-y: auto;
     background: var(--surface);
     border-radius: 16px 16px 0 0;
-    padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    padding: 14px 14px calc(20px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     box-shadow: 0 -8px 30px rgba(0,0,0,0.3);
+  }
+
+  /* 所見即所得專用：微型底盤托盤 (僅高 ~90px，座落於底部工具列正上方，上方畫布全開) */
+  .mob-drawer-card.compact-tray {
+    position: fixed;
+    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    max-height: none;
+    background: rgba(28, 25, 23, 0.96) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    color: #FFFFFF !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 14px 14px 0 0;
+    padding: 8px 10px 10px !important;
+    gap: 6px;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
+    z-index: 610;
+  }
+
+  .tray-nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+  }
+  .tray-sub-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 4px;
+    border-radius: 7px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tray-sub-tabs::-webkit-scrollbar { display: none; }
+  .tray-tab-btn {
+    border: none;
+    background: transparent;
+    color: #D6D3CD;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .tray-tab-btn.active {
+    background: var(--accent);
+    color: #FFFFFF;
+    font-weight: 800;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .tray-close-btn {
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tray-close-btn:active { background: rgba(255, 255, 255, 0.25); }
+
+  .tray-scroll-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding: 2px 0 2px;
+  }
+  .tray-scroll-row::-webkit-scrollbar { display: none; }
+  .tray-pill {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+  }
+  .tray-pill:active {
+    background: rgba(255, 255, 255, 0.24);
+    transform: scale(0.97);
+  }
+  .tray-pill.active {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    box-shadow: 0 2px 8px rgba(197, 160, 89, 0.35);
   }
 
   @media (max-width: 960px) {
@@ -2996,9 +3128,9 @@
 <!-- 手機版畫布優先：底部收納工具列（點開卡片才選字體/風格/主題/情境/分享） -->
 <div class="mob-canvas-bar staff-only" id="mobCanvasBar">
   <button type="button" class="mob-bar-btn" onclick="openMobileWizard()">1. 重選款項</button>
-  <button type="button" class="mob-bar-btn" onclick="openMobDrawer('style')">2. 風格編排</button>
-  <button type="button" class="mob-bar-btn" onclick="openMobDrawer('tweak')">3. 價格/資源</button>
-  <button type="button" class="mob-bar-btn gold" onclick="openMobDrawer('share')">4. 分享/PDF</button>
+  <button type="button" class="mob-bar-btn" data-drawer="style" onclick="openMobDrawer('style')">2. 風格編排</button>
+  <button type="button" class="mob-bar-btn" data-drawer="tweak" onclick="openMobDrawer('tweak')">3. 價格/資源</button>
+  <button type="button" class="mob-bar-btn gold" data-drawer="share" onclick="openMobDrawer('share')">4. 分享/PDF</button>
 </div>
 
 <!-- 手機版展開抽屜卡片 -->
@@ -3601,7 +3733,7 @@ function clearCurrentSeriesMemory() {
 function setMagLayout(ly) {
   currentMagLayout = ly;
   document.getElementById("dmSheet").setAttribute("data-layout", ly);
-  document.querySelectorAll('.style-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === ly));
+  document.querySelectorAll('.style-pill[data-ly], .tray-pill[data-ly]').forEach(b => b.classList.toggle("active", b.dataset.ly === ly));
   saveSeriesCustomMemory();
   renderDM();
 }
@@ -3609,7 +3741,7 @@ function setMagLayout(ly) {
 function setDmStyle(st) {
   currentDmStyle = st;
   document.getElementById("dmSheet").setAttribute("data-style", st);
-  document.querySelectorAll('.style-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === st));
+  document.querySelectorAll('.style-pill[data-st], .tray-pill[data-st]').forEach(b => b.classList.toggle("active", b.dataset.st === st));
   saveSeriesCustomMemory();
   renderDM();
 }
@@ -3617,14 +3749,14 @@ function setDmStyle(st) {
 function setDmFont(fn) {
   currentDmFont = fn;
   document.getElementById("dmSheet").setAttribute("data-font", fn);
-  document.querySelectorAll('.style-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === fn));
+  document.querySelectorAll('.style-pill[data-fn], .tray-pill[data-fn]').forEach(b => b.classList.toggle("active", b.dataset.fn === fn));
   saveSeriesCustomMemory();
   renderDM();
 }
 
 function setSceneLayout(sc) {
   currentSceneLayout = sc;
-  document.querySelectorAll('.style-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
+  document.querySelectorAll('.style-pill[data-sc], .tray-pill[data-sc]').forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
   rebuildActiveScenesFromPool();
   saveSeriesCustomMemory();
   renderDM();
@@ -5498,108 +5630,211 @@ function finishWizardAndEnter() {
   showToast("已帶入所選內容！畫面所有文字、尺寸、編號與價格皆可直接點擊修改");
 }
 
-function openMobDrawer(type) {
-  const backdrop = document.getElementById("mobDrawerBackdrop");
-  const titleEl = document.getElementById("mobDrawerTitle");
+let currentMobStyleSubTab = "layout"; // "layout" | "color" | "font" | "scene"
+let currentMobDrawerType = null;
+
+function renderMobStyleTray() {
   const bodyEl = document.getElementById("mobDrawerBody");
-  if (!backdrop || !titleEl || !bodyEl) return;
+  if (!bodyEl) return;
 
-  if (type === "style") {
-    titleEl.textContent = "編排風格（版型 / 色彩 / 字體 / 情境）";
-    bodyEl.innerHTML = `
-      <div class="ctrl-sub-label">雜誌排版風格（8種）：</div>
-      <div class="chip-group">
-        ${[
-          ["bento", "當代藝廊"], ["cover", "滿版焦點"], ["sidebar", "建築雙欄"], ["museum", "策展巡禮"],
-          ["minimal", "極簡留白"], ["split", "左右對話"], ["cascade", "幾何錯落"], ["monograph", "高訂專題"]
-        ].map(([k, lbl]) => `<button type="button" class="style-pill ${currentMagLayout === k ? 'active' : ''}" data-ly="${k}" onclick="setMagLayout('${k}')">${lbl}</button>`).join("")}
-      </div>
+  const tabs = [
+    { id: "layout", label: "版型 (8)" },
+    { id: "color", label: "配色 (8)" },
+    { id: "font", label: "字體 (8)" },
+    { id: "scene", label: "情境 (8)" }
+  ];
 
-      <div class="ctrl-sub-label" style="margin-top:4px;">色彩主題風格（8種）：</div>
-      <div class="chip-group">
-        ${[
-          ["warm", "#8C5A32", "現代暖米"], ["editorial", "#9E582F", "義式大地"], ["luxury", "#D4AF37", "奢石黑金"], ["minimal", "#1F4D3A", "北歐極簡"],
-          ["wabisabi", "#726558", "京都侘寂"], ["riviera", "#1B4472", "蔚藍海岸"], ["modern", "#1E3B2F", "英倫摩登"], ["cement", "#404040", "清水建築"]
-        ].map(([k, dot, lbl]) => `<button type="button" class="style-pill ${currentDmStyle === k ? 'active' : ''}" data-st="${k}" onclick="setDmStyle('${k}')"><i class="swatch-dot" style="background:${dot}"></i>${lbl}</button>`).join("")}
-      </div>
-
-      <div class="ctrl-sub-label" style="margin-top:4px;">字體風格（8種）：</div>
-      <div class="chip-group">
-        ${[
-          ["serif", "經典宋體"], ["sans", "現代黑體"], ["display", "典雅襯線"], ["geometric", "幾何現代"],
-          ["humanist", "人文開闊"], ["couture", "頂級訂製"], ["organic", "藝文手作"], ["industrial", "現代工藝"]
-        ].map(([k, lbl]) => `<button type="button" class="style-pill ${currentDmFont === k ? 'active' : ''}" data-fn="${k}" onclick="setDmFont('${k}')">${lbl}</button>`).join("")}
-      </div>
-
-      <div class="ctrl-sub-label" style="margin-top:4px;">實景情境圖排版（8種）：</div>
-      <div class="chip-group">
-        ${[
-          ["auto", "智慧自適"], ["1", "單幅全景"], ["2", "經典雙拼"], ["3", "雜誌三分"],
-          ["4", "四格矩陣"], ["cinematic", "電影寬畫"], ["focus", "階梯聚焦"], ["0", "純磚展示"]
-        ].map(([k, lbl]) => `<button type="button" class="style-pill ${currentSceneLayout === k ? 'active' : ''}" data-sc="${k}" onclick="setSceneLayout('${k}')">${lbl}</button>`).join("")}
-      </div>
-      <button type="button" class="btn-act primary" style="height:40px;justify-content:center;margin-top:4px;" onclick="closeMobDrawer();openScenePickerModal(-1)">
-        ${SVG.plus} 新增 / 更換實景情境圖
-      </button>
-    `;
-  } else if (type === "tweak") {
-    titleEl.textContent = "顯示微調、價格修改與原廠資源";
-    const showPrice = document.getElementById("chkShowPrice")?.checked;
-    const showPing = document.getElementById("chkShowPing")?.checked;
-    const showQr = document.getElementById("chkShowQrCode")?.checked;
-    const showRes = document.getElementById("chkShowResources")?.checked;
-    bodyEl.innerHTML = `
-      <div style="font-size:12.5px;color:var(--accent);font-weight:800;background:var(--accent-soft);padding:8px 10px;border-radius:7px;">
-        提示：勾選「顯示單價」後，直接點擊畫面卡片上的價格即可打字改價！所有編號、尺寸、系列名皆可直接點擊修改。
-      </div>
-      <div class="toggle-grid">
-        <label class="price-toggle">
-          <input type="checkbox" ${showPrice ? 'checked' : ''} onchange="document.getElementById('chkShowPrice').checked=this.checked;renderDM();">
-          <span>顯示單價 (可改價)</span>
-        </label>
-        <label class="price-toggle">
-          <input type="checkbox" ${showPing ? 'checked' : ''} onchange="document.getElementById('chkShowPing').checked=this.checked;renderDM();">
-          <span>顯示庫存坪數</span>
-        </label>
-        <label class="price-toggle">
-          <input type="checkbox" ${showQr ? 'checked' : ''} onchange="document.getElementById('chkShowQrCode').checked=this.checked;toggleQrCode(this.checked);">
-          <span>顯示 QR 碼</span>
-        </label>
-        <label class="price-toggle">
-          <input type="checkbox" ${showRes ? 'checked' : ''} onchange="document.getElementById('chkShowResources').checked=this.checked;toggleResourcesBar(this.checked);">
-          <span>原廠 PDF/雲端圖庫</span>
-        </label>
-      </div>
-      <button type="button" class="btn-act" style="height:38px;justify-content:center;" onclick="promptEditResourceUrls()">
-        ${SVG.pencil} 自訂原廠 PDF 下載與雲端硬碟連結
-      </button>
-    `;
+  let optionsHtml = "";
+  if (currentMobStyleSubTab === "layout") {
+    const list = [
+      ["bento", "當代藝廊"], ["cover", "滿版焦點"], ["sidebar", "建築雙欄"], ["museum", "策展巡禮"],
+      ["minimal", "極簡留白"], ["split", "左右對話"], ["cascade", "幾何錯落"], ["monograph", "高訂專題"]
+    ];
+    optionsHtml = list.map(([k, lbl]) =>
+      `<button type="button" class="tray-pill ${currentMagLayout === k ? 'active' : ''}" data-ly="${k}" onclick="setMagLayout('${k}')">${lbl}</button>`
+    ).join("");
+  } else if (currentMobStyleSubTab === "color") {
+    const list = [
+      ["warm", "#8C5A32", "現代暖米"], ["editorial", "#9E582F", "義式大地"], ["luxury", "#D4AF37", "奢石黑金"], ["minimal", "#1F4D3A", "北歐極簡"],
+      ["wabisabi", "#726558", "京都侘寂"], ["riviera", "#1B4472", "蔚藍海岸"], ["modern", "#1E3B2F", "英倫摩登"], ["cement", "#404040", "清水建築"]
+    ];
+    optionsHtml = list.map(([k, dot, lbl]) =>
+      `<button type="button" class="tray-pill ${currentDmStyle === k ? 'active' : ''}" data-st="${k}" onclick="setDmStyle('${k}')"><i class="swatch-dot" style="background:${dot}"></i>${lbl}</button>`
+    ).join("");
+  } else if (currentMobStyleSubTab === "font") {
+    const list = [
+      ["serif", "經典宋體"], ["sans", "現代黑體"], ["display", "典雅襯線"], ["geometric", "幾何現代"],
+      ["humanist", "人文開闊"], ["couture", "頂級訂製"], ["organic", "藝文手作"], ["industrial", "現代工藝"]
+    ];
+    optionsHtml = list.map(([k, lbl]) =>
+      `<button type="button" class="tray-pill ${currentDmFont === k ? 'active' : ''}" data-fn="${k}" onclick="setDmFont('${k}')">${lbl}</button>`
+    ).join("");
   } else {
-    titleEl.textContent = "分享給客戶（唯讀）與下載 PDF";
-    bodyEl.innerHTML = `
-      <div style="font-size:12.5px;color:var(--ink-2);font-weight:600;">
-        複製連結傳給客戶後，對方打開<b>僅能瀏覽與點選下方原廠 PDF / 雲端硬碟連結，無法操作或修改任何內容</b>。
-      </div>
-      <button type="button" class="btn-random" style="height:44px;font-size:15px;" onclick="copyShareLink();closeMobDrawer();">
-        ${SVG.link} 複製客戶唯讀分享連結
-      </button>
-      <button type="button" class="btn-act primary" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();exportSinglePagePdf();">
-        ${SVG.download} 下載直式單頁 PDF (A4)
-      </button>
-      <button type="button" class="btn-act gold" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();generateSpreadPDF();">
-        ${SVG.book} 生成左右雙頁跨頁型錄 PDF
-      </button>
-      <button type="button" class="btn-act" style="height:40px;justify-content:center;font-size:13.5px;" onclick="closeMobDrawer();exportFullPosterJPG();">
-        ${SVG.download} 下載單頁高畫質 JPG 圖檔
+    const list = [
+      ["auto", "智慧自適"], ["1", "單幅全景"], ["2", "經典雙拼"], ["3", "雜誌三分"],
+      ["4", "四格矩陣"], ["cinematic", "電影寬畫"], ["focus", "階梯聚焦"], ["0", "純磚展示"]
+    ];
+    optionsHtml = list.map(([k, lbl]) =>
+      `<button type="button" class="tray-pill ${currentSceneLayout === k ? 'active' : ''}" data-sc="${k}" onclick="setSceneLayout('${k}')">${lbl}</button>`
+    ).join("") + `
+      <button type="button" class="tray-pill" style="border-style:dashed;color:#E6C29F;" onclick="closeMobDrawer();openScenePickerModal(-1)">
+        ${SVG.plus} 新增/換圖
       </button>
     `;
   }
 
+  bodyEl.innerHTML = `
+    <div class="tray-nav-row">
+      <div class="tray-sub-tabs">
+        ${tabs.map(t => `<button type="button" class="tray-tab-btn ${currentMobStyleSubTab === t.id ? 'active' : ''}" onclick="switchMobStyleSubTab('${t.id}')">${t.label}</button>`).join("")}
+      </div>
+      <button type="button" class="tray-close-btn" onclick="closeMobDrawer()">
+        ${SVG.close} 收合
+      </button>
+    </div>
+    <div class="tray-scroll-row">
+      ${optionsHtml}
+    </div>
+  `;
+}
+
+function switchMobStyleSubTab(tab) {
+  currentMobStyleSubTab = tab;
+  renderMobStyleTray();
+}
+
+function renderMobTweakTray() {
+  const bodyEl = document.getElementById("mobDrawerBody");
+  if (!bodyEl) return;
+
+  const showPrice = document.getElementById("chkShowPrice")?.checked;
+  const showPing = document.getElementById("chkShowPing")?.checked;
+  const showQr = document.getElementById("chkShowQrCode")?.checked;
+  const showRes = document.getElementById("chkShowResources")?.checked;
+
+  bodyEl.innerHTML = `
+    <div class="tray-nav-row">
+      <div style="font-size:11.5px;font-weight:800;color:#E6C29F;display:flex;align-items:center;gap:4px;">
+        <span>顯示開關（點選即時反映在上方畫布）</span>
+      </div>
+      <button type="button" class="tray-close-btn" onclick="closeMobDrawer()">
+        ${SVG.close} 收合
+      </button>
+    </div>
+    <div class="tray-scroll-row">
+      <button type="button" class="tray-pill ${showPrice ? 'active' : ''}" onclick="toggleMobTweak('price')">
+        ${showPrice ? '✓' : '＋'} 單價
+      </button>
+      <button type="button" class="tray-pill ${showPing ? 'active' : ''}" onclick="toggleMobTweak('ping')">
+        ${showPing ? '✓' : '＋'} 庫存坪數
+      </button>
+      <button type="button" class="tray-pill ${showQr ? 'active' : ''}" onclick="toggleMobTweak('qr')">
+        ${showQr ? '✓' : '＋'} QR 碼
+      </button>
+      <button type="button" class="tray-pill ${showRes ? 'active' : ''}" onclick="toggleMobTweak('res')">
+        ${showRes ? '✓' : '＋'} 原廠型錄 PDF
+      </button>
+      <button type="button" class="tray-pill" style="border-style:dashed;color:#E6C29F;" onclick="promptEditResourceUrls()">
+        ${SVG.pencil} 自訂連結
+      </button>
+    </div>
+  `;
+}
+
+function toggleMobTweak(key) {
+  if (key === "price") {
+    const chk = document.getElementById("chkShowPrice");
+    if (chk) { chk.checked = !chk.checked; renderDM(); }
+  } else if (key === "ping") {
+    const chk = document.getElementById("chkShowPing");
+    if (chk) { chk.checked = !chk.checked; renderDM(); }
+  } else if (key === "qr") {
+    const chk = document.getElementById("chkShowQrCode");
+    if (chk) { chk.checked = !chk.checked; toggleQrCode(chk.checked); }
+  } else if (key === "res") {
+    const chk = document.getElementById("chkShowResources");
+    if (chk) { chk.checked = !chk.checked; toggleResourcesBar(chk.checked); }
+  }
+  renderMobTweakTray();
+}
+
+function openMobDrawer(type) {
+  const backdrop = document.getElementById("mobDrawerBackdrop");
+  const card = backdrop?.querySelector(".mob-drawer-card");
+  const headEl = card?.querySelector(".modal-head");
+  if (!backdrop || !card) return;
+
+  // 若重複點擊已開啟的項目，則執行收合
+  if (backdrop.classList.contains("open") && currentMobDrawerType === type) {
+    closeMobDrawer();
+    return;
+  }
+  currentMobDrawerType = type;
+
+  if (type === "style") {
+    backdrop.classList.add("transparent-mode");
+    card.classList.add("compact-tray");
+    if (headEl) headEl.style.display = "none";
+    renderMobStyleTray();
+  } else if (type === "tweak") {
+    backdrop.classList.add("transparent-mode");
+    card.classList.add("compact-tray");
+    if (headEl) headEl.style.display = "none";
+    renderMobTweakTray();
+  } else {
+    // share 分享/PDF 模式
+    backdrop.classList.remove("transparent-mode");
+    card.classList.remove("compact-tray");
+    if (headEl) headEl.style.display = "flex";
+    const titleEl = document.getElementById("mobDrawerTitle");
+    const bodyEl = document.getElementById("mobDrawerBody");
+    if (titleEl) titleEl.textContent = "分享給客戶（唯讀）與下載 PDF";
+    if (bodyEl) {
+      bodyEl.innerHTML = `
+        <div style="font-size:12.5px;color:var(--ink-2);font-weight:600;">
+          複製連結傳給客戶後，對方打開<b>僅能瀏覽，無法操作或修改任何內容</b>。
+        </div>
+        <button type="button" class="btn-random" style="height:44px;font-size:15px;" onclick="copyShareLink();closeMobDrawer();">
+          ${SVG.link} 複製客戶唯讀分享連結
+        </button>
+        <button type="button" class="btn-act primary" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();exportSinglePagePdf();">
+          ${SVG.download} 下載直式單頁 PDF (A4)
+        </button>
+        <button type="button" class="btn-act gold" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();generateSpreadPDF();">
+          ${SVG.book} 生成左右雙頁跨頁型錄 PDF
+        </button>
+        <button type="button" class="btn-act" style="height:40px;justify-content:center;font-size:13.5px;" onclick="closeMobDrawer();exportFullPosterJPG();">
+          ${SVG.download} 下載單頁高畫質 JPG 圖檔
+        </button>
+      `;
+    }
+  }
+
   backdrop.classList.add("open");
+  updateMobCanvasBarActive();
 }
 
 function closeMobDrawer() {
-  document.getElementById("mobDrawerBackdrop")?.classList.remove("open");
+  const backdrop = document.getElementById("mobDrawerBackdrop");
+  if (backdrop) {
+    backdrop.classList.remove("open", "transparent-mode");
+    const card = backdrop.querySelector(".mob-drawer-card");
+    if (card) card.classList.remove("compact-tray");
+    const headEl = card?.querySelector(".modal-head");
+    if (headEl) headEl.style.display = "flex";
+  }
+  currentMobDrawerType = null;
+  updateMobCanvasBarActive();
+}
+
+function updateMobCanvasBarActive() {
+  document.querySelectorAll(".mob-bar-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  if (currentMobDrawerType) {
+    const btn = document.querySelector(`.mob-bar-btn[data-drawer="${currentMobDrawerType}"]`);
+    if (btn) btn.classList.add("active");
+  }
 }
 
 function openImageZoom(src, title, rot = 0) {
