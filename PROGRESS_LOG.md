@@ -939,3 +939,20 @@
       6. 左右滑動手勢（Swipe Gesture）監聽擴展至 `dmStageWrap` 全區域，小螢幕滑動翻頁極致順暢。
     - **本機與多目錄全端同步發布**：
       - 程式碼無損同步至 `dm_demo.html`、`../EBOOK電子目錄/`、`~/Projects/Ebook電子目錄/`、`~/Desktop/Ebook電子型錄/` 與 `~/Desktop/Ebook電子型錄.html`。
+
+50. **修復 LINE 機器人「傳送實景圖」推送 5 張破圖（灰底圖示）Bug (2026-10-28)**：
+    - **問題根源**：
+      1. **優先級倒置與歷史快取失效**：先前在 `5_Order.js` `handleFlexImagePostback` 中，`type === 'scene'`（實景圖）仍將 `FLEX快取`（列 42）設為優先級 1。而價目表中該欄位留存有 2026 年 6 月舊版掃描寫入之 Drive 連結，該批連結目前轉發至 Google Workspace 網域（`work.fife.usercontent.google.com`）需登入認證，被 LINE 圖片爬蟲讀取時直接遭 302 重定向至 Google 登入頁面而全部破圖；然而試算表中實際已存在 100% 正常之 Cloudflare R2 實景圖（`R2_實景1~7`），卻因順序問題從未被讀取。
+      2. **去重邏輯破壞參數**：`trimmed.split('?')[0]` 暴力切除 Query String，直接將 Google Drive 的 `?id=...` 參數全部削掉，使連結退化為無效的 `https://drive.google.com/thumbnail` 或 `https://drive.google.com/uc`（HTTP 400 Bad Request）。
+      3. **Google Drive 格式不符 LINE 規範**：`drive.google.com/thumbnail` 與 `/uc` 會回傳 302/303 重定向與 `content-type: application/binary`，不符 LINE Messaging API 要求的直出 `HTTP 200` 與 `image/jpeg`。
+    - **修復方案**：
+      1. **實景圖讀取優先級全面改為「R2 優先、Drive 備援」**：
+         - 優先級 1：`R2_實景1~7`（Cloudflare R2 CDN 直出 JPEG，高速且永不限流）。
+         - 優先級 2：`實景1~7`（試算表欄位，Drive 備援）。
+         - 優先級 3：`FLEX快取`（歷史 JSON 備援）。
+      2. **徹底廢除 `split('?')[0]` 破壞性截斷**：保持原始 URL 與其重要參數（`id=...`），確保去重邏輯安全完整。
+      3. **升級 `normalizeImageUrlForLine(url)` 萬用轉換引擎**：
+         - 支援所有 Google Drive 格式（`/file/d/`、`/uc?id=`、`export=view`、`/thumbnail?id=`、`open?id=` 等）。
+         - 統一解析出 25+ 碼 File ID，自動轉換為 `https://lh3.googleusercontent.com/d/FILEID=w1000`（Google 全球 CDN，直出 HTTP 200 OK 與 `image/jpeg`，100% 符合 LINE 規範）。
+      4. **同步優化 `4_Flex.js`**：`getBestImagesForItem` 同步調整為 R2 優先。
+      5. **正式安全部署**：使用 `clasp deploy -i` 原地更新生產環境部署至版本 `@834`，URL 完全不變。

@@ -1526,24 +1526,35 @@ function normalizeImageUrlForLine(url) {
 
   url = url.trim();
 
-  // 1. Google Drive /file/d/ 格式 → /thumbnail 格式
-  // 🚩 原本轉成 /uc?export=download，但這個端點常對較大檔案跳出「病毒掃描警告」中繼頁面，
-  // LINE 抓到的是 HTML 不是圖片，導致載入圈圈轉不停。改用全專案其他地方（今友利、多公司查詢、
-  // getBestImagesForItem 等）都證實穩定可用的 /thumbnail?id=...&sz=w600 代理格式。
-  if (url.includes("drive.google.com/file/d/")) {
-    const match = url.match(/\/file\/d\/([^\/]+)/);
-    if (match && match[1]) {
-      return "https://drive.google.com/thumbnail?id=" + match[1] + "&sz=w600";
-    }
+  // 1. 若已經是 Cloudflare R2、wsrv.nl 或外部合法 CDN 圖片，直接採用
+  if (url.includes("r2.dev") || url.includes("wsrv.nl") || url.includes(".r2.cloudflarestorage.com")) {
+    return url;
   }
 
-  // 2. Google Drive /uc?export=view 或 /uc?export=download 格式，同樣改轉成穩定的 /thumbnail 格式
-  if (url.includes("drive.google.com/uc?export=view") || url.includes("drive.google.com/uc?export=download")) {
-    const idMatch = url.match(/[?&]id=([^&]+)/);
+  // 2. Google Drive 萬用格式解析：
+  // 支援 /file/d/ID、/uc?id=ID、/uc?export=view&id=ID、/thumbnail?id=ID、/open?id=ID 等
+  // 🚩 LINE 規範：originalContentUrl / previewImageUrl 必須直出 HTTP 200 與 image/jpeg 或 image/png。
+  // drive.google.com/thumbnail 或 /uc 端點常回傳 302/303 重定向與 application/binary，
+  // 導致 LINE 圖片爬蟲拒絕載入而出現灰底驚嘆號/破圖圖示。
+  // 統一轉換至 lh3.googleusercontent.com/d/FILEID=w1000（Google 官方全球高速 CDN，直出 200 OK image/jpeg）。
+  if (url.includes("drive.google.com") || url.includes("googleusercontent.com")) {
+    let fileId = null;
+    const idMatch = url.match(/[?&]id=([-\w]+)/);
     if (idMatch && idMatch[1]) {
-      return "https://drive.google.com/thumbnail?id=" + idMatch[1] + "&sz=w600";
+      fileId = idMatch[1];
+    } else {
+      const dMatch = url.match(/\/d\/([-\w]+)/);
+      if (dMatch && dMatch[1]) {
+        fileId = dMatch[1];
+      } else {
+        const generalMatch = url.match(/[-\w]{25,}/);
+        if (generalMatch) fileId = generalMatch[0];
+      }
     }
-    return url;
+
+    if (fileId) {
+      return "https://lh3.googleusercontent.com/d/" + fileId + "=w1000";
+    }
   }
 
   // 3. 其他格式保持不變

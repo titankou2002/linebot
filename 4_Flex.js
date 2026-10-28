@@ -274,15 +274,7 @@ function getBestImagesForItem(item, maps, db) {
   const parentId = String(item[maps.price['FLEX圖卡']] || "").match(/folders\/([\w-]+)/)?.[1];
   const rawCache = String(item[maps.price['FLEX快取']] || "");
 
-  // 1. 嘗試從快取讀取
-  if (rawCache) {
-    try {
-      const c = JSON.parse(rawCache);
-      if (c.scene && Array.isArray(c.scene) && c.scene.length > 0) return c.scene;
-    } catch(e) {}
-  }
-
-  // 2. 第零優先：已遷移到 R2 的「R2_實景1~7」（速度最快，優先於 Drive 原始欄位）
+  // 1. 第零優先：已遷移到 R2 的「R2_實景1~7」（速度最快，直出 image/jpeg，優先讀取）
   const r2SceneCols = ["R2_實景1", "R2_實景2", "R2_實景3", "R2_實景4", "R2_實景5", "R2_實景6", "R2_實景7"];
   r2SceneCols.forEach(colName => {
     const colIdx = maps.price[colName];
@@ -291,6 +283,15 @@ function getBestImagesForItem(item, maps, db) {
       if (val && val.includes("http") && !images.includes(val)) images.push(val);
     }
   });
+  if (images.length > 0) return images;
+
+  // 2. 第一優先：嘗試從快取讀取
+  if (rawCache) {
+    try {
+      const c = JSON.parse(rawCache);
+      if (c.scene && Array.isArray(c.scene) && c.scene.length > 0) return c.scene;
+    } catch(e) {}
+  }
 
   // 2b. 第一優先：試算表中的「實景1~7」— Drive 備援
   const sceneCols = ["實景1", "實景2", "實景3", "實景4", "實景5", "實景6", "實景7"];

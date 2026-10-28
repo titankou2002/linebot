@@ -1532,65 +1532,37 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
     } else if (type === 'scene') {
       const sceneUrls = [];
 
-      // 優先級 1：FLEX 快取 JSON（列 42）—— 最快！
-      const flexCacheIdx = getColumnByName(priceMap, ['FLEX快取']);
-      if (flexCacheIdx !== undefined) {
-        const cacheStr = String(matchedRow[flexCacheIdx] || '').trim();
-        if (cacheStr && cacheStr.startsWith('{')) {
-          try {
-            const cacheObj = JSON.parse(cacheStr);
-            if (cacheObj.scene && Array.isArray(cacheObj.scene)) {
-              // 強去重：先 trim 再去重，移除重複和空值
-              const trimmedUrls = cacheObj.scene.map(u => String(u || '').trim()).filter(u => u && u.includes("http"));
-              const uniqueSceneUrls = [...new Set(trimmedUrls)];
-              sceneUrls.push(...uniqueSceneUrls);
-              logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 FLEX快取 原 " + cacheObj.scene.length + " → trim後 " + trimmedUrls.length + " → 去重後 " + uniqueSceneUrls.length + " 張圖");
-            }
-          } catch (e) {
-            logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ FLEX快取 JSON 解析失敗: " + e);
-          }
-        } else {
-          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 FLEX快取欄位為空或非 JSON");
-        }
-      }
-
-      // 優先級 2：R2 實景 URL（列 54~60）
-      if (sceneUrls.length === 0) {
-        const r2Urls = [];
-        for (let j = 1; j <= 7; j++) {
-          const colIdx = getColumnByName(priceMap, ['R2_實景' + j]);
-          if (colIdx !== undefined) {
-            let url = String(matchedRow[colIdx] || '').trim();
-            if (url && url.includes("http")) {
-              r2Urls.push(url);
-            }
+      // 優先級 1：已遷移到 R2 的「R2_實景1~7」（速度最快、直出 image/jpeg，優先讀取）
+      const r2Urls = [];
+      for (let j = 1; j <= 7; j++) {
+        const colIdx = getColumnByName(priceMap, ['R2_實景' + j]);
+        if (colIdx !== undefined) {
+          let url = String(matchedRow[colIdx] || '').trim();
+          if (url && url.includes("http")) {
+            r2Urls.push(url);
           }
         }
-        // 去重後推送
-        const uniqueR2Urls = [...new Set(r2Urls)];
-        sceneUrls.push(...uniqueR2Urls);
-        if (sceneUrls.length > 0) {
-          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L2 R2_實景 原 " + r2Urls.length + " → 去重後 " + uniqueR2Urls.length + " 張圖");
-        } else {
-          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L2 R2_實景 沒有有效 URL");
-        }
+      }
+      const uniqueR2Urls = [...new Set(r2Urls)];
+      sceneUrls.push(...uniqueR2Urls);
+      if (sceneUrls.length > 0) {
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L1 R2_實景 原 " + r2Urls.length + " → 去重後 " + uniqueR2Urls.length + " 張圖");
+      } else {
+        logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L1 R2_實景 沒有有效 URL");
       }
 
-      // 優先級 3：實景 IMAGE 公式解析（列 46~52）
+      // 優先級 2：實景 1~7 試算表欄位（Drive 備援）
       if (sceneUrls.length === 0) {
         for (let j = 1; j <= 7; j++) {
           const colIdx = getColumnByName(priceMap, ['實景' + j]);
           if (colIdx !== undefined) {
             const cellValue = matchedRow[colIdx];
             let url = null;
-
-            // 如果是 IMAGE 公式，提取 URL
             if (String(cellValue).includes("=IMAGE")) {
               url = extractImageUrlFromFormula(cellValue);
             } else {
               url = String(cellValue || '').trim();
             }
-
             if (url && url.includes("http")) {
               sceneUrls.push(url);
               if (sceneUrls.length >= 5) break;
@@ -1598,9 +1570,30 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
           }
         }
         if (sceneUrls.length > 0) {
-          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L3 實景公式 取得 " + sceneUrls.length + " 張圖");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L2 實景公式/欄位 取得 " + sceneUrls.length + " 張圖");
         } else {
-          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L3 實景公式 沒有有效 URL");
+          logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ L2 實景公式/欄位 沒有有效 URL");
+        }
+      }
+
+      // 優先級 3：FLEX 快取 JSON（列 42）—— 最後備援
+      if (sceneUrls.length === 0) {
+        const flexCacheIdx = getColumnByName(priceMap, ['FLEX快取']);
+        if (flexCacheIdx !== undefined) {
+          const cacheStr = String(matchedRow[flexCacheIdx] || '').trim();
+          if (cacheStr && cacheStr.startsWith('{')) {
+            try {
+              const cacheObj = JSON.parse(cacheStr);
+              if (cacheObj.scene && Array.isArray(cacheObj.scene)) {
+                const trimmedUrls = cacheObj.scene.map(u => String(u || '').trim()).filter(u => u && u.includes("http"));
+                const uniqueCacheUrls = [...new Set(trimmedUrls)];
+                sceneUrls.push(...uniqueCacheUrls);
+                logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ L3 FLEX快取 原 " + cacheObj.scene.length + " → trim後 " + trimmedUrls.length + " → 去重後 " + uniqueCacheUrls.length + " 張圖");
+              }
+            } catch (e) {
+              logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "⚠️ FLEX快取 JSON 解析失敗: " + e);
+            }
+          }
         }
       }
 
@@ -1610,16 +1603,18 @@ function handleFlexImagePostback(params, event, auth, dbSS) {
         return;
       }
 
-      // 最終強去重：提取 URL 核心部分 (移除 query string)、trim、去重
-      const normalizedUrls = sceneUrls.map(u => {
+      // 最終強去重（保留完整 URL 與參數，絕不使用 split('?') 截斷破壞 Drive/thumbnail 的 id）：
+      const uniqueFinalUrls = [];
+      sceneUrls.forEach(u => {
         const trimmed = String(u || '').trim();
-        // 移除 query string，只保留核心 URL
-        return trimmed.split('?')[0];
-      }).filter(u => u && u.includes("http"));
-      const uniqueFinalUrls = [...new Set(normalizedUrls)];
+        if (trimmed && trimmed.includes("http") && uniqueFinalUrls.indexOf(trimmed) === -1) {
+          uniqueFinalUrls.push(trimmed);
+        }
+      });
+
       // LINE reply 最多 5 則訊息；有雲端硬碟連結時留 1 則給「看全部圖片」卡片
       const scenesForPush = uniqueFinalUrls.slice(0, getDriveFolderUrlFromRow_(matchedRow, priceMap) ? 4 : 5);
-      logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 最終實景圖 原 " + sceneUrls.length + " → 正規化後 " + normalizedUrls.length + " → 去重後 " + uniqueFinalUrls.length + " 張，推送前 " + scenesForPush.length + " 張", false);
+      logFlexDebug(effectiveDbSS, auth, isGroupCtx, userId, code, type, "✅ 最終實景圖 原 " + sceneUrls.length + " → 去重後 " + uniqueFinalUrls.length + " 張，推送前 " + scenesForPush.length + " 張", false);
       scenesForPush.forEach(url => {
         const finalSceneUrl = normalizeImageUrlForLine(url);
         messages.push({ type: "image", originalContentUrl: finalSceneUrl, previewImageUrl: finalSceneUrl });
