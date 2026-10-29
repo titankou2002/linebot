@@ -3285,8 +3285,12 @@ function normalizeImgUrl(raw, forCanvas = false) {
   if (u.startsWith("data:")) return u;
   const idMatch = u.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{15,})/);
   if (idMatch) u = `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1200`;
-  // 注意：Cloudflare R2 與 Google Drive 圖片未配置開放式 Access-Control-Allow-Origin
-  // Canvas / 截圖 / 匯出時必須走 wsrv.nl 取得 Access-Control-Allow-Origin: * 以免遭到瀏覽器 CORS 攔截
+  // r2.dev 是同一個 R2 bucket 的測試網址（試算表 R2_ 欄位仍存這個），一律換成自有網域
+  u = u.replace(/^https:\/\/pub-98cd476501d5474480c785e41e1eec1d\.r2\.dev\//, "https://cc.bigt.cc/");
+  // cc.bigt.cc (R2) 已開 CORS，匯出直接載入，不經 wsrv.nl（wsrv.nl 對 cc.bigt.cc 回 400）；
+  // 加 cors=1 避開 <img> 先前非 CORS 載入的快取（R2 對無 Origin 請求不回 Vary: Origin）
+  if (forCanvas && u.startsWith("https://cc.bigt.cc/")) return u + (u.includes("?") ? "&" : "?") + "cors=1";
+  // 其餘來源（Google／別家廠商）匯出時走 wsrv.nl 取得 Access-Control-Allow-Origin: *
   if (forCanvas && !u.includes("qrserver.com") && !u.startsWith("data:") && !u.includes("wsrv.nl")) {
     return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=1200&output=jpg`;
   }
