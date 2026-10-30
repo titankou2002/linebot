@@ -718,6 +718,10 @@
     cursor: not-allowed;
   }
 
+  .chip-dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:5px; vertical-align:-1px; border:1px solid rgba(0,0,0,0.25); }
+  .fit-only-desktop { display: inline-flex; }
+  @media (max-width: 960px) { .fit-only-desktop { display: none !important; } }
+
   /* DM 畫布切換頁平滑滑動動畫與等比例縮放 */
   .dm-sheet {
     --dm-scale: 1;
@@ -2533,6 +2537,11 @@
         </div>
       </div>
 
+      <div style="margin-top:4px;">
+        <div class="sec-title"><span>顏色</span></div>
+        <div class="chip-group" id="colorChips"></div>
+      </div>
+
       <div style="margin-top:6px;">
         <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
           <span>最低坪數需求</span>
@@ -2707,6 +2716,9 @@
         <button type="button" class="btn-act btn-with-svg" onclick="exportFullPosterJPG()" id="btnDownloadJpg">
           <span class="btn-ico-holder"></span>下載直式單頁 JPG
         </button>
+        <button type="button" class="btn-act gold btn-with-svg" onclick="copyPageImageForLine()" id="btnCopyImageLine" title="合成目前這一頁的圖片並複製，到 LINE 直接貼上">
+          <span class="btn-ico-holder"></span>複製圖片（貼到 LINE）
+        </button>
         <button type="button" class="btn-act gold btn-with-svg" id="btnExportAllSizePages" onclick="exportAllPagesToPdf()">
           <span class="btn-ico-holder"></span><span id="btnExportAllTxt">一鍵打包本尺寸全型錄 PDF</span>
         </button>
@@ -2728,6 +2740,7 @@
         <button type="button" class="btn-act" id="btnPrevPage" onclick="goToPrevPage()">◀ 上一頁</button>
         <span class="page-indicator" id="pageIndicatorTxt">第 1 / 1 頁</span>
         <button type="button" class="btn-act" id="btnNextPage" onclick="goToNextPage()">下一頁 ▶</button>
+        <button type="button" class="btn-act fit-only-desktop" id="btnFitPage" onclick="toggleFitPage()" title="電腦版：整頁縮放到一個畫面內，不用上下捲動">適配整頁</button>
       </div>
     </div>
 
@@ -3195,6 +3208,7 @@ let totalPages = 1;
 
 let currentMode = "series";
 let currentLevel = "all";
+let currentColor = "";   // 顏色篩選：""＝全部，其餘為 COLOR_FAMILIES 的 key 或「其他」
 let selectedSize = "60x120";
 let selectedStyle = "";
 let currentDmStyle = "warm";
@@ -3350,6 +3364,8 @@ function processRawProducts(sbRows, stockCatalog = {}) {
       origin: String(p.origin || "").trim(),
       size: sizeClean,
       color: String(p.color || (snap && snap.color) || "").trim(),
+      colorBase: String(p.color_base || "").trim(),
+      colorFam: productColorFamilies({ colorBase: p.color_base, color: p.color || (snap && snap.color) }),
       style: String(p.style || "").trim(),
       area: String(p.area || "").trim(),
       level: p.level || "normal",
@@ -3397,7 +3413,7 @@ async function initData() {
   const cachedStock = cachedStockStr ? JSON.parse(cachedStockStr) : {};
 
   const sbPromise = fetch(
-    `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
+    `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,color_base,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
     { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } }
   )
   .then(r => r.ok ? r.json() : [])
@@ -3474,6 +3490,7 @@ function renderSeriesOptions(kw, targetSeriesVal = null) {
   const map = new Map();
   allProducts.forEach(p => {
     if (currentLevel !== "all" && p.level !== currentLevel) return;
+    if (!colorMatches(p)) return;
     if (q && !p.series.toUpperCase().includes(q) && !p.seriesEn.toUpperCase().includes(q) && !p.code.includes(q)) return;
     const item = map.get(p.series) || { count: 0, size: p.size, sceneCount: 0, seenScenes: new Set(), en: p.seriesEn };
     item.count++;
@@ -3865,6 +3882,49 @@ function selectStyleChip(st) {
   applyAndPick();
 }
 
+// ── 顏色篩選：把資料庫裡很雜的 color_base（米白、淺灰、灰/灰白、暖棕…）與顏色名稱（砂礫白、采霞藍…）歸成幾個大色系 ──
+const COLOR_FAMILIES = [
+  { key: "白",   dot: "#F4F3EF", re: /白|雪|銀/ },
+  { key: "米黃", dot: "#E3D2B0", re: /米|奶|杏|卡其|黃/ },
+  { key: "灰",   dot: "#9A9EA3", re: /灰|銀|煙|碳|炭/ },
+  { key: "黑",   dot: "#26262A", re: /黑|墨/ },
+  { key: "棕木", dot: "#8B5E3C", re: /棕|褐|咖|木|橡|胡桃|赭|焦糖/ },
+  { key: "藍",   dot: "#3F6FA8", re: /藍|青/ },
+  { key: "綠",   dot: "#5B8A6B", re: /綠/ },
+  { key: "粉紅", dot: "#D9A7A0", re: /粉|紅|桃|玫/ }
+];
+function productColorFamilies(p) {
+  // 先去掉「霧面、亮面、裂釉面、立體…」這類表面質感字樣，避免誤判顏色
+  const clean = t => String(t || "").replace(/霧面|亮面|裂釉面|柔霧面|自然面|立體|飾條|轉角磚|花磚/g, "");
+  const fam = t => COLOR_FAMILIES.filter(f => f.re.test(clean(t))).map(f => f.key);
+  // 優先用資料庫的「底色」(color_base)：它是判讀過的色系；沒有、或判不出色系（例如只寫「花磚」）時，才用顏色名稱（例如「午夜藍」）。
+  // 這樣「藍黛-D（底色米白）」不會因為名稱有「藍」字被算成藍色。
+  const base = fam(p.colorBase);
+  return base.length ? base : fam(p.color);
+}
+function colorMatches(p) {
+  if (!currentColor) return true;
+  if (currentColor === "其他") return !p.colorFam || p.colorFam.length === 0;
+  return !!p.colorFam && p.colorFam.includes(currentColor);
+}
+function renderColorChips() {
+  const box = document.getElementById("colorChips");
+  if (!box) return;
+  const chip = (key, label, dot) =>
+    `<button type="button" class="chip${currentColor === key ? " active" : ""}" data-color="${key}" onclick="setColor('${key}')">${dot ? `<i class="chip-dot" style="background:${dot}"></i>` : ""}${label}</button>`;
+  box.innerHTML = chip("", "全部", "") + COLOR_FAMILIES.map(f => chip(f.key, f.key, f.dot)).join("") + chip("其他", "其他", "");
+}
+function setColor(c) {
+  currentColor = c;
+  document.querySelectorAll("#colorChips .chip").forEach(b => b.classList.toggle("active", (b.dataset.color || "") === c));
+  if (currentMode === "series") {
+    renderSeriesOptions(document.getElementById("seriesSearchInput").value);
+    pickBySeries();
+  } else {
+    applyAndPick();
+  }
+}
+
 function setLevel(lv) {
   currentLevel = lv;
   document.querySelectorAll("#levelChips .chip").forEach(b => b.classList.toggle("active", b.dataset.lv === lv));
@@ -3913,7 +3973,7 @@ function initEditableHeaderForSelection() {
     const sz = first && first.size ? first.size.replace(/x/gi, "×") + " cm" : "";
     customHeaderText.eyebrow = enParts.length > 0 ? enParts.join(" · ") : (sz || "ARCHITECTURAL SURFACE COLLECTION");
     customHeaderText.title = `${ser}系列`;
-    customHeaderText.subtitle = `${sz ? "規格 " + sz + " · " : ""}全系列共 ${filteredPool.length} 款${pageTag}（本頁 ${currentPicked.length} 款）`;
+    customHeaderText.subtitle = sz ? `規格 ${sz}` : "";   // 2026-10-30：使用者要求拿掉「全系列共 N 款（本頁 N 款）」與頁碼字樣
   } else if (currentMode === "codes") {
     const uniqSeries = Array.from(new Set(currentPicked.map(p => p.series))).slice(0, 3);
     customHeaderText.eyebrow = "BESPOKE MATERIAL PROPOSAL · 專屬選磚提案";
@@ -4275,6 +4335,7 @@ function pickBySeries(preservePage = false) {
   filteredPool = allProducts.filter(p => {
     if (p.series !== ser) return false;
     if (currentLevel !== "all" && p.level !== currentLevel) return false;
+    if (!colorMatches(p)) return false;
     if (onlyInStock && p.availPcs <= 0) return false;
     if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
     return true;
@@ -4346,6 +4407,7 @@ function applyAndPick(preservePage = false) {
   } else {
     filteredPool = allProducts.filter(p => {
       if (currentLevel !== "all" && p.level !== currentLevel) return false;
+      if (!colorMatches(p)) return false;
       if (onlyInStock && p.availPcs <= 0) return false;
       if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
       if (selectedSize && !isSizeMatchWithTolerance(p.size, selectedSize)) return false;
@@ -4411,11 +4473,13 @@ function updatePaginationAndPick(preservePage = false) {
 
   // 1. 維護標題：若已有自訂或已有標題，僅更新分頁提示，絕不覆寫使用者自訂文字！
   if (preservePage && customHeaderText.title) {
-    const pageTag = totalPages > 1 ? ` · 第 ${currentPageIndex + 1}/${totalPages} 頁` : "";
-    customHeaderText.subtitle = (customHeaderText.subtitle || "")
-      .replace(/ · 第 \d+\/\d+ 頁.*/g, "")
-      .replace(/（本頁 \d+ 款）/g, "")
-      + `${pageTag}（本頁 ${currentPicked.length} 款）`;
+    if (currentMode !== "series") {      // 系列模式的標題已不含款數／頁碼，不要再補回去
+      const pageTag = totalPages > 1 ? ` · 第 ${currentPageIndex + 1}/${totalPages} 頁` : "";
+      customHeaderText.subtitle = (customHeaderText.subtitle || "")
+        .replace(/ · 第 \d+\/\d+ 頁.*/g, "")
+        .replace(/（本頁 \d+ 款）/g, "")
+        + `${pageTag}（本頁 ${currentPicked.length} 款）`;
+    }
   } else {
     initEditableHeaderForSelection();
   }
@@ -5084,6 +5148,18 @@ function renderDM() {
 // ════════════════════════════════════════════════════════════════
 let isScalingDmSheet = false;
 let dmSheetResizeObserver = null;
+let dmFitPage = (() => { try { return localStorage.getItem("ebook_fit_page") !== "0"; } catch (e) { return true; } })();   // 電腦版預設整頁適配
+function toggleFitPage() {
+  dmFitPage = !dmFitPage;
+  try { localStorage.setItem("ebook_fit_page", dmFitPage ? "1" : "0"); } catch (e) {}
+  syncFitPageBtn();
+  updateDmSheetScale();
+  showToast(dmFitPage ? "已適配整頁：整頁縮放到一個畫面內" : "已切換為原始大小（可上下捲動）");
+}
+function syncFitPageBtn() {
+  const b = document.getElementById("btnFitPage");
+  if (b) { b.textContent = dmFitPage ? "原始大小" : "適配整頁"; b.classList.toggle("primary", dmFitPage); }
+}
 
 function updateDmSheetScale() {
   if (isScalingDmSheet) return;
@@ -5098,8 +5174,16 @@ function updateDmSheetScale() {
       const availWidth = Math.min(parentWidth, window.innerWidth - 8);
       const baseWidth = 780;
 
-      if (availWidth < baseWidth && availWidth > 0) {
-        const scale = availWidth / baseWidth;
+      let scale = (availWidth < baseWidth && availWidth > 0) ? availWidth / baseWidth : 1;
+      // 電腦版「適配整頁」：把整頁縮到一個畫面內（不用上下捲動）。可用高度＝視窗高度－頁面上方的工具列－底部 PDF 列
+      const isDesktop = window.innerWidth > 960;
+      if (isDesktop && dmFitPage && sheet.offsetHeight > 0) {
+        const topOffset = Math.min(wrap.getBoundingClientRect().top + window.scrollY, 260);
+        const availH = window.innerHeight - topOffset - 84;
+        scale = Math.min(scale, Math.max(0.3, availH / sheet.offsetHeight));
+      }
+
+      if (scale < 0.999 && scale > 0) {
         sheet.style.setProperty("--dm-scale", scale.toFixed(4));
         const scaledH = Math.ceil(sheet.offsetHeight * scale);
         wrap.style.height = `${scaledH}px`;
@@ -5481,11 +5565,14 @@ function wizPickSeries(ser) {
   const hasMatchInCurrentFilter = allProducts.some(p => {
     if (p.series !== ser) return false;
     if (currentLevel !== "all" && p.level !== currentLevel) return false;
+    if (!colorMatches(p)) return false;
     if (minPingRequirement > 0 && (Number(p.rawPing) || 0) < minPingRequirement) return false;
     return true;
   });
   if (!hasMatchInCurrentFilter) {
     currentLevel = "all";
+    currentColor = "";
+    renderColorChips();
     minPingRequirement = 0;
     document.querySelectorAll("#levelChips .chip").forEach(b => b.classList.toggle("active", b.dataset.lv === "all"));
     document.querySelectorAll("#minPingChips .chip").forEach(b => b.classList.toggle("active", Number(b.dataset.ping) === 0));
@@ -5756,6 +5843,9 @@ function openMobDrawer(type) {
         </button>
         <button type="button" class="btn-act" style="height:40px;justify-content:center;font-size:13.5px;" onclick="closeMobDrawer();exportFullPosterJPG();">
           ${SVG.download} 下載單頁高畫質 JPG 圖檔
+        </button>
+        <button type="button" class="btn-act gold" style="height:42px;justify-content:center;font-size:14px;" onclick="closeMobDrawer();copyPageImageForLine();">
+          ${SVG.download} 複製圖片（貼到 LINE）
         </button>
       `;
     }
@@ -6462,6 +6552,56 @@ function getCurrentPageStateSnapshot() {
   };
 }
 
+// 一鍵「複製圖片」：把目前這一頁合成成圖片放進剪貼簿，到 LINE 聊天室直接貼上（電腦 Ctrl/⌘+V；手機長按→貼上）。
+// 說明：瀏覽器的剪貼簿只能放 PNG（不支援 JPG），LINE 收到圖片後會自行轉成一般圖片傳送。
+// 重點：ClipboardItem 必須在「點擊當下」就建立（傳入 Promise），合成完成後才寫入內容，否則 Safari／部分 Chrome 會因為過了使用者操作時間而拒絕。
+// 剪貼簿不可用時（舊瀏覽器、非 https）→ 改用手機分享面板（可直接分享給 LINE）→ 再不行就下載 JPG。
+function copyPageImageForLine() {
+  if (currentPicked.length === 0) return showToast("目前畫面沒有產品可複製");
+  const label = currentPicked.length === 1 ? currentPicked[0].code : `P${currentPageIndex + 1}`;
+  const canvasPromise = (async () => {
+    if (currentPicked.length === 1) return exportSingleTileJPG(currentPicked[0].code, { returnCanvas: true, quiet: true });
+    return renderPortraitPageToCanvas(getCurrentPageStateSnapshot());
+  })();
+  const toBlob = (type, q) => canvasPromise.then(cv => new Promise((res, rej) => cv.toBlob(b => (b ? res(b) : rej(new Error("toBlob 失敗"))), type, q)));
+
+  showToast("正在合成圖片…");
+  const fallback = async () => {
+    try {
+      const cv = await canvasPromise;
+      const blob = await new Promise(res => cv.toBlob(res, "image/jpeg", 0.92));
+      const file = new File([blob], `Ebook_${label}.jpg`, { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file] });
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = file.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      showToast("此瀏覽器不能直接複製，已改為下載 JPG");
+    } catch (e) {
+      if (e && e.name === "AbortError") return;      // 使用者自己關掉分享面板
+      console.error(e);
+      showToast("合成圖片失敗，請改用「下載直式單頁 JPG」");
+    }
+  };
+
+  if (navigator.clipboard && navigator.clipboard.write && window.ClipboardItem) {
+    try {
+      const item = new ClipboardItem({ "image/png": toBlob("image/png") });
+      navigator.clipboard.write([item])
+        .then(() => showToast("✅ 已複製圖片，到 LINE 聊天室貼上就好"))
+        .catch(err => { console.warn("剪貼簿寫入失敗，改用分享／下載", err); fallback(); });
+      return;
+    } catch (e) {
+      console.warn("ClipboardItem 建立失敗，改用分享／下載", e);
+    }
+  }
+  fallback();
+}
+
 async function exportFullPosterJPG() {
   if (currentPicked.length === 0) return;
   if (currentPicked.length === 1) return exportSingleTileJPG(currentPicked[0].code);
@@ -6542,7 +6682,7 @@ async function exportAllPagesToPdf() {
       headerText: {
         ...customHeaderText,
         title: baseTitle,
-        subtitle: `${selectedSize ? selectedSize.replace(/x/gi, "×") + " cm · " : ""}全系列共 ${filteredPool.length} 款（第 ${pIdx + 1}/${countPages} 頁 · 本頁 ${pageItems.length} 款）`
+        subtitle: selectedSize ? `規格 ${selectedSize.replace(/x/gi, "×")} cm` : ""   // 同上：不再顯示款數／頁碼
       },
       dmStyle: currentDmStyle,
       dmFont: currentDmFont,
@@ -6691,10 +6831,11 @@ async function generateSpreadPDF() {
   showToast(`已下載雙頁排版 PDF：${fileName}`);
 }
 
-async function exportSingleTileJPG(code) {
+async function exportSingleTileJPG(code, opts) {
+  // opts.returnCanvas：不開預覽視窗，直接回傳合成好的 canvas（給「複製圖片」用）；opts.quiet：不跳提示
   const p = allProducts.find(x => x.code === code);
   if (!p) return;
-  showToast(`正在產生 ${p.code} 直式單片卡 JPG...`);
+  if (!(opts && opts.quiet)) showToast(`正在產生 ${p.code} 直式單片卡 JPG...`);
 
   const pal = STYLE_PALETTES[currentDmStyle] || STYLE_PALETTES.warm;
   const showPing = document.getElementById("chkShowPing") ? document.getElementById("chkShowPing").checked : true;
@@ -6815,9 +6956,12 @@ async function exportSingleTileJPG(code) {
     ctx.drawImage(qrImg, W - 44 - qSize - 28, curY + (infoH - qSize) / 2, qSize, qSize);
   }
 
+  if (opts && opts.returnCanvas) return cv;
   openImageZoom(cv.toDataURL("image/jpeg", 0.92), `Ebook_${p.code}_${p.series}`);
 }
 
+renderColorChips();
+syncFitPageBtn();
 initData();
 </script>
 </body>
