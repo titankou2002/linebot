@@ -2472,11 +2472,6 @@
         <span>1. 挑選系列與尺寸</span>
         <span class="sec-badge" id="poolCountBadge">載入中...</span>
       </div>
-      <div class="chip-group" id="coChips" style="margin-bottom:8px;">
-        <button type="button" class="chip active" data-co="gao" onclick="setCompany('gao')">高雅瓷</button>
-        <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
-        <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
-      </div>
       <div class="mode-tabs">
         <button type="button" class="mode-tab active" id="tabSeries" onclick="switchMode('series')">1. 單系列</button>
         <button type="button" class="mode-tab" id="tabTheme" onclick="switchMode('theme')">2. 按照尺寸</button>
@@ -2736,6 +2731,11 @@
 
   <!-- 右側直式預覽區（電腦版視覺全開） -->
   <section class="preview-col">
+    <div class="chip-group staff-only" id="coChips" style="margin:0 0 8px;justify-content:center;">
+      <button type="button" class="chip active" data-co="gao" onclick="setCompany('gao')">高雅瓷</button>
+      <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
+      <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
+    </div>
     <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-stat-info">
@@ -3421,7 +3421,7 @@ async function initData() {
   const cachedStock = cachedStockStr ? JSON.parse(cachedStockStr) : {};
 
   const sbPromise = fetch(
-    `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,color_base,style,area,price_num,price_per_pyeong,ratio,pieces_per_box,images,main_img_url,level,stock_status&is_active=eq.true&order=code.asc&limit=1000`,
+    `${SB_URL}/rest/v1/products?select=code,title_zh,title_en,brand,origin,size,color,color_base,style,area,pieces_per_box,images,main_img_url,level&is_active=eq.true&order=code.asc&limit=1000`,
     { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } }
   )
   .then(r => r.ok ? r.json() : [])
