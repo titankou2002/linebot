@@ -2472,6 +2472,11 @@
         <span>1. 挑選系列與尺寸</span>
         <span class="sec-badge" id="poolCountBadge">載入中...</span>
       </div>
+      <div class="chip-group" id="coChips" style="margin-bottom:8px;">
+        <button type="button" class="chip active" data-co="gao" onclick="setCompany('gao')">高雅瓷</button>
+        <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
+        <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
+      </div>
       <div class="mode-tabs">
         <button type="button" class="mode-tab active" id="tabSeries" onclick="switchMode('series')">1. 單系列</button>
         <button type="button" class="mode-tab" id="tabTheme" onclick="switchMode('theme')">2. 按照尺寸</button>
@@ -3201,6 +3206,9 @@ const TAGLINE_LIBRARY = {
 };
 
 let allProducts = [];
+let gaoProducts = [];       // 高雅瓷（Supabase products）
+let partnerProducts = null; // 安帝嘉／喜悅納（R2 partner_ebook.json，載入後為陣列）
+let currentCo = "gao";
 let filteredPool = [];
 let currentPicked = [];
 let currentPageIndex = 0;
@@ -3399,7 +3407,7 @@ async function initData() {
     if (cachedProducts) {
       const parsed = JSON.parse(cachedProducts);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        allProducts = parsed;
+        allProducts = parsed; gaoProducts = parsed;
         renderSeriesOptions("");
         restoreFromUrl();
         hasRenderedFromCache = true;
@@ -3428,9 +3436,10 @@ async function initData() {
 
   sbPromise.then(sbRows => {
     if (sbRows && sbRows.length > 0) {
-      allProducts = processRawProducts(sbRows, cachedStock);
+      gaoProducts = processRawProducts(sbRows, cachedStock);
+      if (currentCo === "gao") allProducts = gaoProducts;
       try {
-        localStorage.setItem("ebook_products_cache_v3", JSON.stringify(allProducts));
+        localStorage.setItem("ebook_products_cache_v3", JSON.stringify(gaoProducts));
       } catch(e) {}
       renderSeriesOptions(document.getElementById("seriesSearchInput").value);
       restoreFromUrl();
@@ -3524,6 +3533,52 @@ function renderSeriesOptions(kw, targetSeriesVal = null) {
   if (prevVal && entries.some(([ser]) => ser === prevVal)) {
     selSeries.value = prevVal;
   }
+}
+
+async function loadPartnerProducts() {
+  if (partnerProducts) return partnerProducts;
+  const r = await fetch("https://cc.bigt.cc/partner_ebook.json");
+  const j = await r.json();
+  partnerProducts = (j.tiles || []).map(t => {
+    const pieces = [], scenes = [];
+    (t.images || []).forEach(i => {
+      const u = normalizeImgUrl(i, false);
+      if (!u) return;
+      if (i.includes("#scene")) scenes.push(u); else if (i.includes("#pattern")) pieces.push(u);
+    });
+    const size = String(t.size || "").replace(/\s*cm$/i, "").replace(/[×*＊Ｘ]/g, "x").trim();
+    return {
+      code: String(t.code || "").toUpperCase().trim(),
+      _src: t.src,
+      series: String(t.title_zh || t.series || t.code).trim(),
+      seriesEn: String(t.title_en || t.series || "").trim(),
+      brand: String(t.brand || "").trim(), origin: "",
+      size, color: String(t.color || "").trim(), colorBase: "",
+      colorFam: productColorFamilies({ colorBase: "", color: t.color }),
+      style: String(t.style || "").trim(), area: "",
+      level: "normal", stock_status: "inquiry",
+      pricePcs: 0, pricePing: 0, ratio: 36, availPcs: 0, rawPing: 0, pingStr: "",
+      mainImg: pieces[0] || scenes[0] || "", scenes, pdfUrl: "", driveUrl: ""
+    };
+  }).filter(p => p.mainImg);
+  return partnerProducts;
+}
+
+async function setCompany(co) {
+  document.querySelectorAll("#coChips .chip").forEach(b => b.classList.toggle("active", b.dataset.co === co));
+  if (co !== "gao") {
+    try { await loadPartnerProducts(); }
+    catch (e) { console.warn("partner load failed", e); alert("分公司資料載入失敗，請稍後再試"); return setCompany("gao"); }
+  }
+  currentCo = co;
+  allProducts = co === "gao" ? gaoProducts : partnerProducts.filter(p => p._src === co);
+  currentLevel = "all"; currentColor = "";
+  document.querySelectorAll("#levelChips .chip").forEach(b => b.classList.toggle("active", b.dataset.lv === "all"));
+  const lv = document.getElementById("levelChips");
+  if (lv && lv.parentElement) lv.parentElement.style.display = co === "gao" ? "" : "none";
+  renderColorChips();
+  const si = document.getElementById("seriesSearchInput"); if (si) si.value = "";
+  if (currentMode === "series") { renderSeriesOptions(""); pickBySeries(); } else { applyAndPick(); }
 }
 
 function filterSeriesSelect() {
