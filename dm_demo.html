@@ -2930,19 +2930,23 @@
 <div class="modal-backdrop" id="mobileWizardModal" onclick="if(event.target===this)closeMobileWizard()">
   <div class="modal-card" style="max-width:520px;padding:20px 18px;gap:14px;">
     <div class="modal-head">
-      <div class="modal-title" style="font-size:18px;font-weight:900;" id="wizModalTitle">請選擇型錄製作方式</div>
+      <div class="modal-title" style="font-size:18px;font-weight:900;" id="wizModalTitle">製作方式</div>
       <button type="button" class="modal-close" onclick="closeMobileWizard()" id="btnWizClose">×</button>
     </div>
 
     <!-- Step 1: 三選一大字勾選 -->
     <div id="wizStep1" style="display:flex;flex-direction:column;gap:12px;">
-      <div style="font-size:13.5px;color:var(--muted);font-weight:700;">請勾選一項開始（進入後畫面所有文字與價格皆可直接點擊修改）：</div>
+      <div class="chip-group" id="wizCoChips" style="justify-content:center;">
+        <button type="button" class="chip active" data-co="gao" onclick="setCompany('gao')">高雅瓷</button>
+        <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
+        <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
+      </div>
       <div class="wiz-choice-list">
         <button type="button" class="wiz-choice-card selected" id="wizCardSeries" onclick="selectWizardMode('series')">
           <span class="wiz-check-box">✓</span>
           <div>
             <div class="wiz-choice-title">1. 單系列</div>
-            <div class="wiz-choice-desc">搜尋或點選系列名稱，進入畫布自由編排</div>
+            <div class="wiz-choice-desc">選系列</div>
           </div>
         </button>
 
@@ -2950,7 +2954,7 @@
           <span class="wiz-check-box">✓</span>
           <div>
             <div class="wiz-choice-title">2. 按照尺寸</div>
-            <div class="wiz-choice-desc">先選磁磚尺寸，再挑選磚種風格與版面風格</div>
+            <div class="wiz-choice-desc">選尺寸與風格</div>
           </div>
         </button>
 
@@ -2958,7 +2962,7 @@
           <span class="wiz-check-box">✓</span>
           <div>
             <div class="wiz-choice-title">3. 輸入編號</div>
-            <div class="wiz-choice-desc">輸入單一或多組產品編號，跨系列組合專屬提案單</div>
+            <div class="wiz-choice-desc">跨系列組合</div>
           </div>
         </button>
       </div>
@@ -3565,7 +3569,7 @@ async function loadPartnerProducts() {
 }
 
 async function setCompany(co) {
-  document.querySelectorAll("#coChips .chip").forEach(b => b.classList.toggle("active", b.dataset.co === co));
+  document.querySelectorAll(".chip[data-co]").forEach(b => b.classList.toggle("active", b.dataset.co === co));
   if (co !== "gao") {
     try { await loadPartnerProducts(); }
     catch (e) { console.warn("partner load failed", e); alert("分公司資料載入失敗，請稍後再試"); return setCompany("gao"); }
@@ -5552,7 +5556,7 @@ function selectWizardMode(mode) {
 }
 
 function backToWizardStep1() {
-  document.getElementById("wizModalTitle").textContent = "請選擇型錄製作方式";
+  document.getElementById("wizModalTitle").textContent = "製作方式";
   document.getElementById("wizStep1").style.display = "flex";
   document.getElementById("wizStep2Series").style.display = "none";
   document.getElementById("wizStep2Theme").style.display = "none";
@@ -5564,17 +5568,17 @@ let wizSelectedSeries = "";
 function goWizardStep2() {
   document.getElementById("wizStep1").style.display = "none";
   if (wizardTempMode === "series") {
-    document.getElementById("wizModalTitle").textContent = "1. 單系列：搜尋或點選系列";
+    document.getElementById("wizModalTitle").textContent = "選系列";
     document.getElementById("wizStep2Series").style.display = "flex";
     const inp = document.getElementById("wizSeriesSearch");
     if (inp) inp.value = "";
     wizSelectedSeries = document.getElementById("selSeries")?.value || "";
     renderWizardSeriesList("");
   } else if (wizardTempMode === "theme") {
-    document.getElementById("wizModalTitle").textContent = "2. 按照尺寸：選擇尺寸與磚種風格";
+    document.getElementById("wizModalTitle").textContent = "選尺寸與風格";
     document.getElementById("wizStep2Theme").style.display = "flex";
   } else {
-    document.getElementById("wizModalTitle").textContent = "3. 輸入編號：組合多款產品提案";
+    document.getElementById("wizModalTitle").textContent = "輸入編號";
     document.getElementById("wizStep2Codes").style.display = "flex";
     const inp = document.getElementById("wizCodesInput");
     if (inp) inp.value = "";
