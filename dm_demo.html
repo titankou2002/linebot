@@ -2378,8 +2378,7 @@
     .mob-filter-toggle { display: none !important; }
   }
   .m-hide { display:none !important; }
-  .m-opt-row { display:flex; justify-content:center; gap:16px; margin:0 0 8px; }
-  .m-opt-row .price-toggle { margin:0; }
+  .page-nav-btns .price-toggle { margin:0; padding:4px 8px; font-size:12px; min-height:0; }
   .ctrl-sec.m-collapsed > *:not(.sec-title) { display:none !important; }
   .ctrl-sec.m-collapsible > .sec-title { cursor:pointer; }
   .ctrl-sec.m-collapsible > .sec-title span::after { content:" ▾"; }
@@ -2743,7 +2742,6 @@
       <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
       <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
     </div>
-    <div id="mOptRow" class="m-opt-row"></div>
     <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-stat-info">
@@ -3413,7 +3411,7 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 // ════════════════════════════════════════════════════════════════
 // 風格／實景區塊預設收合；只保留「顯示庫存」「顯示單價」並移到預覽區上方
 function setupMobileOptions() {
-  const row = document.getElementById("mOptRow");
+  const row = document.querySelector(".page-nav-btns");
   ["chkShowPing", "chkShowPrice"].forEach(id => {
     const el = document.getElementById(id);
     const lab = el && el.closest("label");
