@@ -4945,7 +4945,7 @@ function buildPiecesGridHtml() {
           <button type="button" class="card-ctrl-btn delete-btn" title="移除此款" onclick="removePickedCard('${p.code}')">${SVG.close}</button>
         </div>
         <div class="tile-stage">
-          <img class="piece-img" src="${p.mainImg}" alt="${p.code}" loading="lazy" data-rot="${rot}" style="${rotStyle}" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}', ${rot})">
+          <img class="piece-img" src="${p.mainImg}" alt="${p.code}" decoding="async" data-rot="${rot}" style="${rotStyle}" onclick="openImageZoom('${p.mainImg}', '${p.code} ${p.series}', ${rot})">
           ${flagSvg}
         </div>
         <div class="tile-body-col">
