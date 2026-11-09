@@ -3350,7 +3350,8 @@ function extractProductMedia(p, stockSnap) {
     });
   }
   const snapImg = stockSnap && stockSnap.imgUrl ? normalizeImgUrl(stockSnap.imgUrl, false) : "";
-  const mainImg = snapImg || normalizeImgUrl(p.main_img_url, false) || pieces[0] || "";
+  // 資料庫主圖優先；庫存快照（GAS）的圖網址曾指向已不存在的檔案，只當最後備援
+  const mainImg = normalizeImgUrl(p.main_img_url, false) || pieces[0] || snapImg || "";
   return { mainImg, scenes, pieces, pdfUrl, driveUrl };
 }
 
