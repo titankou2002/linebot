@@ -2377,16 +2377,13 @@
     body.tray-open:not(.client-view) { padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px)) !important; }
     .mob-filter-toggle { display: none !important; }
   }
-  .m-opt-row { display:none; }
-  @media (max-width: 960px) {
-    .m-hide { display:none !important; }
-    .m-opt-row { display:flex; justify-content:center; gap:16px; margin:0 0 8px; }
-    .m-opt-row .price-toggle { margin:0; }
-    .ctrl-sec.m-collapsed > *:not(.sec-title) { display:none !important; }
-    .ctrl-sec.m-collapsible > .sec-title { cursor:pointer; }
-    .ctrl-sec.m-collapsible > .sec-title span::after { content:" ▾"; }
-    .ctrl-sec.m-collapsible.m-collapsed > .sec-title span::after { content:" ▸"; }
-  }
+  .m-hide { display:none !important; }
+  .m-opt-row { display:flex; justify-content:center; gap:16px; margin:0 0 8px; }
+  .m-opt-row .price-toggle { margin:0; }
+  .ctrl-sec.m-collapsed > *:not(.sec-title) { display:none !important; }
+  .ctrl-sec.m-collapsible > .sec-title { cursor:pointer; }
+  .ctrl-sec.m-collapsible > .sec-title span::after { content:" ▾"; }
+  .ctrl-sec.m-collapsible.m-collapsed > .sec-title span::after { content:" ▸"; }
 </style>
 </head>
 <body>
@@ -2822,6 +2819,9 @@
       </button>
       <button type="button" class="dock-btn btn-with-svg" onclick="exportSinglePagePdf()" id="btnDockSinglePdf">
         <span class="btn-ico-holder"></span>下載單頁 A4 PDF
+      </button>
+      <button type="button" class="dock-btn btn-with-svg" onclick="exportFullPosterJPG()" id="btnDockJpg">
+        <span class="btn-ico-holder"></span>另存 JPG 圖片
       </button>
       <button type="button" class="dock-btn btn-with-svg" onclick="addCurrentPageToPdfQueue()" id="btnAddToPdf">
         <span class="btn-ico-holder"></span>加入目前這頁至 PDF
@@ -3411,9 +3411,8 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 // ════════════════════════════════════════════════════════════════
 // 高速雙層載入引擎
 // ════════════════════════════════════════════════════════════════
-// 手機版：風格／實景區塊預設收合；只保留「顯示庫存」「顯示單價」並移到預覽區上方
+// 風格／實景區塊預設收合；只保留「顯示庫存」「顯示單價」並移到預覽區上方
 function setupMobileOptions() {
-  if (!window.matchMedia("(max-width: 960px)").matches) return;
   const row = document.getElementById("mOptRow");
   ["chkShowPing", "chkShowPrice"].forEach(id => {
     const el = document.getElementById(id);
