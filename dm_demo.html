@@ -2377,6 +2377,16 @@
     body.tray-open:not(.client-view) { padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px)) !important; }
     .mob-filter-toggle { display: none !important; }
   }
+  .m-opt-row { display:none; }
+  @media (max-width: 960px) {
+    .m-hide { display:none !important; }
+    .m-opt-row { display:flex; justify-content:center; gap:16px; margin:0 0 8px; }
+    .m-opt-row .price-toggle { margin:0; }
+    .ctrl-sec.m-collapsed > *:not(.sec-title) { display:none !important; }
+    .ctrl-sec.m-collapsible > .sec-title { cursor:pointer; }
+    .ctrl-sec.m-collapsible > .sec-title span::after { content:" ▾"; }
+    .ctrl-sec.m-collapsible.m-collapsed > .sec-title span::after { content:" ▸"; }
+  }
 </style>
 </head>
 <body>
@@ -2658,35 +2668,35 @@
     <div class="ctrl-sec staff-only">
       <div class="sec-title"><span>4. 細部自訂微調</span></div>
       <div class="toggle-grid">
-        <label class="price-toggle">
+        <label class="price-toggle m-hide">
           <input type="checkbox" id="chkOnlyInStock" onchange="applyAndPick()">
           <span>只顯示現貨</span>
         </label>
         <label class="price-toggle">
           <input type="checkbox" id="chkShowPing" checked onchange="renderDM()">
-          <span>顯示坪數</span>
+          <span>顯示庫存</span>
         </label>
         <label class="price-toggle">
           <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
           <span>顯示單價</span>
         </label>
-        <label class="price-toggle">
+        <label class="price-toggle m-hide">
           <input type="checkbox" id="chkShowReserveBtn" checked onchange="toggleReserveBtns(this.checked)">
           <span>下保留按鈕</span>
         </label>
-        <label class="price-toggle">
+        <label class="price-toggle m-hide">
           <input type="checkbox" id="chkShowFlags" checked onchange="toggleOriginFlags(this.checked)">
           <span>原產國旗</span>
         </label>
-        <label class="price-toggle">
+        <label class="price-toggle m-hide">
           <input type="checkbox" id="chkCardSquare" onchange="toggleCardCorner(this.checked)">
           <span>極簡直角</span>
         </label>
-        <label class="price-toggle">
+        <label class="price-toggle m-hide">
           <input type="checkbox" id="chkShowQrCode" checked onchange="toggleQrCode(this.checked)">
           <span>顯示 QR 碼</span>
         </label>
-        <label class="price-toggle">
+        <label class="price-toggle m-hide">
           <input type="checkbox" id="chkShowResources" checked onchange="toggleResourcesBar(this.checked)">
           <span>原廠 PDF/圖庫</span>
         </label>
@@ -2736,6 +2746,7 @@
       <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
       <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
     </div>
+    <div id="mOptRow" class="m-opt-row"></div>
     <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-stat-info">
@@ -3400,7 +3411,26 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 // ════════════════════════════════════════════════════════════════
 // 高速雙層載入引擎
 // ════════════════════════════════════════════════════════════════
+// 手機版：風格／實景區塊預設收合；只保留「顯示庫存」「顯示單價」並移到預覽區上方
+function setupMobileOptions() {
+  if (!window.matchMedia("(max-width: 960px)").matches) return;
+  const row = document.getElementById("mOptRow");
+  ["chkShowPing", "chkShowPrice"].forEach(id => {
+    const el = document.getElementById(id);
+    const lab = el && el.closest("label");
+    if (lab && row) row.appendChild(lab);
+  });
+  document.querySelectorAll(".ctrl-sec").forEach(sec => {
+    const t = (sec.querySelector(":scope > .sec-title") || {}).textContent || "";
+    if (/^\s*(2\.|3\.)/.test(t)) {
+      sec.classList.add("m-collapsible", "m-collapsed");
+      sec.querySelector(":scope > .sec-title").addEventListener("click", () => sec.classList.toggle("m-collapsed"));
+    }
+  });
+}
+
 async function initData() {
+  setupMobileOptions();
   setupStaticSvgIcons();
   setupFloatingToolbarListener();
   setupDmSheetScaleObserver();
