@@ -3415,7 +3415,7 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 // ════════════════════════════════════════════════════════════════
 // ───────── 業務登入（與後台共用 elitile_admin_session；價格只有登入的業務讀得到）─────────
 const EB_AUTH_KEY = "elitile_admin_session";
-let ebSession = null, ebStaffOk = false, ebPricesLoaded = false;
+let ebSession = null, ebStaffOk = false, ebPricesLoaded = false, ebPartnerPrices = null;
 function ebLoadSession() { try { ebSession = JSON.parse(localStorage.getItem(EB_AUTH_KEY) || "null"); } catch (e) { ebSession = null; } }
 function ebSaveSession(d) {
   ebSession = d ? { access_token: d.access_token, refresh_token: d.refresh_token,
@@ -3465,8 +3465,23 @@ async function ebLoadPrices() {
     if (x.stock_status) p.stock_status = x.stock_status;
   });
   ebPricesLoaded = true;
+  try {
+    const pr = await fetch(`${SB_URL}/rest/v1/partner_prices?select=src,code,price_num,ratio,stock_ping,stock_pieces&limit=5000`, { headers: { apikey: SB_KEY, Authorization: "Bearer " + tok } });
+    if (pr.ok) { ebPartnerPrices = new Map((await pr.json()).map(x => [x.src + "|" + String(x.code).toUpperCase(), x])); ebApplyPartnerPrices(); }
+  } catch (e) {}
   try { renderDM(); } catch (e) {}
   return true;
+}
+function ebApplyPartnerPrices() {
+  if (!ebPartnerPrices || !partnerProducts) return;
+  partnerProducts.forEach(p => {
+    const x = ebPartnerPrices.get(p._src + "|" + p.code); if (!x) return;
+    const ratio = Number(x.ratio) || p.ratio;
+    p.ratio = ratio;
+    p.pricePcs = Number(x.price_num) || 0;
+    p.pricePing = p.pricePcs && ratio ? Math.round(p.pricePcs * ratio) : 0;
+    if (x.stock_ping != null) { p.rawPing = Number(x.stock_ping) || 0; p.availPcs = Number(x.stock_pieces) || Math.round(p.rawPing * ratio); p.pingStr = formatFloorPing(p.rawPing); p.stock_status = p.availPcs > 0 ? "in_stock" : "inquiry"; }
+  });
 }
 function ebShowLogin() {
   let m = document.getElementById("ebLoginModal");
@@ -3501,7 +3516,7 @@ async function ebDoLogin() {
 }
 function onLoginBtn() {
   if (ebStaffOk) { ebSaveSession(null); ebStaffOk = false; ebPricesLoaded = false; ebSyncLoginBtn();
-    gaoProducts.forEach(p => { p.pricePcs = 0; p.pricePing = 0; }); const c = document.getElementById("chkShowPrice"); if (c) c.checked = false; renderDM(); showToast("已登出"); }
+    gaoProducts.forEach(p => { p.pricePcs = 0; p.pricePing = 0; }); ebPartnerPrices = null; (partnerProducts || []).forEach(p => { p.pricePcs = 0; p.pricePing = 0; p.availPcs = 0; p.rawPing = 0; p.pingStr = ""; }); const c = document.getElementById("chkShowPrice"); if (c) c.checked = false; renderDM(); showToast("已登出"); }
   else ebShowLogin();
 }
 function onPriceToggle(el) {
@@ -3695,6 +3710,7 @@ async function loadPartnerProducts() {
       mainImg: pieces[0] || scenes[0] || "", scenes, pdfUrl: "", driveUrl: ""
     };
   }).filter(p => p.mainImg);
+  ebApplyPartnerPrices();
   return partnerProducts;
 }
 
