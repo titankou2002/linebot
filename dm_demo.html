@@ -2673,7 +2673,7 @@
           <span>顯示庫存</span>
         </label>
         <label class="price-toggle">
-          <input type="checkbox" id="chkShowPrice" onchange="renderDM()">
+          <input type="checkbox" id="chkShowPrice" onchange="onPriceToggle(this)">
           <span>顯示單價</span>
         </label>
         <label class="price-toggle m-hide">
@@ -2741,6 +2741,7 @@
       <button type="button" class="chip active" data-co="gao" onclick="setCompany('gao')">高雅瓷</button>
       <button type="button" class="chip" data-co="安" onclick="setCompany('安')">安帝嘉</button>
       <button type="button" class="chip" data-co="喜" onclick="setCompany('喜')">喜悅納</button>
+      <button type="button" class="chip" id="btnLogin" onclick="onLoginBtn()" title="業務登入後才能看單價">登入</button>
     </div>
     <!-- 多頁分頁切換列 -->
     <div class="pagination-bar" id="paginationBar">
@@ -3412,8 +3413,105 @@ function processRawProducts(sbRows, stockCatalog = {}) {
 // ════════════════════════════════════════════════════════════════
 // 高速雙層載入引擎
 // ════════════════════════════════════════════════════════════════
+// ───────── 業務登入（與後台共用 elitile_admin_session；價格只有登入的業務讀得到）─────────
+const EB_AUTH_KEY = "elitile_admin_session";
+let ebSession = null, ebStaffOk = false, ebPricesLoaded = false;
+function ebLoadSession() { try { ebSession = JSON.parse(localStorage.getItem(EB_AUTH_KEY) || "null"); } catch (e) { ebSession = null; } }
+function ebSaveSession(d) {
+  ebSession = d ? { access_token: d.access_token, refresh_token: d.refresh_token,
+    expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600),
+    email: (d.user && d.user.email) || (ebSession && ebSession.email) || "" } : null;
+  try { if (ebSession) localStorage.setItem(EB_AUTH_KEY, JSON.stringify(ebSession)); else localStorage.removeItem(EB_AUTH_KEY); } catch (e) {}
+}
+async function ebToken(grant, body) {
+  const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=${grant}`, { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error_description || d.msg || d.message || ("登入失敗 " + r.status));
+  return d;
+}
+async function ebAccessToken() {
+  if (!ebSession) return null;
+  if (Date.now() / 1000 < ebSession.expires_at - 60) return ebSession.access_token;
+  try { const d = await ebToken("refresh_token", { refresh_token: ebSession.refresh_token }); ebSaveSession(d); return d.access_token; }
+  catch (e) { ebSaveSession(null); return null; }
+}
+async function ebCheckStaff(tok) {
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/staff_my_role`, { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + tok, "Content-Type": "application/json" }, body: "{}" });
+  if (!r.ok) return false;
+  const v = await r.json().catch(() => null);
+  return !!v;
+}
+function ebSyncLoginBtn() {
+  const b = document.getElementById("btnLogin"); if (!b) return;
+  b.textContent = ebStaffOk ? "已登入 · 登出" : "登入";
+  b.classList.toggle("active", ebStaffOk);
+}
+async function ebLoadPrices() {
+  const tok = await ebAccessToken(); if (!tok) { ebStaffOk = false; ebSyncLoginBtn(); return false; }
+  if (!ebStaffOk) ebStaffOk = await ebCheckStaff(tok);
+  ebSyncLoginBtn();
+  if (!ebStaffOk) return false;
+  if (ebPricesLoaded) return true;
+  const r = await fetch(`${SB_URL}/rest/v1/products?select=code,price_num,price_per_pyeong,ratio,stock_status&is_active=eq.true&limit=1000`, { headers: { apikey: SB_KEY, Authorization: "Bearer " + tok } });
+  if (!r.ok) return false;
+  const rows = await r.json();
+  const m = new Map(rows.map(x => [String(x.code).toUpperCase().trim(), x]));
+  gaoProducts.forEach(p => {
+    const x = m.get(p.code); if (!x) return;
+    const ratio = Number(x.ratio) || p.ratio;
+    p.ratio = ratio;
+    p.pricePcs = Number(x.price_num) || 0;
+    p.pricePing = Number(x.price_per_pyeong) || (p.pricePcs && ratio ? Math.round(p.pricePcs * ratio) : 0);
+    if (x.stock_status) p.stock_status = x.stock_status;
+  });
+  ebPricesLoaded = true;
+  try { renderDM(); } catch (e) {}
+  return true;
+}
+function ebShowLogin() {
+  let m = document.getElementById("ebLoginModal");
+  if (!m) {
+    m = document.createElement("div"); m.id = "ebLoginModal";
+    m.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;";
+    m.innerHTML = `<div style="background:#fff;border-radius:12px;padding:18px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
+      <div style="font-weight:900;font-size:16px;">業務登入</div>
+      <input id="ebLoginEmail" class="input" type="email" placeholder="Email" autocomplete="username">
+      <input id="ebLoginPwd" class="input" type="password" placeholder="密碼" autocomplete="current-password">
+      <div id="ebLoginMsg" style="color:#b3261e;font-size:12.5px;min-height:16px;"></div>
+      <div style="display:flex;gap:8px;"><button type="button" class="btn-act" style="flex:1" onclick="document.getElementById('ebLoginModal').remove()">取消</button>
+      <button type="button" class="btn-act primary" style="flex:1" id="ebLoginGo" onclick="ebDoLogin()">登入</button></div></div>`;
+    document.body.appendChild(m);
+    m.addEventListener("keydown", e => { if (e.key === "Enter") ebDoLogin(); });
+  }
+  setTimeout(() => { const i = document.getElementById("ebLoginEmail"); if (i) i.focus(); }, 50);
+}
+async function ebDoLogin() {
+  const email = document.getElementById("ebLoginEmail").value.trim(), pwd = document.getElementById("ebLoginPwd").value;
+  const msg = document.getElementById("ebLoginMsg"), go = document.getElementById("ebLoginGo");
+  if (!email || !pwd) { msg.textContent = "請輸入 Email 與密碼"; return; }
+  go.disabled = true; msg.textContent = "登入中…";
+  try {
+    const d = await ebToken("password", { email, password: pwd });
+    ebSaveSession(d); ebStaffOk = false; ebPricesLoaded = false;
+    if (!(await ebLoadPrices())) { ebSaveSession(null); throw new Error("此帳號不是業務／員工，無法查看價格"); }
+    document.getElementById("ebLoginModal").remove();
+    showToast("已登入，可顯示單價");
+    const c = document.getElementById("chkShowPrice"); if (c) { c.checked = true; renderDM(); }
+  } catch (e) { msg.textContent = String(e.message || e); go.disabled = false; }
+}
+function onLoginBtn() {
+  if (ebStaffOk) { ebSaveSession(null); ebStaffOk = false; ebPricesLoaded = false; ebSyncLoginBtn();
+    gaoProducts.forEach(p => { p.pricePcs = 0; p.pricePing = 0; }); const c = document.getElementById("chkShowPrice"); if (c) c.checked = false; renderDM(); showToast("已登出"); }
+  else ebShowLogin();
+}
+function onPriceToggle(el) {
+  if (el.checked && !ebStaffOk) { el.checked = false; ebShowLogin(); return; }
+  renderDM();
+}
+
 // 風格／實景區塊預設收合；只保留「顯示庫存」「顯示單價」並移到預覽區上方
 function setupMobileOptions() {
+  ebLoadSession(); setTimeout(() => ebLoadPrices().catch(() => {}), 1500);
   const row = document.querySelector(".page-nav-btns");
   ["chkShowPing", "chkShowPrice"].forEach(id => {
     const el = document.getElementById(id);
@@ -3473,6 +3571,7 @@ async function initData() {
     if (sbRows && sbRows.length > 0) {
       gaoProducts = processRawProducts(sbRows, cachedStock);
       if (currentCo === "gao") allProducts = gaoProducts;
+      ebPricesLoaded = false; ebLoadPrices().catch(() => {});
       try {
         localStorage.setItem("ebook_products_cache_v3", JSON.stringify(gaoProducts));
       } catch(e) {}
