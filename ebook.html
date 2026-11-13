@@ -2751,6 +2751,9 @@
         <button type="button" class="btn-act" id="btnPrevPage" onclick="goToPrevPage()">◀ 上一頁</button>
         <span class="page-indicator" id="pageIndicatorTxt">第 1 / 1 頁</span>
         <button type="button" class="btn-act" id="btnNextPage" onclick="goToNextPage()">下一頁 ▶</button>
+        <button type="button" class="btn-act" id="btnZoomOut" onclick="zoomDm(-0.1)" title="縮小 DM">－</button>
+        <button type="button" class="btn-act" id="btnZoomPct" onclick="zoomDm(0)" title="點一下回到 100%" style="min-width:52px;">100%</button>
+        <button type="button" class="btn-act" id="btnZoomIn" onclick="zoomDm(0.1)" title="放大 DM">＋</button>
         <button type="button" class="btn-act fit-only-desktop" id="btnFitPage" onclick="toggleFitPage()" title="電腦版：整頁縮放到一個畫面內，不用上下捲動">適配整頁</button>
       </div>
     </div>
@@ -5236,7 +5239,14 @@ function renderDM() {
 let isScalingDmSheet = false;
 let dmSheetResizeObserver = null;
 let dmFitPage = (() => { try { return localStorage.getItem("ebook_fit_page") !== "0"; } catch (e) { return true; } })();   // 電腦版預設整頁適配
+let dmUserZoom = 1;
+function zoomDm(delta) {
+  dmUserZoom = delta === 0 ? 1 : Math.min(1.6, Math.max(0.4, Math.round((dmUserZoom + delta) * 10) / 10));
+  const b = document.getElementById("btnZoomPct"); if (b) b.textContent = Math.round(dmUserZoom * 100) + "%";
+  updateDmSheetScale();
+}
 function toggleFitPage() {
+  dmUserZoom = 1; { const b = document.getElementById("btnZoomPct"); if (b) b.textContent = "100%"; }
   dmFitPage = !dmFitPage;
   try { localStorage.setItem("ebook_fit_page", dmFitPage ? "1" : "0"); } catch (e) {}
   syncFitPageBtn();
@@ -5270,7 +5280,10 @@ function updateDmSheetScale() {
         scale = Math.min(scale, Math.max(0.3, availH / sheet.offsetHeight));
       }
 
-      if (scale < 0.999 && scale > 0) {
+      scale *= dmUserZoom;
+      wrap.style.overflowX = scale > 1.001 ? "auto" : "";
+      sheet.style.transformOrigin = scale > 1.001 ? "top left" : "";
+      if (Math.abs(scale - 1) > 0.001 && scale > 0) {
         sheet.style.setProperty("--dm-scale", scale.toFixed(4));
         const scaledH = Math.ceil(sheet.offsetHeight * scale);
         wrap.style.height = `${scaledH}px`;
